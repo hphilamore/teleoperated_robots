@@ -60,8 +60,17 @@ make_output_window_fullscreen = True
 # Send command to raspberry pi
 send_command = False
 
+# Choose robot:
+robot = 'shinobot_2' # 'wings', 'turtle'
+
 # Number of hands to track
-n_hands = 2
+if robot in ['shinobot_2', 'turtle']:
+    n_hands = 1
+elif robot == 'wings':
+    n_hands = 2
+
+# # Number of hands to track
+# n_hands = 2
 
 
 #-------------------------------------------------------------------------------
@@ -80,30 +89,30 @@ flag_no_hand = False
 capture = cv2.VideoCapture(0)
 
 
-def pos_to_command(x, y, z):
-    """
-    Translates position of hand detected to command sent to robot
-    """
-    if 0.0 < x < 1.0:        # Check hand detected in frame
-        # if z <= -0.15:       # Stop if too close
-        #     out = 'stop'          
+# def pos_to_command(x, y, z):
+#     """
+#     Translates position of hand detected to command sent to robot
+#     """
+#     if 0.0 < x < 1.0:        # Check hand detected in frame
+#         # if z <= -0.15:       # Stop if too close
+#         #     out = 'stop'          
 
-        if x < 0.4:        # Turn left
-            out = 'left'
+#         if x < 0.4:        # Turn left
+#             out = 'left'
              
-        elif x > 0.6:        # Turn right 
-            out = 'right'
+#         elif x > 0.6:        # Turn right 
+#             out = 'right'
             
-        else:                # Go forwards
-            if y >= 0.5:
-                out = 'backward'
-            else:
-                out = 'forward'
+#         else:                # Go forwards
+#             if y >= 0.5:
+#                 out = 'backward'
+#             else:
+#                 out = 'forward'
 
-    else:
-        out = 'none'
+#     else:
+#         out = 'none'
 
-    return out
+#     return out
 
 
 if input_mode == 'keys':
@@ -126,19 +135,19 @@ if input_mode == 'keys':
             if char == ord('q'):
                 break
             elif char == curses.KEY_UP:
-                print("up")
+                print('up')
                 command = 'forward'
             elif char == curses.KEY_DOWN:
-                print("down")
+                print('down')
                 command = 'backward'
             elif char == curses.KEY_RIGHT:
-                print("right")
+                print('right')
                 command = 'right'
             elif char == curses.KEY_LEFT:
-                print("left")
+                print('left')
                 command = 'left'
             elif char == ord('s'): #10:
-                print("stop")
+                print('stop')
                 command = 'stop' 
 
             # Send command to server socket on raspberry pi
@@ -276,7 +285,7 @@ while(True):
                 if not flag_no_hand:     # If there was a hand in previous frame
                     flag_no_hand = True  # Raise the flag 
                     start = time.time()  # Start the timer
-                    command = 'no command'
+                    command = 'no hand'
 
                 else:
                     end = time.time()
