@@ -165,8 +165,10 @@ def pos_to_command(x, y):
         out = 'right'
         
     else:                # Go forwards
-        out = 'forward'
-
+        if y >= 0.5:
+            out = 'backward'
+        else:
+            out = 'forward'
 
     return out
 
