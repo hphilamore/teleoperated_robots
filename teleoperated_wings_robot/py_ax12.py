@@ -70,7 +70,8 @@ def move(servo_id, position, serial_object):
                           ).upper()
                           #str(ax_write_data) + str(0x1E) + str(l) + str(h) + str(checksum))
 
-    serial_object.write(bytearray.fromhex(instruction_packet))
+   print(instruction_packet)
+   serial_object.write(bytearray.fromhex(instruction_packet))
 
     return(instruction_packet)
 
@@ -333,19 +334,19 @@ def forwards(serial_object, left=0x02, right=0x01):
 
 def move_check(servo_id, position):
 
-	P = position  # position as 10-bit number 
+  	P = position  # position as 10-bit number 
 
-	B = P/256               # seperate into 2 8 bit bytes by dividing by max value of 8 bit byte 
+  	B = P/256               # seperate into 2 8 bit bytes by dividing by max value of 8 bit byte 
 
-	H = int(B // 1)         # decimal value of high byte, convert to intager
+  	H = int(B // 1)         # decimal value of high byte, convert to intager
 
-	L = B - H                     
-	L = int(L * 256)        # decimal value of low byte
+  	L = B - H                     
+  	L = int(L * 256)        # decimal value of low byte
 
-	H = hex(H)
+  	H = hex(H)
 
-	L = hex(L)
-	
-	print(H,L)
+  	L = hex(L)
+  	
+  	print(H,L)
 
-	return(H, L)
+  	return(H, L)
