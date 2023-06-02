@@ -111,6 +111,8 @@ def move_speed(servo_id, position, speed, serial_object):
                           format(0x1E, '02x') + " " +
                           format(l, '02x') + " " +
                           format(h, '02x') + " " +
+                          format(sl, '02x') + " " +
+                          format(sh, '02x') + " " +
                           checksum[2:] 
                           ).upper()
                           #str(ax_write_data) + str(0x1E) + str(l) + str(h) + str(checksum))
