@@ -74,6 +74,51 @@ def move(servo_id, position, serial_object):
 
     return(instruction_packet)
 
+def move_speed(servo_id, position, serial_object, speed):
+    """
+    Moves a servo with specified ID to specified angle (degrees)
+
+    """
+    P = position  # position as integer representation of 10-bit value (in range 0 to 1024)
+
+    # print(type(P))
+
+    # print(P/1024 * 300) # Show angle in degrees
+
+    h = P >> 8    # value of high 8 bit byte
+
+    l = P & 0xff  # value of low 8-bit byte
+
+    S = speed
+
+    sh = S >> 8    # value of high 8 bit byte
+
+    sl = S & 0xff  # value of low 8-bit byte
+
+
+
+    checksum = ~(servo_id + ax_goal_length + ax_write_data + 0x1E + h + l + sh + sl) & 0xff
+
+    checksum = format(checksum, '#04x') # convert to hex number full representation (with 0x...)
+
+
+
+    instruction_packet = (format(ax_start, '02x') + " " +
+                          format(ax_start, '02x') + " " +
+                          format(servo_id, '02x') + " " + 
+                          format(ax_goal_length, '02x') + " " +
+                          format(ax_write_data, '02x') + " " +
+                          format(0x1E, '02x') + " " +
+                          format(l, '02x') + " " +
+                          format(h, '02x') + " " +
+                          checksum[2:] 
+                          ).upper()
+                          #str(ax_write_data) + str(0x1E) + str(l) + str(h) + str(checksum))
+
+    serial_object.write(bytearray.fromhex(instruction_packet))
+
+    return(instruction_packet)
+
 
 def set_endless(servo_id, status, serial_object):
 
