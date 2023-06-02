@@ -15,7 +15,6 @@ Sends command to raspberry pi robot over wifi.
 """
 
 
-import socket
 import cv2
 import mediapipe
 import socket
@@ -31,21 +30,22 @@ import curses
 #-------------------------------------------------------------------------------
 """ SETUP """
 
-HOST = "192.168.185.193"  # The raspberry pi's hostname or IP address
+HOST = "192.168.185.223"  # The raspberry pi's hostname or IP address
 PORT = 65443            # The port used by the server
 
 # Take video stream from 'camera' or 'window' or 'keys'
-input_mode = 'window' #'camera'##'camera'#'window'# 'camera'  
+input_mode = 'camera' #'window'#'camera'##'camera'  
 
 # Window name is using window
 win_name = 'zoom.us'                      
 #win_name = 'Microsoft Teams'
 win_name = 'zoom.us:Zoom Meeting'          # Find zoom meeting window 
-# win_name = 'zoom.us:zoom floating video'   # Find zoom meeting window during share screen 
+#win_name = 'zoom.us:zoom floating video'  # Find zoom meeting window during share screen ('pin' caller in zoom)
 #win_name = 'Vysor'                        # Find vysor window for robot POV 
 #win_name = 'Vysor:SM'                     # Find vysor window for robot POV 
 #win_name = 'Vysor:ART'                    # Find vysor window for robot POV 
-# win_name = 'Photo Booth:Photo Booth'   
+# win_name = 'Photo Booth:Photo Booth' 
+# win_name = 'GoPro Webcam:'  
 
 
 # Choose OC as macOS or windowsOS 
@@ -61,7 +61,7 @@ make_output_window_fullscreen = True
 send_command = True
 
 # Number of hands to track
-n_hands = 1
+n_hands = 2
 
 
 #-------------------------------------------------------------------------------
@@ -80,31 +80,30 @@ flag_no_hand = False
 capture = cv2.VideoCapture(0)
 
 
-def pos_to_command(x, y, z):
-    """
-    Translates position of hand detected to command sent to robot
-    """
-    if 0.0 < x < 1.0:        # Check hand detected in frame
-        # if z <= -0.15:       # Stop if too close
-        #     out = 'stop'          
+# def pos_to_command(x, y, z):
+#     """
+#     Translates position of hand detected to command sent to robot
+#     """
+#     if 0.0 < x < 1.0:        # Check hand detected in frame
+#         # if z <= -0.15:       # Stop if too close
+#         #     out = 'stop'          
 
-        if x < 0.4:        # Turn left
-            out = 'left'
+#         if x < 0.4:        # Turn left
+#             out = 'left'
              
-        elif x > 0.6:        # Turn right 
-            out = 'right'
+#         elif x > 0.6:        # Turn right 
+#             out = 'right'
             
-        else:                # Go forwards
-            out = 'forward'
-            # if y >= 0.5:
-            #     out = 'backward'
-            # else:
-            #     out = 'forward'
+#         else:                # Go forwards
+#             if y >= 0.5:
+#                 out = 'backward'
+#             else:
+#                 out = 'forward'
 
-    else:
-        out = 'none'
+#     else:
+#         out = 'none'
 
-    return out
+#     return out
 
 
 if input_mode == 'keys':
@@ -171,8 +170,6 @@ elif input_mode == 'window':
             print(coordinates)
             coordinates = [int(float(i)) for i in coordinates]  # Convert coordinates to integer
             print(coordinates)
-        else:
-            print('window not found')
 
 elif input_mode == 'camera':
     """ Setup web cam ready for video capture """
@@ -242,6 +239,8 @@ while(True):
                                              handLandmarks, 
                                              handsModule.HAND_CONNECTIONS)
 
+            hand_coordinates = []
+
             # Find each hand up to max number of hands 
             for hand_no, hand_landmarks in enumerate(results.multi_hand_landmarks):
                 print(f'HAND NUMBER: {hand_no+1}')
@@ -263,14 +262,17 @@ while(True):
 
                 print(x, y, z)
 
-                # Choose a command to send to the raspberry pi robot 
-                command = pos_to_command(x, y, z)
-                print(command)
+                # Add the mean values to the list of coordinates to send to raspberry pi
+                hand_coordinates.append(str(round(x, 2)))
+                hand_coordinates.append(str(round(y, 2)))
 
-
+            # Choose a command to send to the raspberry pi robot 
+            # command = pos_to_command(x, y, z)
+            command = ','.join(hand_coordinates)
+            print(command)
 
         else:
-                print('No hand')
+                print('no hand')
                 if not flag_no_hand:     # If there was a hand in previous frame
                     flag_no_hand = True  # Raise the flag 
                     start = time.time()  # Start the timer
@@ -296,29 +298,29 @@ while(True):
             if make_output_window_fullscreen:
 
                 # To make output window full screen:
-    	        for monitor in get_monitors():
-    	         	screen_h = monitor.height
-    	         	screen_w = monitor.width
-    	        
-    	        frame_h, frame_w, _ = frame.shape
+                for monitor in get_monitors():
+                    screen_h = monitor.height
+                    screen_w = monitor.width
+                
+                frame_h, frame_w, _ = frame.shape
 
-    	        scaleWidth = float(screen_w)/float(frame_w)
-    	        scaleHeight = float(screen_h)/float(frame_h)
+                scaleWidth = float(screen_w)/float(frame_w)
+                scaleHeight = float(screen_h)/float(frame_h)
 
-    	        if scaleHeight>scaleWidth:
-    	        	imgScale = scaleWidth
-    	        else:
-    	        	imgScale = scaleHeight
+                if scaleHeight>scaleWidth:
+                    imgScale = scaleWidth
+                else:
+                    imgScale = scaleHeight
 
-    	        newX,newY = frame_w*imgScale, frame_h*imgScale
+                newX,newY = frame_w*imgScale, frame_h*imgScale
 
-    	        cv2.namedWindow('image',cv2.WINDOW_NORMAL)      # Implicitly create the window
-    	        cv2.resizeWindow('image', int(newX),int(newY))  # Resize the window
+                cv2.namedWindow('image',cv2.WINDOW_NORMAL)      # Implicitly create the window
+                cv2.resizeWindow('image', int(newX),int(newY))  # Resize the window
 
 
         try:
             cv2.imshow('image', frame)                 # Show the window 
-        	
+            
         except:
             pass
  
