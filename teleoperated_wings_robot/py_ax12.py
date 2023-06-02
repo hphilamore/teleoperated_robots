@@ -69,9 +69,8 @@ def move(servo_id, position, serial_object):
                           checksum[2:] 
                           ).upper()
                           #str(ax_write_data) + str(0x1E) + str(l) + str(h) + str(checksum))
-
-   print(instruction_packet)
-   serial_object.write(bytearray.fromhex(instruction_packet))
+    print(instruction_packet)
+    serial_object.write(bytearray.fromhex(instruction_packet))
 
     return(instruction_packet)
 
