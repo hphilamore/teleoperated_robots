@@ -296,8 +296,8 @@ set_endless(0x04, False, Dynamixel)
 while True:
 
   GPIO.output(18,GPIO.HIGH)
-  move(0x04, 0, Dynamixel)    
-  move_speed(0x00, 16, 20, Dynamixel)       
+  #move(0x04, 0, Dynamixel)    
+  move_speed(0x04, 16, 20, Dynamixel)       
   sleep(1)
   move(0x04, 150, Dynamixel)
   sleep(1)
