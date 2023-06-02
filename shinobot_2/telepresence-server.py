@@ -146,7 +146,29 @@ def Turn_Left():
     PWM_Motor2B.ChangeDutyCycle(Stop)
 
 
+def pos_to_command(x, y):
+    """
+    Translates position of hand detected to command sent to robot
+    """
+    # Cap max and min x values 
+    if x < 0.0:
+        x = 0
 
+    if x > 1.0:
+        x = 1   
+
+    # Map position to command      
+    if x < 0.4:        # Turn left
+        out = 'left'
+         
+    elif x > 0.6:        # Turn right 
+        out = 'right'
+        
+    else:                # Go forwards
+        out = 'forward'
+
+
+    return out
 
 
 while(1):
@@ -218,6 +240,40 @@ while(1):
                 break
             msg = data.decode()
             print(msg)
+
+            # if msg != 'no command' and msg != 'stop':
+            if msg not in ['no command', 'stop', 'forward', 'backward', 'right', 'left']:
+
+                coordinates = msg.split(',')
+
+                # Convert string to floating point data 
+                coordinates = [float(i) for i in coordinates]
+
+                # Grouped coordinates as nested list of x,y pairs for each hand detected
+                hands = [coordinates[i:i+2] for i in range(0, len(coordinates), 2)]
+
+                # print(coordinates)
+
+                # If 2 hands detected:
+                if len(hands) > 1:
+
+                    # If x coordinate of both hands are on the same side of the screen, ignore one hand
+                    print("2 hands detected. Change n_hands to '1' in client code...")
+                    print("Exiting program...")
+                    sys.exit(1)
+
+
+                # For each hand 
+                for i in hands:
+
+                    x_position = i[0]
+                    y_position = i[1]
+                    print(x_position) 
+
+                    msg = pos_to_command(x_position, y_position)
+                    print('msg', msg)
+
+
 
             if msg == 'stop':
                 StopMotors()
