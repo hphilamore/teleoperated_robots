@@ -87,7 +87,7 @@ while True:
     print(msg)
 
     # if msg != 'no hand' and msg != 'stop':
-    if msg not in ['no hand', 'stop', 'forward', 'backward', 'right', 'left']
+    if msg not in ['no hand', 'stop', 'forward', 'backward', 'right', 'left']:
 
         coordinates = msg.split(',')
 
