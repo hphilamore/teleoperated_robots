@@ -121,7 +121,7 @@ while(1):
                         # move(0x04, servo_position, Dynamixel)
                         print(smoothed_position)
                         # move(0x04, smoothed_position, Dynamixel)
-                        move_speed(0x04, smoothed_position, 50, Dynamixel)
+                        move_speed(0x04, smoothed_position, 100, Dynamixel)
 
 
 
@@ -137,7 +137,7 @@ while(1):
                         # Send 10-bit value to servo
                         # move(0x03, servo_position, Dynamixel)
                         # move(0x03, smoothed_position, Dynamixel)
-                        move_speed(0x03, smoothed_position, 50, Dynamixel)
+                        move_speed(0x03, smoothed_position, 100, Dynamixel)
 
 
 
