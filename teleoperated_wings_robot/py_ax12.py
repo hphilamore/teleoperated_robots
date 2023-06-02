@@ -18,7 +18,7 @@ from time import time
 ax_start = 0xFF       # 2 x FF bytes indicate start of incoming packet 
 ax_id = 0x01          # servo ID 
 ax_goal_length = 0x05 # length of instruction packet (N parameters + 2)
-ax_goal_length_ = 0x07 # length of instruction packet (N parameters + 2)
+ax_goal_speed_length = 0x07 # length of instruction packet (N parameters + 2)
 
 # instructions for servo to perform 
 ax_ping = 0x01
@@ -98,7 +98,7 @@ def move_speed(servo_id, position, speed, serial_object):
 
 
 
-    checksum = ~(servo_id + ax_goal_length_ + ax_write_data + 0x1E + h + l + sh + sl) & 0xff
+    checksum = ~(servo_id + ax_goal_speed_length + ax_write_data + 0x1E + h + l + sh + sl) & 0xff
 
     checksum = format(checksum, '#04x') # convert to hex number full representation (with 0x...)
 
@@ -107,7 +107,7 @@ def move_speed(servo_id, position, speed, serial_object):
     instruction_packet = (format(ax_start, '02x') + " " +
                           format(ax_start, '02x') + " " +
                           format(servo_id, '02x') + " " + 
-                          format(ax_goal_length_, '02x') + " " +
+                          format(ax_goal_speed_length, '02x') + " " +
                           format(ax_write_data, '02x') + " " +
                           format(0x1E, '02x') + " " +
                           format(l, '02x') + " " +
