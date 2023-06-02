@@ -119,6 +119,7 @@ while(1):
 
                         # Send 10-bit value to servo
                         # move(0x04, servo_position, Dynamixel)
+                        print(smoothed_position)
                         move(0x04, smoothed_position, Dynamixel)
 
 
@@ -129,7 +130,7 @@ while(1):
 
                         # Moving average filter applied, Position rounded to nearest decimal value
                         smoothed_position = int(running_mean(servo_position, arr_right, 20)) //10 * 10
-
+                        print(smoothed_position)
 
                         # Send 10-bit value to servo
                         # move(0x03, servo_position, Dynamixel)

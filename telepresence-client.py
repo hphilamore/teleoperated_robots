@@ -30,7 +30,7 @@ import curses
 #-------------------------------------------------------------------------------
 """ SETUP """
 
-HOST = "192.168.185.182"  # The raspberry pi's hostname or IP address
+HOST = "192.168.185.223"  # The raspberry pi's hostname or IP address
 PORT = 65443            # The port used by the server
 
 # Take video stream from 'camera' or 'window' or 'keys'
@@ -61,7 +61,7 @@ make_output_window_fullscreen = True
 send_command = True
 
 # Number of hands to track (wings track 2 hands, turtle robots track one hand)
-n_hands = 1
+n_hands = 2
 
 
 #-------------------------------------------------------------------------------
