@@ -297,9 +297,11 @@ set_endless(0x04, False, Dynamixel)
 while True:
 
   GPIO.output(18,GPIO.HIGH)
-  move(0x04, 0, Dynamixel)          
+  move(0x04, 0, Dynamixel) 
+  i = move_check(0x04, 0)         
   sleep(1)
   move(0x04, 150, Dynamixel)
+  i = move_check(0x04, 150)  
   sleep(1)
   move_speed(0x04, 150, 200, Dynamixel)
   sleep(1)
