@@ -107,7 +107,7 @@ def move_speed(servo_id, position, speed, serial_object):
     instruction_packet = (format(ax_start, '02x') + " " +
                           format(ax_start, '02x') + " " +
                           format(servo_id, '02x') + " " + 
-                          format(ax_goal_length, '02x') + " " +
+                          format(ax_goal_length_, '02x') + " " +
                           format(ax_write_data, '02x') + " " +
                           format(0x1E, '02x') + " " +
                           format(l, '02x') + " " +
