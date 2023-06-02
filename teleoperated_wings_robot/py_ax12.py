@@ -74,7 +74,7 @@ def move(servo_id, position, serial_object):
 
     return(instruction_packet)
 
-def move_speed(servo_id, position, serial_object, speed):
+def move_speed(servo_id, position, speed, serial_object):
     """
     Moves a servo with specified ID to specified angle (degrees)
 

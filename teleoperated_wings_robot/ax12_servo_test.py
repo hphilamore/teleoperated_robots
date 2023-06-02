@@ -297,7 +297,7 @@ while True:
 
   GPIO.output(18,GPIO.HIGH)
   move(0x04, 0, Dynamixel)    
-  move(0x00, 16, Dynamixel)       
+  move_speed(0x00, 16, 20, Dynamixel)       
   sleep(1)
   move(0x04, 150, Dynamixel)
   sleep(1)
