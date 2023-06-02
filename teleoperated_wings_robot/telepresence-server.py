@@ -124,6 +124,7 @@ while(1):
                         move_speed(0x04, smoothed_position, 50, Dynamixel)
 
 
+
                     # Hand x position on right side of screen
                     if x_position>=0.5:
 
