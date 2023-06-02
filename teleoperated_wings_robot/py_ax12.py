@@ -4,15 +4,6 @@ import os
 from time import sleep
 from time import time
 
-# GPIO.setwarnings(False)
-# GPIO.setmode(GPIO.BCM)
-# GPIO.setup(18,GPIO.OUT)     # Control Data Direction Pin
-# GPIO.setup(6,GPIO.OUT)      
-# GPIO.setup(26,GPIO.OUT)
-
-
-# right = 0x01
-# left = 0x02
 
 # Hex values to appear in instruction packet sent to servo
 ax_start = 0xFF       # 2 x FF bytes indicate start of incoming packet 
@@ -338,7 +329,11 @@ def forwards(serial_object, left=0x02, right=0x01):
 
 def move_check(servo_id, position):
 
-  	P = position  # position as 10-bit number 
+    """
+    A visual check that the high and low 8 bit byte are correct 
+    """
+
+  	P = position            # position as 10-bit number 
 
   	B = P/256               # seperate into 2 8 bit bytes by dividing by max value of 8 bit byte 
 
@@ -352,5 +347,3 @@ def move_check(servo_id, position):
   	L = hex(L)
   	
   	print(H,L)
-
-  	return(H, L)
