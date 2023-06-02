@@ -301,3 +301,5 @@ while True:
   sleep(1)
   move(0x04, 150, Dynamixel)
   sleep(1)
+  move_speed(0x04, 150, 20, Dynamixel)
+  sleep(1)
