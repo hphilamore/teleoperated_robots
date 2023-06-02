@@ -57,7 +57,7 @@ def pos_to_command(x, y):
 
 conn, addr = server_socket.accept()
 with conn:
-print(f"Connected by {addr}")
+    print(f"Connected by {addr}")
 
 
 
