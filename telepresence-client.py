@@ -34,7 +34,7 @@ HOST = "192.168.185.182"  # The raspberry pi's hostname or IP address
 PORT = 65443            # The port used by the server
 
 # Take video stream from 'camera' or 'window' or 'keys'
-input_mode = 'camera' #'window'#'camera'##'camera'  
+input_mode = 'keys'#'camera' #'window'#'camera'##'camera'  
 
 # Window name is using window
 win_name = 'zoom.us'                      
@@ -152,6 +152,7 @@ if input_mode == 'keys':
         #Close down curses properly, inc turn echo back on!
         curses.nocbreak(); screen.keypad(0); curses.echo()
         curses.endwin()
+        sys.exit(1)
 
 
 elif input_mode == 'window':
