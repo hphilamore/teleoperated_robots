@@ -298,10 +298,10 @@ while True:
 
   GPIO.output(18,GPIO.HIGH)
   move(0x04, 0, Dynamixel) 
-  i = move_check(0x04, 16)         
+  # i = move_check(0x04, 16)         
   sleep(1)
   move(0x04, 150, Dynamixel)
-  i = move_check(0x04, 544)  
+  # i = move_check(0x04, 544)  
   sleep(1)
-  move_speed(0x04, 150, 200, Dynamixel)
+  move_speed(0x04, 300, 200, Dynamixel)
   sleep(1)
