@@ -333,17 +333,17 @@ def move_check(servo_id, position):
     A visual check that the high and low 8 bit byte are correct 
     """
 
-  	P = position            # position as 10-bit number 
+    P = position            # position as 10-bit number 
 
-  	B = P/256               # seperate into 2 8 bit bytes by dividing by max value of 8 bit byte 
+    B = P/256               # seperate into 2 8 bit bytes by dividing by max value of 8 bit byte 
 
-  	H = int(B // 1)         # decimal value of high byte, convert to intager
+    H = int(B // 1)         # decimal value of high byte, convert to intager
 
-  	L = B - H                     
-  	L = int(L * 256)        # decimal value of low byte
+    L = B - H                     
+    L = int(L * 256)        # decimal value of low byte
 
-  	H = hex(H)
+    H = hex(H)
 
-  	L = hex(L)
-  	
-  	print(H,L)
+    L = hex(L)
+
+    print(H,L)
