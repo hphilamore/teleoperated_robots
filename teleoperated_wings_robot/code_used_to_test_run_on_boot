@@ -1,0 +1,53 @@
+import time
+import RPi.GPIO as GPIO
+from time import sleep
+from time import time
+
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(18,GPIO.OUT)     # Control Data Direction Pin
+GPIO.setup(6,GPIO.OUT)      
+GPIO.setup(26,GPIO.OUT)
+
+# Pin definitions
+led_pin = 12
+
+# Use "GPIO" pin numbering
+GPIO.setmode(GPIO.BCM)
+
+# Set LED pin as output
+GPIO.setup(led_pin, GPIO.OUT)
+
+# Blink forever
+try:
+    for i in range(5):
+        GPIO.output(led_pin, GPIO.HIGH) # Turn LED on
+        sleep(1)                   # Delay for 1 second
+        GPIO.output(led_pin, GPIO.LOW)  # Turn LED off
+        sleep(1)
+
+    import serial
+    import os
+    from py_ax12 import *
+    Dynamixel=serial.Serial("/dev/serial0",baudrate=1000000,timeout=0.1, bytesize=8)   #
+
+    for i in range(5):
+        GPIO.output(led_pin, GPIO.HIGH) # Turn LED on
+        sleep(0.2)                   # Delay for 1 second
+        GPIO.output(led_pin, GPIO.LOW)  # Turn LED off
+        sleep(0.2)
+    set_endless(0x03, False, Dynamixel)
+    set_endless(0x04, False, Dynamixel)
+    while True:
+    	GPIO.output(18,GPIO.HIGH)
+    	move(0x04, 0, Dynamixel)
+    	sleep(1)
+    	move(0x04, 150, Dynamixel)
+    	sleep(1)
+
+
+
+# When you press ctrl+c, nicely release GPIO resources
+finally:
+    GPIO.cleanup()
+

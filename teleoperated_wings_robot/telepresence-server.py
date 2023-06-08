@@ -29,6 +29,10 @@ GPIO.setup(18,GPIO.OUT)     # Control Data Direction Pin
 GPIO.setup(6,GPIO.OUT)      
 GPIO.setup(26,GPIO.OUT)
 
+# Motor IDs for each arm 
+left_motor = 0x01
+right_motor = 0x02
+
 
 # HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 HOST = "0.0.0.0"  # Listen on all interfaces
@@ -121,7 +125,7 @@ while(1):
                         # move(0x04, servo_position, Dynamixel)
                         print(smoothed_position)
                         # move(0x04, smoothed_position, Dynamixel)
-                        move_speed(0x04, smoothed_position, 100, Dynamixel)
+                        move_speed(left_motor, smoothed_position, 100, Dynamixel)
 
 
 
@@ -137,7 +141,7 @@ while(1):
                         # Send 10-bit value to servo
                         # move(0x03, servo_position, Dynamixel)
                         # move(0x03, smoothed_position, Dynamixel)
-                        move_speed(0x03, smoothed_position, 100, Dynamixel)
+                        move_speed(right_motor, smoothed_position, 100, Dynamixel)
 
 
 
