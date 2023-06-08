@@ -34,12 +34,12 @@ while True:
   # move_speed(0x02, 150, 500, Dynamixel)
   # # i = move_check(0x04, 544)  
   # sleep(1)
-  # move(0x01, 512, Dynamixel)
-  # move(0x02, 512, Dynamixel)
+  move(0x01, 512, Dynamixel)
+  move(0x02, 512, Dynamixel)
   # sleep(1)
-  sweep(0x01, range(300), Dynamixel)
-  sweep(0x01, range(300, 0, -1), Dynamixel)
-  sweep(0x02, range(300), Dynamixel)
-  sweep(0x02, range(300, 0, -1), Dynamixel)
+  # sweep(0x01, range(300), Dynamixel)
+  # sweep(0x01, range(300, 0, -1), Dynamixel)
+  # sweep(0x02, range(300), Dynamixel)
+  # sweep(0x02, range(300, 0, -1), Dynamixel)
 
 
