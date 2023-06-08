@@ -308,7 +308,9 @@ while True:
   # move_speed(0x01, 300, 1023, Dynamixel)
   # move_speed(0x02, 300, 1023, Dynamixel)
   # sleep(1)
-  sweep(0x01, Dynamixel)
-  sweep(0x02, Dynamixel)
+  sweep(0x01, range(300), Dynamixel)
+  sweep(0x01, range(300, 0, -1), Dynamixel)
+  sweep(0x02, range(300), Dynamixel)
+  sweep(0x02, range(300, 0, -1), Dynamixel)
 
 

@@ -212,14 +212,14 @@ def turn(servo_id, direction, speed, serial_object):
     return(instruction_packet)
 
 
-def sweep(servo_id, serial_object):
+def sweep(servo_id, angles, serial_object):
 
     """
     Sweep a servo with specified ID over range 300 degrees 
     """
-    for i in range(300):
+    for i in angles:
         move(servo_id, int(i/300 * 1024), serial_object)
-        sleep(0.1)
+        sleep(0.01)
         print(i)
         
 
