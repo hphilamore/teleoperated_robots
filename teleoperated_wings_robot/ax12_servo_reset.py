@@ -21,6 +21,8 @@ Dynamixel=serial.Serial("/dev/serial0",baudrate=1000000,timeout=0.1, bytesize=8)
   
 set_endless(0x01, False, Dynamixel)
 set_endless(0x02, False, Dynamixel)
+set_endless(0x03, False, Dynamixel)
+set_endless(0x04, False, Dynamixel)
 
 
 while True:
