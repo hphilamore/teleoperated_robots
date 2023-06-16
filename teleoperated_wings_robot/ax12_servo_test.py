@@ -44,6 +44,6 @@ while True:
   sweep(0x03, range(300), Dynamixel)
   sweep(0x03, range(300, 0, -1), Dynamixel)
   sweep(0x04, range(300), Dynamixel)
-  sweep(0x05, range(300, 0, -1), Dynamixel)
+  sweep(0x04, range(300, 0, -1), Dynamixel)
 
 
