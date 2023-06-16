@@ -30,8 +30,8 @@ GPIO.setup(6,GPIO.OUT)
 GPIO.setup(26,GPIO.OUT)
 
 # Motor IDs for each arm 
-left_motor = 0x02
-right_motor = 0x01
+left_motor = 0x03
+right_motor = 0x04
 
 
 # HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
