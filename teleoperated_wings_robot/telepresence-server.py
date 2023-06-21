@@ -136,6 +136,7 @@ while(1):
                         # Speed = difference between current and last position
                         speed =  abs(arr_left[0] - arr_left[1])
                         print('speed_left', speed)
+                        speed = 50 + speed * 2
                         
                         smoothed_position = 1023 - smoothed_position 
 
@@ -160,6 +161,7 @@ while(1):
                         # Speed = difference between current and last position
                         speed =  abs(arr_right[0] - arr_right[1])
                         print('speed_right', speed)
+                        speed = 50 + speed * 2
 
                         # smoothed_position = 1023 - smoothed_position 
 
