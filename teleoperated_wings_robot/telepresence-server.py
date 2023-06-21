@@ -137,6 +137,7 @@ while(1):
                         speed =  abs(arr_left[0] - arr_left[1])
                         speed = 100 + speed * 3
                         if speed > 1023 : speed = 1023 
+                        if speed == np.nan : speed = 100
                         print('speed_left', speed)
                         
 
@@ -167,6 +168,7 @@ while(1):
                         speed =  abs(arr_right[0] - arr_right[1])
                         speed = 100 + speed * 3
                         if speed > 1023 : speed = 1023 
+                        if speed == np.nan : speed = 100
                         print('speed_right', speed)
                         
                         
