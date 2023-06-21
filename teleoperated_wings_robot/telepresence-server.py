@@ -130,7 +130,7 @@ while(1):
                         smoothed_position = int(moving_average(servo_position, arr_left, buffer_length)) 
 
                         # Speed = difference between current and last position
-                        speed =  arr_left[-1] #abs(arr_left[-1] - arr_left[-2])
+                        speed =  arr_left #abs(arr_left[-1] - arr_left[-2])
                         print('speed_left', speed)
                         
                         smoothed_position = 1023 - smoothed_position 
@@ -155,7 +155,7 @@ while(1):
 
                         # Speed = difference between current and last position
                         speed =  abs(arr_right[-1] - arr_right[-2])
-                        print('speed_left', speed)
+                        print('speed_right', speed)
 
                         # smoothed_position = 1023 - smoothed_position 
 
