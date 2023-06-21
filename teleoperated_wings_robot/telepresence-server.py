@@ -80,6 +80,7 @@ def hand_speed(arr):
     if speed > 1023 : speed = 1023    # Cap maximum speed value
     if np.isnan(speed) : speed = bias # If difference is nan, use minimum speed
     print('speed_left', speed)
+    return speed
 
 
 
@@ -181,6 +182,7 @@ while(1):
 
                         # Speed = difference between current and last position
                         speed = hand_speed(arr_right)
+
                         # speed =  abs(arr_right[0] - arr_right[1])
                         # speed = 100 + speed * 3
                         # if speed > 1023 : speed = 1023 
