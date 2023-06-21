@@ -131,6 +131,8 @@ while(1):
                     x_position = i[0]
                     y_position = i[1] 
 
+                    print('y pos ', y_position)
+
                     # convert to 10-bit value
                     servo_position = (y_position * 1023) 
 
@@ -152,7 +154,6 @@ while(1):
                         smoothed_position = 1023 - smoothed_position 
 
                         # Send 10-bit value to servo
-                        print(smoothed_position)
                         move_speed(left_motor, smoothed_position, speed, Dynamixel)
                         
                     # Hand x position on RIGHT side of screen
@@ -160,7 +161,6 @@ while(1):
 
                         # Moving average filter applied, Position rounded to nearest decimal value
                         smoothed_position = int(moving_average(servo_position, arr_right, buffer_length)) 
-                        print(smoothed_position)
 
                         # Speed of hand
                         speed = hand_speed(arr_right)
