@@ -47,15 +47,23 @@ server_socket.listen()
 # Create serial object 
 Dynamixel=serial.Serial("/dev/serial0",baudrate=1000000,timeout=0.1, bytesize=8)   # UART in ttyS0 @ 1Mbps
 
-def running_mean(new_val, arr, win_size):
+
+# Buffer for each arm to store last N servo position values 
+buffer_length = 5
+arr_left = list(np.full((buffer_length,), np.nan))
+arr_right = list(np.full((buffer_length,), np.nan))
+
+
+def moving_average(new_val, arr, win_size):
+    """ 
+    Moving average filter 
+    Returns average of last N values where N = window size
+    """
     arr.insert(0, new_val)
     arr = arr[:win_size]
     print(arr)
     return np.nanmean(np.array(arr[:win_size]))
 
-
-arr_left = list(np.full((5,), np.nan))
-arr_right = list(np.full((5,), np.nan))
 
 
 while(1):
@@ -113,15 +121,20 @@ while(1):
                     # Convert floating point to integer
                     servo_position = int(servo_position)
 
-                    # Hand x position on left side of screen
+                    # Hand x position on LEFT side of screen
                     if x_position<0.5:
 
                         # hand_left = True
 
                         # Moving average filter applied, Position rounded to nearest decimal value
-                        smoothed_position = int(running_mean(servo_position, arr_left, 5)) #//10 * 10
+                        smoothed_position = int(moving_average(servo_position, arr_left, buffer_length)) 
+
+                        # Speed = difference between current and last position
+                        speed =  abs(arr_left[-1] - arr_left[-2])
+                        print('speed_left', speed)
                         
                         smoothed_position = 1023 - smoothed_position 
+
                         
                         # Send 10-bit value to servo
                         # move(0x04, servo_position, Dynamixel)
@@ -131,14 +144,18 @@ while(1):
 
 
 
-                    # Hand x position on right side of screen
+                    # Hand x position on RIGHT side of screen
                     if x_position>=0.5:
 
                         # hand_right = True
 
                         # Moving average filter applied, Position rounded to nearest decimal value
-                        smoothed_position = int(running_mean(servo_position, arr_right, 5)) #//10 * 10
+                        smoothed_position = int(moving_average(servo_position, arr_right, buffer_length)) 
                         print(smoothed_position)
+
+                        # Speed = difference between current and last position
+                        speed =  abs(arr_right[-1] - arr_right[-2])
+                        print('speed_left', speed)
 
                         # smoothed_position = 1023 - smoothed_position 
 
