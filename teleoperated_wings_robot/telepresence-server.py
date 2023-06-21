@@ -69,6 +69,20 @@ def moving_average(new_val, arr, win_size):
     return np.nanmean(np.array(arr[:win_size]))
 
 
+def hand_speed(arr):
+    """ 
+    Returns a value that increases with the difference 
+    between the current and last recorded hand position
+    """
+    bias = 100                        # Minimum speed
+    delta =  abs(arr[0] - arr[1])     # Difference between current and last position
+    speed = delta * 3 + bias          # Equation to scale motor speed with hand speed
+    if speed > 1023 : speed = 1023    # Cap maximum speed value
+    if np.isnan(speed) : speed = bias # If difference is nan, use minimum speed
+    print('speed_left', speed)
+
+
+
 
 while(1):
 
@@ -134,11 +148,12 @@ while(1):
                         smoothed_position = int(moving_average(servo_position, arr_left, buffer_length)) 
 
                         # Speed = difference between current and last position
-                        speed =  abs(arr_left[0] - arr_left[1])
-                        speed = 100 + speed * 3
-                        if speed > 1023 : speed = 1023 
-                        if np.isnan(speed) : speed = 100
-                        print('speed_left', speed)
+                        speed = hand_speed(arr_left)
+                        # speed =  abs(arr_left[0] - arr_left[1])
+                        # speed = 100 + speed * 3
+                        # if speed > 1023 : speed = 1023 
+                        # if np.isnan(speed) : speed = 100
+                        # print('speed_left', speed)
                         
 
                         
@@ -165,11 +180,12 @@ while(1):
                         print(smoothed_position)
 
                         # Speed = difference between current and last position
-                        speed =  abs(arr_right[0] - arr_right[1])
-                        speed = 100 + speed * 3
-                        if speed > 1023 : speed = 1023 
-                        if np.isnan(speed) : speed = 100
-                        print('speed_right', speed)
+                        speed = hand_speed(arr_right)
+                        # speed =  abs(arr_right[0] - arr_right[1])
+                        # speed = 100 + speed * 3
+                        # if speed > 1023 : speed = 1023 
+                        # if np.isnan(speed) : speed = 100
+                        # print('speed_right', speed)
                         
                         
 
