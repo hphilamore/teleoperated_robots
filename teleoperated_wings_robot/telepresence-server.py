@@ -59,9 +59,13 @@ def moving_average(new_val, arr, win_size):
     Moving average filter 
     Returns average of last N values where N = window size
     """
+    # Add the new value at start of list
     arr.insert(0, new_val)
+    
+    # Crop buffer to the correct length
     arr = arr[:win_size]
     print(arr)
+
     return np.nanmean(np.array(arr[:win_size]))
 
 
@@ -130,7 +134,7 @@ while(1):
                         smoothed_position = int(moving_average(servo_position, arr_left, buffer_length)) 
 
                         # Speed = difference between current and last position
-                        speed =  arr_left #abs(arr_left[-1] - arr_left[-2])
+                        speed =  abs(arr_left[0] - arr_left[1])
                         print('speed_left', speed)
                         
                         smoothed_position = 1023 - smoothed_position 
@@ -154,7 +158,7 @@ while(1):
                         print(smoothed_position)
 
                         # Speed = difference between current and last position
-                        speed =  abs(arr_right[-1] - arr_right[-2])
+                        speed =  abs(arr_right[0] - arr_right[1])
                         print('speed_right', speed)
 
                         # smoothed_position = 1023 - smoothed_position 
