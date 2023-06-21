@@ -143,63 +143,32 @@ while(1):
                     # Hand x position on LEFT side of screen
                     if x_position<0.5:
 
-                        # hand_left = True
-
                         # Moving average filter applied, Position rounded to nearest decimal value
                         smoothed_position = int(moving_average(servo_position, arr_left, buffer_length)) 
 
-                        # Speed = difference between current and last position
-                        speed = hand_speed(arr_left)
-                        # speed =  abs(arr_left[0] - arr_left[1])
-                        # speed = 100 + speed * 3
-                        # if speed > 1023 : speed = 1023 
-                        # if np.isnan(speed) : speed = 100
-                        # print('speed_left', speed)
-                        
+                        # Speed of hand
+                        speed = hand_speed(arr_left)                  
 
-                        
                         smoothed_position = 1023 - smoothed_position 
 
-                        
                         # Send 10-bit value to servo
-                        # move(0x04, servo_position, Dynamixel)
                         print(smoothed_position)
-                        # move(0x04, smoothed_position, Dynamixel)
-                        # move_speed(left_motor, smoothed_position, 100, Dynamixel)
                         move_speed(left_motor, smoothed_position, speed, Dynamixel)
                         
-
-
-
                     # Hand x position on RIGHT side of screen
                     if x_position>=0.5:
-
-                        # hand_right = True
 
                         # Moving average filter applied, Position rounded to nearest decimal value
                         smoothed_position = int(moving_average(servo_position, arr_right, buffer_length)) 
                         print(smoothed_position)
 
-                        # Speed = difference between current and last position
+                        # Speed of hand
                         speed = hand_speed(arr_right)
-
-                        # speed =  abs(arr_right[0] - arr_right[1])
-                        # speed = 100 + speed * 3
-                        # if speed > 1023 : speed = 1023 
-                        # if np.isnan(speed) : speed = 100
-                        # print('speed_right', speed)
-                        
-                        
 
                         # smoothed_position = 1023 - smoothed_position 
 
                         # Send 10-bit value to servo
-                        # move(0x03, servo_position, Dynamixel)
-                        # move(0x03, smoothed_position, Dynamixel)
-                        # move_speed(right_motor, smoothed_position, 100, Dynamixel)
                         move_speed(right_motor, smoothed_position, speed, Dynamixel)
-
-
 
 
             if msg == 'stop':
