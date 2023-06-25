@@ -55,7 +55,7 @@ arr_right = list(np.full((buffer_length,), np.nan))
 
 # Resolution of position hand-tracking 
 # 'fine' or 'coarse'
-tracking_resolution = 'fine'
+tracking_resolution = 'coarse'
 
 
 def moving_average(new_val, arr, win_size):
@@ -162,6 +162,16 @@ while(1):
 
                             # Send 10-bit value to servo
                             move_speed(left_motor, smoothed_position, speed, Dynamixel)
+
+                        # tracking resolution is coarse
+                        else: 
+                            if y_position<0.5:
+                                # Send 10-bit value to servo
+                                move_speed(left_motor, 1023, 500, Dynamixel)
+                            else:
+                                # Send 10-bit value to servo
+                                move_speed(left_motor, 0, 500, Dynamixel)
+
                         
                     # Hand x position on RIGHT side of screen
                     if x_position>=0.5:
@@ -179,6 +189,14 @@ while(1):
                             # Send 10-bit value to servo
                             move_speed(right_motor, smoothed_position, speed, Dynamixel)
 
+                        # tracking resolution is coarse
+                        else: 
+                            if y_position<0.5:
+                                # Send 10-bit value to servo
+                                move_speed(right_motor, 0, 500, Dynamixel)
+                            else:
+                                # Send 10-bit value to servo
+                                move_speed(right_motor, 1023, 500, Dynamixel)
 
             if msg == 'stop':
                 pass
