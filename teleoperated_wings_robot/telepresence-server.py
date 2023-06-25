@@ -53,6 +53,10 @@ buffer_length = 5
 arr_left = list(np.full((buffer_length,), np.nan))
 arr_right = list(np.full((buffer_length,), np.nan))
 
+# Resolution of position hand-tracking 
+# 'fine' or 'coarse'
+tracking_resolution = 'fine'
+
 
 def moving_average(new_val, arr, win_size):
     """ 
@@ -145,30 +149,35 @@ while(1):
                     # Hand x position on LEFT side of screen
                     if x_position<0.5:
 
-                        # Moving average filter applied, Position rounded to nearest decimal value
-                        smoothed_position = int(moving_average(servo_position, arr_left, buffer_length)) 
+                        if tracking_resolution == 'fine':
 
-                        # Speed of hand
-                        speed = hand_speed(arr_left)                  
+                            # Moving average filter applied, Position rounded to nearest decimal value
+                            smoothed_position = int(moving_average(servo_position, arr_left, buffer_length)) 
 
-                        smoothed_position = 1023 - smoothed_position 
+                            # Speed of hand
+                            speed = hand_speed(arr_left)                  
 
-                        # Send 10-bit value to servo
-                        move_speed(left_motor, smoothed_position, speed, Dynamixel)
+                            # Correct position to account for mirrored arrangement of servo arm mechanism 
+                            smoothed_position = 1023 - smoothed_position 
+
+                            # Send 10-bit value to servo
+                            move_speed(left_motor, smoothed_position, speed, Dynamixel)
                         
                     # Hand x position on RIGHT side of screen
                     if x_position>=0.5:
 
-                        # Moving average filter applied, Position rounded to nearest decimal value
-                        smoothed_position = int(moving_average(servo_position, arr_right, buffer_length)) 
+                        if tracking_resolution == 'fine':
 
-                        # Speed of hand
-                        speed = hand_speed(arr_right)
+                            # Moving average filter applied, Position rounded to nearest decimal value
+                            smoothed_position = int(moving_average(servo_position, arr_right, buffer_length)) 
 
-                        # smoothed_position = 1023 - smoothed_position 
+                            # Speed of hand
+                            speed = hand_speed(arr_right)
 
-                        # Send 10-bit value to servo
-                        move_speed(right_motor, smoothed_position, speed, Dynamixel)
+                            # smoothed_position = 1023 - smoothed_position 
+
+                            # Send 10-bit value to servo
+                            move_speed(right_motor, smoothed_position, speed, Dynamixel)
 
 
             if msg == 'stop':
