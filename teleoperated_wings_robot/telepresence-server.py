@@ -165,11 +165,17 @@ while(1):
 
                         # tracking resolution is coarse
                         else: 
-                            if y_position<0.5:
-                                # Send 10-bit value to servo
+                            # if y_position<0.5:
+                            #     # Send 10-bit value to servo
+                            #     move_speed(left_motor, 1023, 500, Dynamixel)
+                            # else:
+                            #     # Send 10-bit value to servo
+                            #     move_speed(left_motor, 0, 500, Dynamixel)
+                            if y_position<0.35:
                                 move_speed(left_motor, 1023, 500, Dynamixel)
+                            elif 0.35<=y_position<0.65:
+                                move_speed(left_motor, 512, 500, Dynamixel)
                             else:
-                                # Send 10-bit value to servo
                                 move_speed(left_motor, 0, 500, Dynamixel)
 
                         
@@ -191,11 +197,17 @@ while(1):
 
                         # tracking resolution is coarse
                         else: 
-                            if y_position<0.5:
-                                # Send 10-bit value to servo
+                            # if y_position<0.5:
+                            #     # Send 10-bit value to servo
+                            #     move_speed(right_motor, 0, 500, Dynamixel)
+                            # else:
+                            #     # Send 10-bit value to servo
+                            #     move_speed(right_motor, 1023, 500, Dynamixel)
+                            if y_position<0.35:
                                 move_speed(right_motor, 0, 500, Dynamixel)
+                            elif 0.35<=y_position<0.65:
+                                move_speed(right_motor, 512, 500, Dynamixel)
                             else:
-                                # Send 10-bit value to servo
                                 move_speed(right_motor, 1023, 500, Dynamixel)
 
             if msg == 'stop':
