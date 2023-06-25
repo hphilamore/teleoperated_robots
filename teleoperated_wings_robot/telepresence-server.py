@@ -172,11 +172,14 @@ while(1):
                             #     # Send 10-bit value to servo
                             #     move_speed(left_motor, 0, 500, Dynamixel)
                             if y_position<0.35:
+                                print('left up')
                                 move_speed(left_motor, 1023, 500, Dynamixel)
                             elif 0.35<=y_position<0.65:
                                 move_speed(left_motor, 512, 500, Dynamixel)
+                                print('left mid')
                             else:
                                 move_speed(left_motor, 0, 500, Dynamixel)
+                                print('left down')
 
                         
                     # Hand x position on RIGHT side of screen
@@ -204,11 +207,14 @@ while(1):
                             #     # Send 10-bit value to servo
                             #     move_speed(right_motor, 1023, 500, Dynamixel)
                             if y_position<0.35:
+                                print('right up')
                                 move_speed(right_motor, 0, 500, Dynamixel)
                             elif 0.35<=y_position<0.65:
                                 move_speed(right_motor, 512, 500, Dynamixel)
+                                print('right mid')
                             else:
                                 move_speed(right_motor, 1023, 500, Dynamixel)
+                                print('right down')
 
             if msg == 'stop':
                 pass
