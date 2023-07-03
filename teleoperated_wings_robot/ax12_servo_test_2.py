@@ -30,8 +30,8 @@ set_endless(0x02, False, Dynamixel)
 while True:
 
   GPIO.output(enable_pin, GPIO.HIGH)
-  move_speed(0x01, 0, 1024, Dynamixel)
-  move_speed(0x02, 0, 1024, Dynamixel)
+  move_speed(0x01, 512, 1024, Dynamixel)
+  move_speed(0x02, 512, 1024, Dynamixel)
   # # i = move_check(0x04, 16)         
   # sleep(1)
   # move_speed(0x01, 150, 500, Dynamixel)
