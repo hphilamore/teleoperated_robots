@@ -74,10 +74,10 @@ def main():
         set_goal_position(AX12_2_ID, angle, 512)
         time.sleep(0.1)
 
-    # Read the final present positions
-    pos1 = read_present_position(AX12_1_ID)
-    pos2 = read_present_position(AX12_2_ID)
-    print(f"Final positions - Servo 1: {pos1} degrees, Servo 2: {pos2} degrees")
+    # # Read the final present positions
+    # pos1 = read_present_position(AX12_1_ID)
+    # pos2 = read_present_position(AX12_2_ID)
+    # print(f"Final positions - Servo 1: {pos1} degrees, Servo 2: {pos2} degrees")
 
     # Disable torque for both servos
     packet_handler.write1ByteTxRx(port_handler, AX12_1_ID, ADDR_AX12_TORQUE_ENABLE, 0)
