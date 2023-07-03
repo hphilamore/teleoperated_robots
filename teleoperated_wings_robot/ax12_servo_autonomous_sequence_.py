@@ -33,6 +33,42 @@ chkDynamixel = Dynamixel.read()
 print("Servo Position = " , int.from_bytes(posDynamixel,byteorder='little'))
 time.sleep(1)
 
+Dynamixel.write(bytearray.fromhex("FF FF 02 04 02 24 02 D2"))   # Read Position of Servo with ID = 1
+GPIO.output(18,GPIO.LOW)
+startDynamixel = Dynamixel.read()
+startDynamixel = Dynamixel.read()
+idDynamixel = Dynamixel.read()
+lenghtDynamixel = Dynamixel.read()
+errorDynamixel = Dynamixel.read()
+posDynamixel = Dynamixel.read(2)
+chkDynamixel = Dynamixel.read()
+print("Servo Position = " , int.from_bytes(posDynamixel,byteorder='little'))
+time.sleep(1)
+
+Dynamixel.write(bytearray.fromhex("FF FF 03 04 02 24 02 D2"))   # Read Position of Servo with ID = 1
+GPIO.output(18,GPIO.LOW)
+startDynamixel = Dynamixel.read()
+startDynamixel = Dynamixel.read()
+idDynamixel = Dynamixel.read()
+lenghtDynamixel = Dynamixel.read()
+errorDynamixel = Dynamixel.read()
+posDynamixel = Dynamixel.read(2)
+chkDynamixel = Dynamixel.read()
+print("Servo Position = " , int.from_bytes(posDynamixel,byteorder='little'))
+time.sleep(1)
+
+Dynamixel.write(bytearray.fromhex("FF FF 04 04 02 24 02 D2"))   # Read Position of Servo with ID = 1
+GPIO.output(18,GPIO.LOW)
+startDynamixel = Dynamixel.read()
+startDynamixel = Dynamixel.read()
+idDynamixel = Dynamixel.read()
+lenghtDynamixel = Dynamixel.read()
+errorDynamixel = Dynamixel.read()
+posDynamixel = Dynamixel.read(2)
+chkDynamixel = Dynamixel.read()
+print("Servo Position = " , int.from_bytes(posDynamixel,byteorder='little'))
+time.sleep(1)
+
 # def read_servo_position(servo_id):
 #     # Open the serial port
 #     ser = serial.Serial(SERIAL_PORT, baudrate=BAUDRATE)
