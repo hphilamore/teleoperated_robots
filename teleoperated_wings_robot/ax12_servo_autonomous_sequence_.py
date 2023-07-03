@@ -1,5 +1,6 @@
 import serial
 import time
+import RPi.GPIO as GPIO
 
 # Serial port settings
 SERIAL_PORT = "/dev/serial0"  # Replace with the appropriate port name
