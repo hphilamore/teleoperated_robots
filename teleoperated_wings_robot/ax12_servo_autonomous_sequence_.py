@@ -17,7 +17,7 @@ GPIO.setup(rx_pin, GPIO.IN)
 
 def read_servo_position(servo_id):
     # Open the serial port
-    ser = serial.Serial(SERIAL_PORT, baudrate=BAUDRATE, , tx=tx_pin, rx=rx_pin)
+    ser = serial.Serial(SERIAL_PORT, baudrate=BAUDRATE, tx=tx_pin, rx=rx_pin)
 
     # Construct the instruction packet
     packet = bytearray([0xFF, 0xFF, servo_id, 0x04, 0x02, 0x24, 0x01])
