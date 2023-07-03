@@ -126,7 +126,7 @@ def set_endless(servo_id, status, serial_object):
     """
     
     if status: # turn endless rotation on               
-	
+    
         checksum = ~(servo_id + ax_goal_length + ax_write_data + ax_ccw_angle_limit_l) & 0xff
         checksum = format(checksum, '#04x') # convert to hex number full representation (with 0x...) 
         
@@ -143,7 +143,7 @@ def set_endless(servo_id, status, serial_object):
                               checksum[2:] 
                                ).upper()
                               
-	
+    
     else: # turn endless rotation off
         
         checksum = ~(servo_id + ax_goal_length + ax_write_data +
@@ -212,14 +212,14 @@ def turn(servo_id, direction, speed, serial_object):
     return(instruction_packet)
 
 
-def sweep(servo_id, serial_object):
+def sweep(servo_id, angles, serial_object):
 
     """
     Sweep a servo with specified ID over range 300 degrees 
     """
-    for i in range(300):
+    for i in angles:
         move(servo_id, int(i/300 * 1024), serial_object)
-        sleep(0.1)
+        sleep(0.01)
         print(i)
         
 
