@@ -113,8 +113,9 @@ while(1):
             data = conn.recv(1024)
 
             if not data:
-                break
                 print("no data")
+                break
+                
 
             msg = data.decode()
             # print(msg)
