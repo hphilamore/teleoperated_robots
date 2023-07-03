@@ -87,10 +87,10 @@ def main():
         set_goal_position(right_motor, angle, 512)
         time.sleep(0.1)
 
-    # Read the final present positions
-    pos1 = read_present_position(left_motor)
-    pos2 = read_present_position(right_motor)
-    print(f"Final positions - Servo 1: {pos1} degrees, Servo 2: {pos2} degrees")
+    # # Read the final present positions
+    # pos1 = read_present_position(left_motor)
+    # pos2 = read_present_position(right_motor)
+    # print(f"Final positions - Servo 1: {pos1} degrees, Servo 2: {pos2} degrees")
 
     # Disable torque for both servos
     for motor in motors:
