@@ -120,8 +120,8 @@ def set_endless(servo_id, status, serial_object):
 
     """
     Set a servo with specified ID to:   
-    - continuous rotation mode if true 
-    - servo mode if false
+    - continuous rotation mode if status is true 
+    - servo mode if status is false
 
     """
     
@@ -215,10 +215,10 @@ def turn(servo_id, direction, speed, serial_object):
 def sweep(servo_id, angles, serial_object):
 
     """
-    Sweep a servo with specified ID over range 300 degrees 
+    Sweep a servo with specified ID over range specified
     """
     for i in angles:
-        move(servo_id, int(i/300 * 1024), serial_object)
+        move_speed(servo_id, int(i/300 * 1024), speed, serial_object)
         sleep(0.01)
         print(i)
         

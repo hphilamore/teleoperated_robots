@@ -17,7 +17,10 @@ GPIO.setup(enable_pin, GPIO.OUT)     # Control Data Direction Pin
 # left = 0x02
 
 # Create serial object 
-Dynamixel=serial.Serial("/dev/serial0",baudrate=1000000,timeout=0.1, bytesize=8)   # UART in ttyS0 @ 1Mbps
+Dynamixel=serial.Serial("/dev/serial0",
+                        baudrate=1000000,
+                        timeout=0.1, 
+                        bytesize=8)   # UART in ttyS0 @ 1Mbps
 
   
 set_endless(0x01, False, Dynamixel)
