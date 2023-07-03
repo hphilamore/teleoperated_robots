@@ -104,8 +104,11 @@ while(1):
             GPIO.output(18,GPIO.HIGH)
 
             data = conn.recv(1024)
+
             if not data:
                 break
+                print("no data")
+
             msg = data.decode()
             # print(msg)
 
