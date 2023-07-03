@@ -12,8 +12,8 @@ PROTOCOL_VERSION = 1.0  # Default AX-12 protocol version
 BAUDRATE = 1000000  # Default baudrate of the Dynamixel AX-12 servo
 
 # Dynamixel IDs
-AX12_1_ID = 3  # ID of the first servo
-AX12_2_ID = 4  # ID of the second servo
+AX12_1_ID = 1  # ID of the first servo
+AX12_2_ID = 2  # ID of the second servo
 
 # Initialize the Dynamixel SDK
 port_handler = PortHandler("/dev/serial0")  # Replace DEVICENAME with the appropriate port name (e.g., "/dev/ttyUSB0" for Linux or "COM1" for Windows)
