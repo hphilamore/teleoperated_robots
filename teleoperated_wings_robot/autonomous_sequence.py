@@ -37,10 +37,10 @@ set_endless(0x04, False, Dynamixel)
 set_endless(0x02, False, Dynamixel)
 set_endless(0x01, False, Dynamixel)
 
-# Enable servos 
-GPIO.output(enable_pin,GPIO.HIGH)
-
 while True:
+
+    # Enable servos 
+    GPIO.output(enable_pin, GPIO.HIGH)
 
     move_speed(left_h_motor, 1024, 1024, Dynamixel)
     move_speed(right_h_motor, 1024, 1024, Dynamixel)

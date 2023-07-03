@@ -63,8 +63,8 @@ set_endless(0x04, False, Dynamixel)
 set_endless(0x02, False, Dynamixel)
 set_endless(0x01, False, Dynamixel)
 
-# Enable servos 
-GPIO.output(enable_pin,GPIO.HIGH)
+# # Enable servos 
+# GPIO.output(enable_pin,GPIO.HIGH)
 
 
 # Buffer for each arm to store last N servo position values 
@@ -123,7 +123,9 @@ def main():
                     # set_endless(0x04, False, Dynamixel)
                     # set_endless(0x02, False, Dynamixel)
                     # set_endless(0x01, False, Dynamixel)
-                    # GPIO.output(enable_pin,GPIO.HIGH)
+                    
+                    # Enable servos
+                    GPIO.output(enable_pin,GPIO.HIGH)
 
                     data = conn.recv(1024)
 
