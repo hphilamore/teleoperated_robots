@@ -23,11 +23,12 @@ from py_ax12 import *
 
 
 # Setup GPIO pins 
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(18,GPIO.OUT)     # Control Data Direction Pin
 tx_pin = 14
 rx_pin = 15
+enable_pin = 18
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(enable_pin, GPIO.OUT)     # Control Data Direction Pin
 GPIO.setup(tx_pin, GPIO.OUT)
 GPIO.setup(rx_pin, GPIO.IN)
 # GPIO.setup(6,GPIO.OUT)      
@@ -55,6 +56,15 @@ Dynamixel=serial.Serial("/dev/serial0",
                         baudrate=1000000,
                         timeout=0.1, 
                         bytesize=8)   # UART in ttyS0 @ 1Mbps
+
+# All servos not continuous rotation
+set_endless(0x03, False, Dynamixel)
+set_endless(0x04, False, Dynamixel)
+set_endless(0x02, False, Dynamixel)
+set_endless(0x01, False, Dynamixel)
+
+# Enable servos 
+GPIO.output(enable_pin,GPIO.HIGH)
 
 
 # Buffer for each arm to store last N servo position values 
@@ -109,14 +119,15 @@ def main():
 
                 while True:
 
-                    set_endless(0x03, False, Dynamixel)
-                    set_endless(0x04, False, Dynamixel)
-                    set_endless(0x02, False, Dynamixel)
-                    set_endless(0x01, False, Dynamixel)
-                    GPIO.output(18,GPIO.HIGH)
+                    # set_endless(0x03, False, Dynamixel)
+                    # set_endless(0x04, False, Dynamixel)
+                    # set_endless(0x02, False, Dynamixel)
+                    # set_endless(0x01, False, Dynamixel)
+                    # GPIO.output(enable_pin,GPIO.HIGH)
 
                     data = conn.recv(1024)
 
+                    # check if data received is empty
                     if not data:
                         idle()
                         break
@@ -232,6 +243,7 @@ def main():
                                         move_speed(right_motor, 1023, 500, Dynamixel)
                                         print('right down')
 
+                    # Keyboard arrow key controls 
                     if msg == 'stop':
                         pass
 
@@ -249,11 +261,8 @@ def main():
                         move(0x01, 150, Dynamixel)
                         sleep(0.1)
                         
-
                     elif msg == 'forward':
                         pass
-
-                #conn.sendall(data)
         
         except socket.timeout:
             idle()
@@ -261,6 +270,8 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
     # except BlockingIOError:
     #     print('waiting')
     #     pass
