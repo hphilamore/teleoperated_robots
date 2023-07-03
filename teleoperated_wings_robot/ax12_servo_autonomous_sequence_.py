@@ -49,4 +49,4 @@ def read_servo_position(servo_id):
         print(f"Failed to read present position for Servo ID {servo_id}")
 
 # Example usage
-read_servo_position(3)  # Replace with the appropriate servo ID
+read_servo_position(0x03)  # Replace with the appropriate servo ID
