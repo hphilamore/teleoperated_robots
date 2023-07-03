@@ -119,7 +119,7 @@ def move_speed(servo_id, position, speed, serial_object):
 def set_endless(servo_id, status, serial_object):
 
     """
-    Set a servo with specified ID to:
+    Set a servo with specified ID to:   
     - continuous rotation mode if true 
     - servo mode if false
 
@@ -258,60 +258,7 @@ def binary_rotation(servo_id, x, serial_object):
         GPIO.output(18,GPIO.HIGH)
         turn(servo_id, cw, 500, serial_object)
         
-        
-        
-def follow_hand(x, z, serial_object, left=0x02, right=0x01):
-    """
-    Turn two servos labelled as left, configured as differential drive wheels 
-    on a robot, with relative speed based on x coordinate from motion tracking 
-    """
-    GPIO.output(18,GPIO.HIGH) 
-    set_endless(left, True, serial_object)
-    set_endless(right, True, serial_object)
-    
-    if 0.0 < x < 1.0:              # hand detected in frame
-        #val = int(255 * x)
-        z_scale_factor = 10; 
-        val = int(255 * z_scale_factor * abs(z))
-        if val>255:val=255         # cap value sent over i2c at 255  
-        print(val);
-        
-        if z <= -0.15:
-            print('stop')
-            turn(left, ccw, 0, serial_object)
-            turn(right, cw, 0, serial_object)
-        
-        elif x < 0.4:                # turn left
-            print('hand left')
-            move(0x03, 300, serial_object)
-            sleep(0.4)
-            move(0x03, 0, serial_object)
-            #turn(left, ccw, 500)
-            #turn(right, cw,  0)
-             
-        elif x > 0.6:              # turn right
-            print('hand right')
-            move(0x04, 300, serial_object)
-            sleep(0.4)
-            move(0x04, 0, serial_object)
-            #turn(left, ccw,  0)
-            #turn(right, cw, 500)
-            
-        else:                      # go forwards
-            print('hand centre')
-            turn(right, cw,  500, serial_object)
-            turn(left, ccw, 500, serial_object)
-            
-            
-        
-def continuous_position(servo_id, x, serial_object):
-    """
-    Angle of specified servo scaler value of x coordinate motion tracking
-    """
-    if x >= 0:   # move function only accepts positive integers                       
-        finger_x_pos = x
-        finger_x_pos *= 1024
-        move(servo_id, int(finger_x_pos), serial_object)  
+         
         
         
 def forwards(serial_object, left=0x02, right=0x01):
