@@ -24,7 +24,6 @@ Dynamixel=serial.Serial("/dev/serial0",
 Dynamixel.write(bytearray.fromhex("FF FF 01 04 02 36 02 D2"))   # Read Position of Servo with ID = 1
 GPIO.output(18,GPIO.LOW)
 startDynamixel = Dynamixel.read()
-print("Servo Position = " , int.from_bytes(posDynamixel,byteorder='little'))
 startDynamixel = Dynamixel.read()
 print(startDynamixel)
 idDynamixel = Dynamixel.read()
