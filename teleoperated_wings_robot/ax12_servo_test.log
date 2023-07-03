@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/home/neon05/teleoperated_robots_/teleoperated_wings_robot/ax12_servo_test.py", line 2, in <module>
+    import serial
+ModuleNotFoundError: No module named 'serial'
