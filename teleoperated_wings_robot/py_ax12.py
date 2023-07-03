@@ -218,7 +218,7 @@ def sweep(servo_id, angles, serial_object):
     Sweep a servo with specified ID over range specified
     """
     for i in angles:
-        move_speed(servo_id, int(i/300 * 1024), serial_object)
+        move(servo_id, int(i/300 * 1024), serial_object)
         sleep(0.01)
         print(i)
         
