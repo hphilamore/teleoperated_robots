@@ -1,106 +1,51 @@
-import time
-import RPi.GPIO as GPIO
 import serial
-from dynamixel_sdk import *
+import time
 
-# Control table addresses
-ADDR_AX12_TORQUE_ENABLE = 24
-ADDR_AX12_GOAL_POSITION = 30
-ADDR_AX12_PRESENT_POSITION = 36
-ADDR_AX12_MOVING_SPEED = 32
-
-# Default settings
-PROTOCOL_VERSION = 1.0  # Default AX-12 protocol version
-BAUDRATE = 1000000  # Default baudrate of the Dynamixel AX-12 servo
-
-# Dynamixel IDs
-AX12_1_ID = 3  # ID of the first servo
-AX12_2_ID = 4  # ID of the second servo
-
-# Raspberry Pi GPIO pins for serial communication
-TX_PIN = 14  # GPIO 14 (BCM)
-RX_PIN = 15  # GPIO 15 (BCM)
-
-# USB-to-TTL converter serial port settings
+# Serial port settings
 SERIAL_PORT = "/dev/serial0"  # Replace with the appropriate port name
-SERIAL_BAUDRATE = 57600  # Baudrate used in the tutorial (57600 bps)
+BAUDRATE = 1000000  # Baudrate used in the tutorial (57600 bps)
 
-# Initialize the Dynamixel SDK
-port_handler = PortHandler(SERIAL_PORT)
-packet_handler = PacketHandler(PROTOCOL_VERSION)
+# Setup GPIO pins 
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(18,GPIO.OUT)     # Control Data Direction Pin
+tx_pin = 14
+rx_pin = 15
+GPIO.setup(tx_pin, GPIO.OUT)
+GPIO.setup(rx_pin, GPIO.IN)
 
-def initialize_motors():
-    # Open the port
-    if not port_handler.openPort():
-        print("Failed to open the port")
-        return False
+def read_servo_position(servo_id):
+    # Open the serial port
+    ser = serial.Serial(SERIAL_PORT, baudrate=BAUDRATE)
 
-    # Set baudrate
-    if not port_handler.setBaudRate(SERIAL_BAUDRATE):
-        print("Failed to set the baudrate")
-        return False
+    # Construct the instruction packet
+    packet = bytearray([0xFF, 0xFF, servo_id, 0x04, 0x02, 0x24, 0x01])
 
-    # Enable torque for both servos
-    dxl_comm_result, dxl_error = packet_handler.write1ByteTxRx(port_handler, AX12_1_ID, ADDR_AX12_TORQUE_ENABLE, 1)
-    if dxl_comm_result != COMM_SUCCESS:
-        print(f"Failed to enable torque for ID {AX12_1_ID}. Error: {packet_handler.getTxRxResult(dxl_comm_result)}")
-        return False
+    # Calculate the checksum
+    checksum = (~(servo_id + 0x04 + 0x02 + 0x24) & 0xFF)
 
-    dxl_comm_result, dxl_error = packet_handler.write1ByteTxRx(port_handler, AX12_2_ID, ADDR_AX12_TORQUE_ENABLE, 1)
-    if dxl_comm_result != COMM_SUCCESS:
-        print(f"Failed to enable torque for ID {AX12_2_ID}. Error: {packet_handler.getTxRxResult(dxl_comm_result)}")
-        return False
+    # Add the checksum to the packet
+    packet.append(checksum)
 
-    return True
+    # Send the instruction packet
+    ser.write(packet)
 
-def set_goal_position(dxl_id, goal_pos, moving_speed):
-    dxl_comm_result, dxl_error = packet_handler.write2ByteTxRx(port_handler, dxl_id, ADDR_AX12_GOAL_POSITION, goal_pos)
-    if dxl_comm_result != COMM_SUCCESS:
-        print(f"Failed to set goal position for ID {dxl_id}. Error: {packet_handler.getTxRxResult(dxl_comm_result)}")
-    packet_handler.write2ByteTxRx(port_handler, dxl_id, ADDR_AX12_MOVING_SPEED, moving_speed)
+    # Wait for the response packet
+    time.sleep(0.1)
 
-def read_present_position(dxl_id):
-    dxl_present_position, dxl_comm_result, dxl_error = packet_handler.read2ByteTxRx(port_handler, dxl_id, ADDR_AX12_PRESENT_POSITION)
-    if dxl_comm_result != COMM_SUCCESS:
-        print(f"Failed to read present position for ID {dxl_id}. Error: {packet_handler.getTxRxResult(dxl_comm_result)}")
-        return None
-    return dxl_present_position
+    # Read the response packet
+    response = ser.read(7)
 
-def main():
-    # Setup GPIO pins for serial communication
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(TX_PIN, GPIO.OUT)
-    GPIO.setup(RX_PIN, GPIO.IN)
-    GPIO.setup(18, GPIO.OUT)
+    # Close the serial port
+    ser.close()
 
-    # Initialize the motors
-    if not initialize_motors():
-        return
+    # Check if the response packet is valid
+    if len(response) == 7 and response[0] == 0xFF and response[1] == 0xFF and response[2] == servo_id:
+        # Extract the present position from the response packet
+        present_position = response[5] + (response[6] << 8)
+        print(f"Servo ID {servo_id} present position: {present_position} degrees")
+    else:
+        print(f"Failed to read present position for Servo ID {servo_id}")
 
-    # Set initial goal positions to 0 degrees and half moving speed
-    set_goal_position(AX12_1_ID, 0, 512)
-    set_goal_position(AX12_2_ID, 0, 512)
-
-    # Wait for the servos to reach the initial positions
-    time.sleep(2)
-
-    # Sweep from 0 to 300 degrees
-    for angle in range(0, 301, 10):
-        set_goal_position(AX12_1_ID, angle, 512)
-        set_goal_position(AX12_2_ID, angle, 512)
-        time.sleep(0.1)
-
-    # Read the final present positions
-    pos1 = read_present_position(AX12_1_ID)
-    pos2 = read_present_position(AX12_2_ID)
-    print(f"Final positions - Servo 1: {pos1} degrees, Servo 2: {pos2} degrees")
-
-    # Disable torque for both servos
-    packet_handler.write1ByteTxRx(port_handler, AX12_1_ID, ADDR_AX12_TORQUE_ENABLE, 0)
-    packet_handler.write1ByteTxRx(port_handler, AX12_2_ID, ADDR_AX12_TORQUE_ENABLE, 0)
-
-    # Cleanup GPIO pins
-    GPIO.cleanup()
-
-if __name__ == "__main__":
-    main()
+# Example usage
+read_servo_position(3)  # Replace with the appropriate servo ID

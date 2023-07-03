@@ -26,6 +26,10 @@ from py_ax12 import *
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(18,GPIO.OUT)     # Control Data Direction Pin
+tx_pin = 14
+rx_pin = 15
+GPIO.setup(tx_pin, GPIO.OUT)
+GPIO.setup(rx_pin, GPIO.IN)
 # GPIO.setup(6,GPIO.OUT)      
 # GPIO.setup(26,GPIO.OUT)
 
@@ -45,7 +49,10 @@ server_socket.bind((HOST, PORT))
 server_socket.listen()
 
 # Create serial object 
-Dynamixel=serial.Serial("/dev/serial0",baudrate=1000000,timeout=0.1, bytesize=8)   # UART in ttyS0 @ 1Mbps
+Dynamixel=serial.Serial("/dev/serial0",
+                        baudrate=1000000,
+                        timeout=0.1, 
+                        bytesize=8)   # UART in ttyS0 @ 1Mbps
 
 
 # Buffer for each arm to store last N servo position values 
