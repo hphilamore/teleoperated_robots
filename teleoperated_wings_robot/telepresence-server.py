@@ -252,6 +252,7 @@ while(1):
             #conn.sendall(data)
     
     except BlockingIOError:
+        print('waiting')
         pass
 
 
