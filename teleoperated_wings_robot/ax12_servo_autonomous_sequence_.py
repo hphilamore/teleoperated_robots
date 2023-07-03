@@ -19,18 +19,16 @@ GPIO.setup(enable_pin, GPIO.OUT)
 def enable_servos(enable):
     GPIO.output(enable_pin, enable)
 
-# Function to control servo position
 def set_servo_position(servo_id, position):
     # Open the serial port
     ser = serial.Serial(SERIAL_PORT, baudrate=BAUDRATE, timeout=0.1)
 
     # Construct the instruction packet
-    packet = bytearray([0xFF, 0xFF, servo_id, 0x05, 0x03, 0x1E, 0x00, 0x00])
-    packet[7] = position & 0xFF  # Low byte of position
-    packet[8] = (position >> 8) & 0xFF  # High byte of position
+    packet = bytearray([0xFF, 0xFF, servo_id, 0x07, 0x03, 0x1E])
+    packet.extend(position.to_bytes(2, 'little'))
 
     # Calculate checksum
-    checksum = ~(servo_id + 0x05 + 0x03 + 0x1E + packet[7] + packet[8]) & 0xFF
+    checksum = (~(servo_id + 0x07 + 0x03 + 0x1E + packet[7] + packet[8]) & 0xFF)
     packet.append(checksum)
 
     # Enable communication with the servos
@@ -44,6 +42,7 @@ def set_servo_position(servo_id, position):
 
     # Disable communication with the servos
     enable_servos(False)
+
 
 # Sweep the servo positions from 0 to 300 degrees
 for position in range(0, 301, 10):
