@@ -70,7 +70,7 @@ while True:
     sleep(2)
 
     sweep(left_h_motor, range(50,250), 200, serial_object)
-    sweep(right_h_motor, range(1024,512), 200, serial_object)
+    sweep(right_h_motor, range(1024,512,-1), 200, serial_object)
 
 
 
