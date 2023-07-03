@@ -99,7 +99,7 @@ def idle():
     print('no data recieved, idling')
 
 
-def main()
+def main():
 
     while True:
         try:
