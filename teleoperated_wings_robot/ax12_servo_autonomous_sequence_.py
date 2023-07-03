@@ -21,7 +21,7 @@ Dynamixel=serial.Serial("/dev/serial0",
                         timeout=0.1, 
                         bytesize=8)   # UART in ttyS0 @ 1Mbps
 
-Dynamixel.write(bytearray.fromhex("FF FF 01 04 02 24 02 D2"))   # Read Position of Servo with ID = 1
+Dynamixel.write(bytearray.fromhex("FF FF 01 04 02 36 02 D2"))   # Read Position of Servo with ID = 1
 GPIO.output(18,GPIO.LOW)
 startDynamixel = Dynamixel.read()
 startDynamixel = Dynamixel.read()
