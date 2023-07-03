@@ -119,10 +119,10 @@ def main():
 
                 while True:
 
-                    # set_endless(0x03, False, Dynamixel)
-                    # set_endless(0x04, False, Dynamixel)
-                    # set_endless(0x02, False, Dynamixel)
-                    # set_endless(0x01, False, Dynamixel)
+                    set_endless(0x03, False, Dynamixel)
+                    set_endless(0x04, False, Dynamixel)
+                    set_endless(0x02, False, Dynamixel)
+                    set_endless(0x01, False, Dynamixel)
                     
                     # Enable servos
                     GPIO.output(enable_pin,GPIO.HIGH)
