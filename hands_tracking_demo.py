@@ -1,36 +1,14 @@
 import cv2
 import mediapipe
-import socket
  
+# Initialize MediaPipe solutions
 drawingModule = mediapipe.solutions.drawing_utils
 handsModule = mediapipe.solutions.hands
 
-HOST = "192.168.0.101"  # The raspberry pi's hostname or IP address
-PORT = 65432  # The port used by the server
-
-def pos_to_command(x, z):
-    if 0.0 < x < 1.0:        # Check hand detected in frame
-        if z <= -0.15:       # Stop if too close
-            out = 'stop'          
-
-        elif x < 0.4:        # Turn left
-            out = 'left'
-             
-        elif x > 0.6:        # Turn right 
-            out = 'right'
-            
-        else:                # Go forwards
-            out = 'forward'
-
-    else:
-        out = 'none'
-        return out
-
-    #print(out)
-    return out
- 
+# Initialize VideoCapture
 capture = cv2.VideoCapture(0)
- 
+
+# Initialize MediaPipe Pose
 with handsModule.Hands(static_image_mode=False, 
                        min_detection_confidence=0.7, 
                        min_tracking_confidence=0.7, 
@@ -38,13 +16,18 @@ with handsModule.Hands(static_image_mode=False,
  
     while (True):
  
-        ret, frame = capture.read()
+        # Read frame from video stream
+        success, frame = capture.read()
+        if not success:
+            break
+
+        # Convert the frame to RGB, Process the frame with MediaPipe Pose
         results = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
         
         # Check for hands
         if results.multi_hand_landmarks != None:
 
-            # Draw hands
+            # Draw hand landmarks onto the frame
             for handLandmarks in results.multi_hand_landmarks:
                 drawingModule.draw_landmarks(frame, 
                                              handLandmarks, 
@@ -62,15 +45,11 @@ with handsModule.Hands(static_image_mode=False,
                     x_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].x)
                     z_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].z)
                     
-                # Find mean value of x and z coordinate of ndodes 
+                # Find mean value of x and z coordinate of nodes 
                 x = sum(x_)/len(x_)                
                 z = sum(z_)/len(z_)
 
                 print(x, z)
-
-                # Choose a command to send to the raspberry pi 
-                command = pos_to_command(x, z)
-                print(command)
 
  
         cv2.imshow('Test hand', frame)
