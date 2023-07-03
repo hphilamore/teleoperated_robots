@@ -1,4 +1,6 @@
 import time
+import RPi.GPIO as GPIO
+import serial
 from dynamixel_sdk import *
 
 # Control table addresses
@@ -12,11 +14,19 @@ PROTOCOL_VERSION = 1.0  # Default AX-12 protocol version
 BAUDRATE = 1000000  # Default baudrate of the Dynamixel AX-12 servo
 
 # Dynamixel IDs
-AX12_1_ID = 1  # ID of the first servo
-AX12_2_ID = 2  # ID of the second servo
+AX12_1_ID = 3  # ID of the first servo
+AX12_2_ID = 4  # ID of the second servo
+
+# Raspberry Pi GPIO pins for serial communication
+TX_PIN = 14  # GPIO 14 (BCM)
+RX_PIN = 15  # GPIO 15 (BCM)
+
+# USB-to-TTL converter serial port settings
+SERIAL_PORT = "/dev/serial0"  # Replace with the appropriate port name
+SERIAL_BAUDRATE = 57600  # Baudrate used in the tutorial (57600 bps)
 
 # Initialize the Dynamixel SDK
-port_handler = PortHandler("/dev/serial0")  # Replace DEVICENAME with the appropriate port name (e.g., "/dev/ttyUSB0" for Linux or "COM1" for Windows)
+port_handler = PortHandler(SERIAL_PORT)
 packet_handler = PacketHandler(PROTOCOL_VERSION)
 
 def initialize_motors():
@@ -26,7 +36,7 @@ def initialize_motors():
         return False
 
     # Set baudrate
-    if not port_handler.setBaudRate(BAUDRATE):
+    if not port_handler.setBaudRate(SERIAL_BAUDRATE):
         print("Failed to set the baudrate")
         return False
 
@@ -57,6 +67,12 @@ def read_present_position(dxl_id):
     return dxl_present_position
 
 def main():
+    # Setup GPIO pins for serial communication
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(TX_PIN, GPIO.OUT)
+    GPIO.setup(RX_PIN, GPIO.IN)
+    GPIO.setup(18, GPIO.OUT)
+
     # Initialize the motors
     if not initialize_motors():
         return
@@ -74,14 +90,17 @@ def main():
         set_goal_position(AX12_2_ID, angle, 512)
         time.sleep(0.1)
 
-    # # Read the final present positions
-    # pos1 = read_present_position(AX12_1_ID)
-    # pos2 = read_present_position(AX12_2_ID)
-    # print(f"Final positions - Servo 1: {pos1} degrees, Servo 2: {pos2} degrees")
+    # Read the final present positions
+    pos1 = read_present_position(AX12_1_ID)
+    pos2 = read_present_position(AX12_2_ID)
+    print(f"Final positions - Servo 1: {pos1} degrees, Servo 2: {pos2} degrees")
 
     # Disable torque for both servos
     packet_handler.write1ByteTxRx(port_handler, AX12_1_ID, ADDR_AX12_TORQUE_ENABLE, 0)
     packet_handler.write1ByteTxRx(port_handler, AX12_2_ID, ADDR_AX12_TORQUE_ENABLE, 0)
+
+    # Cleanup GPIO pins
+    GPIO.cleanup()
 
 if __name__ == "__main__":
     main()
