@@ -1,28 +1,20 @@
-from time import sleep
-from time import time
-import numpy as np
 import RPi.GPIO as GPIO
 import serial
+# import time
 import os
+from time import sleep
+from time import time
 from py_ax12 import *
 
-
-# Setup GPIO pins 
-tx_pin = 14
-rx_pin = 15
-enable_pin = 18
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
+enable_pin = 18
 GPIO.setup(enable_pin, GPIO.OUT)     # Control Data Direction Pin
-GPIO.setup(tx_pin, GPIO.OUT)
-GPIO.setup(rx_pin, GPIO.IN)
+# GPIO.setup(6,GPIO.OUT)      
+# GPIO.setup(26,GPIO.OUT)
 
-# Motor IDs for each arm 
-left_h_motor = 0x04
-right_h_motor = 0x03
-left_v_motor = 0x02
-right_v_motor = 0x01
-
+# right = 0x01
+# left = 0x02
 
 # Create serial object 
 Dynamixel=serial.Serial("/dev/serial0",
@@ -30,15 +22,12 @@ Dynamixel=serial.Serial("/dev/serial0",
                         timeout=0.1, 
                         bytesize=8)   # UART in ttyS0 @ 1Mbps
 
-
-# All servos not continuous rotation
-# set_endless(0x03, False, Dynamixel)
-# set_endless(0x04, False, Dynamixel)
-set_endless(0x02, False, Dynamixel)
+  
 set_endless(0x01, False, Dynamixel)
+set_endless(0x02, False, Dynamixel)
+
 
 while True:
-
 
     GPIO.output(enable_pin, GPIO.HIGH)
     # move_speed(0x01, 0, 20, Dynamixel)
@@ -52,8 +41,30 @@ while True:
     # move(0x01, 512, Dynamixel)
     # move(0x02, 512, Dynamixel)
     # sleep(1)
-    sweep(right_v_motor, range(300), Dynamixel)
-    sweep(right_v_motor, range(300, 0, -1), Dynamixel)
+    sweep(0x01, range(300), Dynamixel)
+    sweep(0x01, range(300, 0, -1), Dynamixel)
+    sweep(0x02, range(300), Dynamixel)
+    sweep(0x02, range(300, 0, -1), Dynamixel)
+    sweep(0x03, range(300), Dynamixel)
+    sweep(0x03, range(300, 0, -1), Dynamixel)
+    sweep(0x04, range(300), Dynamixel)
+    sweep(0x04, range(300, 0, -1), Dynamixel)
+
+
+
+    # move_speed(0x01, 0, 20, Dynamixel)
+    # move_speed(0x02, 0, 20, Dynamixel)
+    # # i = move_check(0x04, 16)         
+    # sleep(1)
+    # move_speed(0x01, 150, 500, Dynamixel)
+    # move_speed(0x02, 150, 500, Dynamixel)
+    # # i = move_check(0x04, 544)  
+    # sleep(1)
+    # move(0x01, 512, Dynamixel)
+    # move(0x02, 512, Dynamixel)
+    # sleep(1)
+    # sweep(right_v_motor, range(300), Dynamixel)
+    # sweep(right_v_motor, range(300, 0, -1), Dynamixel)
     # sweep(0x02, range(300), Dynamixel)
     # sweep(0x02, range(300, 0, -1), Dynamixel)
     # sweep(0x03, range(300), Dynamixel)
