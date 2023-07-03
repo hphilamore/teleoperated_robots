@@ -26,8 +26,8 @@ from py_ax12 import *
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(18,GPIO.OUT)     # Control Data Direction Pin
-GPIO.setup(6,GPIO.OUT)      
-GPIO.setup(26,GPIO.OUT)
+# GPIO.setup(6,GPIO.OUT)      
+# GPIO.setup(26,GPIO.OUT)
 
 # Motor IDs for each arm 
 left_motor = 0x04
