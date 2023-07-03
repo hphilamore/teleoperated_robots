@@ -46,8 +46,9 @@ PORT = 65443      # Port to listen on (non-privileged ports are > 1023)
 # Setup raspberry pi as server
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((HOST, PORT))
+tcpServer.settimeout(0.2) # timeout for listening
 server_socket.listen()
-server_socket.setblocking(False)
+# server_socket.setblocking(False)
 
 # Create serial object 
 Dynamixel=serial.Serial("/dev/serial0",
@@ -251,6 +252,10 @@ while(1):
 
             #conn.sendall(data)
     
+    except socket.timeout:
+        print('timeout')
+        pass
+
     except BlockingIOError:
         print('waiting')
         pass
