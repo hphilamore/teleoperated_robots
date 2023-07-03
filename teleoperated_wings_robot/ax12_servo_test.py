@@ -8,9 +8,10 @@ from py_ax12 import *
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(18,GPIO.OUT)     # Control Data Direction Pin
-GPIO.setup(6,GPIO.OUT)      
-GPIO.setup(26,GPIO.OUT)
+enable_pin = 18
+GPIO.setup(enable_pin, GPIO.OUT)     # Control Data Direction Pin
+# GPIO.setup(6,GPIO.OUT)      
+# GPIO.setup(26,GPIO.OUT)
 
 # right = 0x01
 # left = 0x02
@@ -25,7 +26,7 @@ set_endless(0x02, False, Dynamixel)
 
 while True:
 
-  GPIO.output(18,GPIO.HIGH)
+  GPIO.output(enable_pin, GPIO.HIGH)
   # move_speed(0x01, 0, 20, Dynamixel)
   # move_speed(0x02, 0, 20, Dynamixel)
   # # i = move_check(0x04, 16)         
