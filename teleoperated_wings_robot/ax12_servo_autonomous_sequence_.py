@@ -37,7 +37,7 @@ Dynamixel.write(bytearray.fromhex("FF FF 02 04 02 24 02 D2"))   # Read Position 
 GPIO.output(18,GPIO.LOW)
 time.sleep(0.1)
 startDynamixel = Dynamixel.read(7)
-present_position = response[5] + (response[6] << 8)
+present_position = startDynamixel[5] + (startDynamixel[6] << 8)
 print(f"Servo ID {servo_id} present position: {present_position} degrees")
 # startDynamixel = Dynamixel.read()
 # idDynamixel = Dynamixel.read()
