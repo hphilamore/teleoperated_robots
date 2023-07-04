@@ -221,7 +221,7 @@ def sweep(servo_id, positions, serial_object):
     """
     for p in positions:
         move(servo_id, p, serial_object)
-        sleep(0.001)
+        sleep(0.005)
         print(p)
         
 
