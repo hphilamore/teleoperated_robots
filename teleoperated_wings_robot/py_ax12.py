@@ -29,12 +29,13 @@ ccw = 0
 cw = 1
 
 
-def move(servo_id, position, serial_object):
+def move(servo_id, angle, serial_object):
     """
     Moves a servo with specified ID to specified angle (degrees)
 
     """
-    P = position  # position as integer representation of 10-bit value (in range 0 to 1024)
+    P = angle/300 * 1024
+    # P = position  # position as integer representation of 10-bit value (in range 0 to 1024)
 
     # print(type(P))
 
@@ -66,12 +67,13 @@ def move(servo_id, position, serial_object):
 
     return(instruction_packet)
 
-def move_speed(servo_id, position, speed, serial_object):
+def move_speed(servo_id, angle, speed, serial_object):
     """
     Moves a servo with specified ID to specified angle (degrees)
 
     """
-    P = position  # position as integer representation of 10-bit value (in range 0 to 1024)
+    P = angle/300 * 1024
+    # P = position  # position as integer representation of 10-bit value (in range 0 to 1024)
 
     # print(type(P))
 
