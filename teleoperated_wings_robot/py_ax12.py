@@ -34,7 +34,7 @@ def move(servo_id, angle, serial_object):
     Moves a servo with specified ID to specified angle (degrees)
 
     """
-    P = angle/300 * 1024
+    P = int(angle/300 * 1024)
     # P = position  # position as integer representation of 10-bit value (in range 0 to 1024)
 
     # print(type(P))
@@ -72,7 +72,7 @@ def move_speed(servo_id, angle, speed, serial_object):
     Moves a servo with specified ID to specified angle (degrees)
 
     """
-    P = angle/300 * 1024
+    P = int(angle/300 * 1024)
     # P = position  # position as integer representation of 10-bit value (in range 0 to 1024)
 
     # print(type(P))
