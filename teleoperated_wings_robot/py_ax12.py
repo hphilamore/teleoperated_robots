@@ -222,7 +222,7 @@ def sweep(servo_id, angles, serial_object):
     for angle in angles:
         move(servo_id, angle, serial_object)
         sleep(0.01)
-        print(i)
+        print(angle)
         
 
 def binary_position(servo_id, x, serial_object):
