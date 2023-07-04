@@ -50,15 +50,35 @@ while True:
   # move(right_h, 0, Dynamixel)
   # move(left_v, 0, Dynamixel)
   # move(right_v, 0, Dynamixel)
-  sweep(left_v, range(1024), 0.005, Dynamixel)
-  sweep(left_v, range(1024, 0, -1), 0.01, Dynamixel)
+
+  # sweep(left_v, range(1024), 0.005, Dynamixel)
+  # sweep(left_v, range(1024, 0, -1), 0.005, Dynamixel)
   sweep(right_v, range(1024), 0.005, Dynamixel)
-  sweep(right_v, range(1024, 0, -1), 0.01, Dynamixel)
-  # sweep(left_h, range(1024), Dynamixel)
-  # sweep(left_h, range(1024, 0, -1), Dynamixel)
-  # sweep(right_h, range(1024), Dynamixel)
-  # sweep(right_h, range(1024, 0, -1), Dynamixel)
+  sweep(right_v, range(1024, 0, -1), 0.005, Dynamixel)
+  # sweep(left_h, range(1024), 0.005, Dynamixel)
+  # sweep(left_h, range(1024, 0, -1), 0.01, Dynamixel)
+  # sweep(right_h, range(1024), 0.005, Dynamixel)
+  # sweep(right_h, range(1024, 0, -1), 0.01, Dynamixel)
   # sleep(3)
+  for i, j in zip(range(1024), range(1024,0,-1)):
+    move(left_h, i, Dynamixel)
+    move(right_h, j, Dynamixel)
+    sleep(0.005)
+  sleep(1)
+
+  for i, j in zip(range(1024,0,-1), range(1024)):
+    move(left_h, i, Dynamixel)
+    move(right_h, j, Dynamixel)
+    sleep(0.007)
+  sleep(1)
+
+
+  for i, j in zip(range(1024), range(1024,0,-1)):
+    move(left_h, i, Dynamixel)
+    move(right_h, j, Dynamixel)
+    sleep(0.005)
+
+
   # move_speed(left_h, 100, 512, Dynamixel)
   # move_speed(right_h, 100, 512, Dynamixel)
   # move_speed(left_v, 100, 512, Dynamixel)
