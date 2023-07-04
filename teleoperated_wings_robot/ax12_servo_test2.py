@@ -19,33 +19,38 @@ GPIO.setup(26,GPIO.OUT)
 Dynamixel=serial.Serial("/dev/serial0",baudrate=1000000,timeout=0.1, bytesize=8)   # UART in ttyS0 @ 1Mbps
 
  
-left = 0x01
-right = 0x02  
-set_endless(left, False, Dynamixel)
-set_endless(right, False, Dynamixel)
+left_v = 0x01
+right_v = 0x02 
+left_h = 0x03
+right_h = 0x04 
+
+set_endless(left_v, False, Dynamixel)
+set_endless(right_v, False, Dynamixel)
+set_endless(left_h, False, Dynamixel)
+set_endless(right_h, False, Dynamixel)
 
 
 while True:
 
   GPIO.output(18,GPIO.HIGH)
-  move_speed(left, 0, 20, Dynamixel)
-  move_speed(right, 0, 20, Dynamixel)
+  move_speed(left_v, 0, 20, Dynamixel)
+  move_speed(right_v, 0, 20, Dynamixel)
   # i = move_check(0x04, 16)         
   sleep(1)
-  move_speed(left, 150, 500, Dynamixel)
-  move_speed(right, 150, 500, Dynamixel)
+  move_speed(left_v, 150, 500, Dynamixel)
+  move_speed(right_v, 150, 500, Dynamixel)
   # i = move_check(0x04, 544)  
   sleep(1)
-  move(left, 512, Dynamixel)
-  move(right, 512, Dynamixel)
+  move(left_v, 512, Dynamixel)
+  move(right_v, 512, Dynamixel)
   sleep(1)
-  sweep(left, range(300), Dynamixel)
-  sweep(left, range(300, 0, -1), Dynamixel)
-  sweep(right, range(300), Dynamixel)
-  sweep(right, range(300, 0, -1), Dynamixel)
-  sweep(0x03, range(300), Dynamixel)
-  sweep(0x03, range(300, 0, -1), Dynamixel)
-  sweep(0x04, range(300), Dynamixel)
-  sweep(0x04, range(300, 0, -1), Dynamixel)
+  sweep(left_v, range(300), Dynamixel)
+  sweep(left_v, range(300, 0, -1), Dynamixel)
+  sweep(right_v, range(300), Dynamixel)
+  sweep(right_v, range(300, 0, -1), Dynamixel)
+  sweep(left_h, range(300), Dynamixel)
+  sweep(left_h, range(300, 0, -1), Dynamixel)
+  sweep(right_h, range(300), Dynamixel)
+  sweep(right_h, range(300, 0, -1), Dynamixel)
 
 
