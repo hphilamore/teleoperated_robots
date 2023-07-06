@@ -99,6 +99,67 @@ def window_coordinates():
 
     return coordinates
 
+def track_hands(frame, flag_no_hand, flag_timeout):
+    results = hands.process(frame)
+
+    # Check for hands
+    if results.multi_hand_landmarks != None:
+
+        # Draw hands
+        for handLandmarks in results.multi_hand_landmarks:
+            # Draw landmarks onto frame 
+            drawingModule.draw_landmarks(frame, 
+                                         handLandmarks, 
+                                         handsModule.HAND_CONNECTIONS)
+
+        hand_coordinates = []
+
+        # Find each hand up to max number of hands 
+        for hand_no, hand_landmarks in enumerate(results.multi_hand_landmarks):
+            print(f'HAND NUMBER: {hand_no+1}')
+            print('-----------------------')
+
+            x_ = []
+            y_ = []
+            z_ = []
+
+            for i in range(20):
+                x_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].x)
+                y_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].y)
+                z_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].z)
+                    
+            # Find mean value of x and z coordinate of nodes 
+            x = sum(x_)/len(x_)                
+            y = sum(y_)/len(y_)                
+            z = sum(z_)/len(z_)
+
+            print(x, y, z)
+
+            # Add the mean values to the list of coordinates to send to raspberry pi
+            hand_coordinates.append(str(round(x, 2)))
+            hand_coordinates.append(str(round(y, 2)))
+
+        # Choose a command to send to the raspberry pi robot 
+        # command = pos_to_command(x, y, z)
+        command = ','.join(hand_coordinates)
+        print(command)
+
+    else:
+            print('no hand')
+            if not flag_no_hand:     # If there was a hand in previous frame
+                flag_no_hand = True  # Raise the flag 
+                start = time.time()  # Start the timer
+                command = 'no command'
+
+            else:
+                end = time.time()
+                if end-start >= flag_timeout:
+                    flag_no_hand = False  # Lower the flag 
+                    print('stop')
+                    command = 'stop'  
+
+    return command
+
 
 
 
@@ -225,63 +286,65 @@ while(True):
             frame = cv2.flip(frame, 1)
 
 
-        # Look for hands    
-        results = hands.process(frame)
+        # Look for hands 
+        command = track_hands(frame, flag_no_hand, flag_timeout)   
+        # results = hands.process(frame)
 
-        # Check for hands
-        if results.multi_hand_landmarks != None:
+        # # Check for hands
+        # if results.multi_hand_landmarks != None:
 
-            # Draw hands
-            for handLandmarks in results.multi_hand_landmarks:
-                drawingModule.draw_landmarks(frame, 
-                                             handLandmarks, 
-                                             handsModule.HAND_CONNECTIONS)
+        #     # Draw hands
+        #     for handLandmarks in results.multi_hand_landmarks:
+        #         # Draw landmarks onto frame 
+        #         drawingModule.draw_landmarks(frame, 
+        #                                      handLandmarks, 
+        #                                      handsModule.HAND_CONNECTIONS)
 
-            hand_coordinates = []
+        #     hand_coordinates = []
 
-            # Find each hand up to max number of hands 
-            for hand_no, hand_landmarks in enumerate(results.multi_hand_landmarks):
-                print(f'HAND NUMBER: {hand_no+1}')
-                print('-----------------------')
+        #     # Find each hand up to max number of hands 
+        #     for hand_no, hand_landmarks in enumerate(results.multi_hand_landmarks):
+        #         print(f'HAND NUMBER: {hand_no+1}')
+        #         print('-----------------------')
  
-                x_ = []
-                y_ = []
-                z_ = []
+        #         x_ = []
+        #         y_ = []
+        #         z_ = []
 
-                for i in range(20):
-                    x_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].x)
-                    y_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].y)
-                    z_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].z)
+        #         for i in range(20):
+        #             x_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].x)
+        #             y_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].y)
+        #             z_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].z)
                         
-                # Find mean value of x and z coordinate of nodes 
-                x = sum(x_)/len(x_)                
-                y = sum(y_)/len(y_)                
-                z = sum(z_)/len(z_)
+        #         # Find mean value of x and z coordinate of nodes 
+        #         x = sum(x_)/len(x_)                
+        #         y = sum(y_)/len(y_)                
+        #         z = sum(z_)/len(z_)
 
-                print(x, y, z)
+        #         print(x, y, z)
 
-                # Add the mean values to the list of coordinates to send to raspberry pi
-                hand_coordinates.append(str(round(x, 2)))
-                hand_coordinates.append(str(round(y, 2)))
+        #         # Add the mean values to the list of coordinates to send to raspberry pi
+        #         hand_coordinates.append(str(round(x, 2)))
+        #         hand_coordinates.append(str(round(y, 2)))
 
-            # Choose a command to send to the raspberry pi robot 
-            # command = pos_to_command(x, y, z)
-            command = ','.join(hand_coordinates)
-            print(command)
+        #     # Choose a command to send to the raspberry pi robot 
+        #     # command = pos_to_command(x, y, z)
+        #     command = ','.join(hand_coordinates)
+        #     print(command)
 
-        else:
-                print('no hand')
-                if not flag_no_hand:     # If there was a hand in previous frame
-                    flag_no_hand = True  # Raise the flag 
-                    start = time.time()  # Start the timer
-                    command = 'no command'
+        # else:
+        #         print('no hand')
+        #         if not flag_no_hand:     # If there was a hand in previous frame
+        #             flag_no_hand = True  # Raise the flag 
+        #             start = time.time()  # Start the timer
+        #             command = 'no command'
 
-                else:
-                    end = time.time()
-                    if end-start >= flag_timeout:
-                        flag_no_hand = False  # Lower the flag 
-                        print('stop')
-                        command = 'stop'  
+        #         else:
+        #             end = time.time()
+        #             if end-start >= flag_timeout:
+        #                 flag_no_hand = False  # Lower the flag 
+        #                 print('stop')
+        #                 command = 'stop'  
 
 
         # if send_command:
