@@ -78,10 +78,27 @@ if OS == 'windowsOS':
 drawingModule = mediapipe.solutions.drawing_utils
 handsModule = mediapipe.solutions.hands
 
-
-
 # Setup web cam ready for video capture 
 capture = cv2.VideoCapture(0)
+
+def window_coordinates():
+    process = Popen(['./windowlist', 'windowlist.m'], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = process.communicate()
+    window_positions = stdout.decode().split('\n')
+
+    for w in window_positions:
+        # Find window 
+        if win_name in w:                        
+            print(w)
+            # Separate window info 
+            w = w.split(':')                     
+            # Separate window coordinates
+            coordinates = w[-1].split(',')       
+            # Convert coordinates to integer
+            coordinates = [int(float(i)) for i in coordinates]  
+
+    return coordinates
+
 
 
 
@@ -135,21 +152,22 @@ if input_mode == 'keys':
 
 
 elif input_mode == 'window':
-    # Set up window for image capture """
+    # Set up window for image capture
+    coordinates = window_coordinates()
      
-    process = Popen(['./windowlist', 'windowlist.m'], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = process.communicate()
-    window_positions = stdout.decode().split('\n')
+    # process = Popen(['./windowlist', 'windowlist.m'], stdout=PIPE, stderr=PIPE)
+    # stdout, stderr = process.communicate()
+    # window_positions = stdout.decode().split('\n')
 
-    for w in window_positions:
-        if win_name in w:                        # Find window 
-            print(w)
-            w = w.split(':')                     # Separate window info 
-            print(w)
-            coordinates = w[-1].split(',')       # Separate window coordinates
-            print(coordinates)
-            coordinates = [int(float(i)) for i in coordinates]  # Convert coordinates to integer
-            print(coordinates)
+    # for w in window_positions:
+    #     if win_name in w:                        # Find window 
+    #         print(w)
+    #         w = w.split(':')                     # Separate window info 
+    #         print(w)
+    #         coordinates = w[-1].split(',')       # Separate window coordinates
+    #         print(coordinates)
+    #         coordinates = [int(float(i)) for i in coordinates]  # Convert coordinates to integer
+    #         print(coordinates)
 
 elif input_mode == 'camera':
     """ Setup web cam ready for video capture """
