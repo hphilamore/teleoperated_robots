@@ -28,7 +28,7 @@ import numpy as np
 import curses
 
 #-------------------------------------------------------------------------------
-""" SETUP """
+""" SETUP  """
 
 HOST = "192.168.60.223"  # The raspberry pi's hostname or IP address
 PORT = 65441            # The port used by the server
@@ -44,7 +44,7 @@ win_name = 'zoom.us:Zoom Meeting'          # Find zoom meeting window
 #win_name = 'Vysor'                        # Find vysor window for robot POV 
 #win_name = 'Vysor:SM'                     # Find vysor window for robot POV 
 #win_name = 'Vysor:ART'                    # Find vysor window for robot POV 
-# win_name = 'Photo Booth:Photo Booth' 
+win_name = 'Photo Booth:Photo Booth' 
 # win_name = 'GoPro Webcam:'  
 
 
@@ -58,26 +58,122 @@ grab_full_screen_image = False
 make_output_window_fullscreen = True
 
 # Send command to raspberry pi
-send_command = True
+send_command = False
 
 # Number of hands to track (wings track 2 hands, turtle robots track one hand)
 n_hands = 2
 
 
-#-------------------------------------------------------------------------------
-
-if OS == 'windowsOS': 
-    from screeninfo import get_monitors # windows only
- 
-drawingModule = mediapipe.solutions.drawing_utils
-handsModule = mediapipe.solutions.hands
-
 # A flag to indicate when no hand is deteced so that a timer can be set to 
 # check of the hand is really gone or if detection has failed momentarily 
 flag_no_hand = False 
+timeout = 2
 
-# Setup web cam ready for video capture 
-capture = cv2.VideoCapture(0)
+
+#-------------------------------------------------------------------------------
+
+# Setup media pipe solutions 
+drawingModule = mediapipe.solutions.drawing_utils
+handsModule = mediapipe.solutions.hands
+
+
+if OS == 'windowsOS': 
+    from screeninfo import get_monitors # windows only
+
+#-------------------------------------------------------------------------------
+
+
+def window_coordinates():
+    """ Set up window for image capture """
+     
+    process = Popen(['./windowlist', 'windowlist.m'], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = process.communicate()
+    window_positions = stdout.decode().split('\n')
+
+    for w in window_positions:
+
+        # Find window
+        if win_name in w:                         
+            
+            # Separate window info 
+            w = w.split(':')                     
+            
+            # Separate window coordinates
+            coordinates = w[-1].split(',')       
+            
+            # Convert coordinates to integer
+            coordinates = [int(float(i)) for i in coordinates] 
+
+    return coordinates
+
+
+def image_from_window():
+    with mss() as sct:
+
+        try:
+            # Use coordinates of window
+            # with mss() as sct:
+            window = {"top": coordinates[1], 
+                  "left": coordinates[0], 
+                  "width": coordinates[3], 
+                  "height": coordinates[2]
+                   }
+
+            # Grab current image    
+            frame = np.array(sct.grab(window))
+
+            # If full screen image grab required
+            if grab_full_screen_image: 
+                frame = np.array(ImageGrab.grab()) 
+
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+            return frame
+
+        except:
+            print("No window with specified name")
+            print("Exiting program...")
+            sys.exit(1)
+
+
+def image_from_camera():
+    ret, frame = capture.read()
+    # Grab current image    
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    frame = cv2.flip(frame, 1)
+    return frame 
+
+
+
+
+if input_mode == 'window':
+    coordinates = window_coordinates()
+    # """ Set up window for image capture """
+     
+    # process = Popen(['./windowlist', 'windowlist.m'], stdout=PIPE, stderr=PIPE)
+    # stdout, stderr = process.communicate()
+    # window_positions = stdout.decode().split('\n')
+
+    # for w in window_positions:
+
+    #     # Find window
+    #     if win_name in w:                         
+            
+    #         # Separate window info 
+    #         w = w.split(':')                     
+            
+    #         # Separate window coordinates
+    #         coordinates = w[-1].split(',')       
+            
+    #         # Convert coordinates to integer
+    #         coordinates = [int(float(i)) for i in coordinates]  
+
+
+elif input_mode == 'camera':
+    # Setup web cam ready for video capture
+    capture = cv2.VideoCapture(0)
+
+
 
 
 
@@ -130,26 +226,7 @@ if input_mode == 'keys':
         sys.exit(1)
 
 
-elif input_mode == 'window':
-    """ Set up window for image capture """
-     
-    process = Popen(['./windowlist', 'windowlist.m'], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = process.communicate()
-    window_positions = stdout.decode().split('\n')
 
-    for w in window_positions:
-        if win_name in w:                        # Find window 
-            print(w)
-            w = w.split(':')                     # Separate window info 
-            print(w)
-            coordinates = w[-1].split(',')       # Separate window coordinates
-            print(coordinates)
-            coordinates = [int(float(i)) for i in coordinates]  # Convert coordinates to integer
-            print(coordinates)
-
-elif input_mode == 'camera':
-    """ Setup web cam ready for video capture """
-    capture = cv2.VideoCapture(0)
  
 
 while(True):
@@ -163,44 +240,20 @@ while(True):
         # with mss() as sct:
             
         """
-        Input taken from window
+        
         """
         if input_mode == 'window':
 
-            with mss() as sct:
-
-                try:
-                    # Use coordinates of window
-                    # with mss() as sct:
-                    window = {"top": coordinates[1], 
-                          "left": coordinates[0], 
-                          "width": coordinates[3], 
-                          "height": coordinates[2]
-                           }
-
-                    # Grab current image    
-                    frame = np.array(sct.grab(window))
-
-                    # If full screen image grab required
-                    if grab_full_screen_image: 
-                        frame = np.array(ImageGrab.grab()) 
-
-                    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-
-                except:
-                    print("No window with specified name")
-                    print("Exiting program...")
-                    sys.exit(1)
-            
+            # Input taken from window
+            frame = image_from_window()            
 
         elif input_mode == 'camera':
-            """
-            Input taken from webcam
-            """
-            ret, frame = capture.read()
-            # Grab current image    
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frame = cv2.flip(frame, 1)
+
+            # Input taken from webcam
+            frame = image_from_camera()
+
+
+            
 
 
         # Look for hands    
@@ -256,18 +309,18 @@ while(True):
 
                 else:
                     end = time.time()
-                    if end-start >= 3:
+                    if end-start >= timeout:
                         flag_no_hand = False  # Lower the flag 
                         print('stop')
                         command = 'stop'  
 
 
-        if send_command:
-            # Send command to server socket on raspberry pi
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                # s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow reuse of address
-                s.connect((HOST, PORT))
-                s.sendall(command.encode())
+        # if send_command:
+        #     # Send command to server socket on raspberry pi
+        #     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        #         # s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow reuse of address
+        #         s.connect((HOST, PORT))
+        #         s.sendall(command.encode())
 
 
         if OS == 'windowsOS': 
@@ -302,3 +355,10 @@ while(True):
  
         if cv2.waitKey(1) == 27:
             break
+
+        if send_command:
+            # Send command to server socket on raspberry pi
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                # s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow reuse of address
+                s.connect((HOST, PORT))
+                s.sendall(command.encode())
