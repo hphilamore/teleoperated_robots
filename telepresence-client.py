@@ -34,7 +34,7 @@ HOST = "192.168.60.223"  # The raspberry pi's hostname or IP address
 PORT = 65441            # The port used by the server
 
 # Take video stream from 'camera' or 'window' or 'keys'
-input_mode = 'window' #'camera' ###'keys'#'camera' ##'camera'##'camera'  
+input_mode = 'camera' #'window' ###'keys'#'camera' ##'camera'##'camera'  
 
 # Window name is using window
 win_name = 'zoom.us'                      
@@ -103,8 +103,8 @@ def window_coordinates():
 
     return coordinates
 
-def track_hands(frame, flag_no_hand, flag_timeout):
-    results = hands.process(frame)
+def track_hands(frame, pose, flag_no_hand, flag_timeout):
+    results = pose.process(frame)
 
     # Check for hands
     if results.multi_hand_landmarks != None:
@@ -201,6 +201,48 @@ def frame_from_camera(capture):
     return frame
 
 
+def show_tracked_wireframe(frame, OS):
+    if OS == 'windowsOS': 
+        if make_output_window_fullscreen:
+
+            # To make output window full screen:
+            for monitor in get_monitors():
+                screen_h = monitor.height
+                screen_w = monitor.width
+            
+            frame_h, frame_w, _ = frame.shape
+
+            scaleWidth = float(screen_w)/float(frame_w)
+            scaleHeight = float(screen_h)/float(frame_h)
+
+            if scaleHeight>scaleWidth:
+                imgScale = scaleWidth
+            else:
+                imgScale = scaleHeight
+
+            newX,newY = frame_w*imgScale, frame_h*imgScale
+
+            cv2.namedWindow('image',cv2.WINDOW_NORMAL)      # Implicitly create the window
+            cv2.resizeWindow('image', int(newX),int(newY))  # Resize the window
+
+
+    try:
+        cv2.imshow('image', frame)                 # Show the window 
+        
+    except:
+        pass
+
+
+def send_command_to_server(HOST, PORT):
+    # Send command to server socket on raspberry pi
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        # s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow reuse of address
+        s.connect((HOST, PORT))
+        s.sendall(command.encode())
+
+
+
+
 if input_mode == 'keys':
 
     screen = curses.initscr()
@@ -262,11 +304,12 @@ elif input_mode == 'camera':
 
 while(True):
 
-    with handsModule.Hands(static_image_mode=False, 
+    model = handsModule.Hands(static_image_mode=False, 
                        min_detection_confidence=0.7, 
                        min_tracking_confidence=0.7, 
-                       max_num_hands=n_hands) as hands:
+                       max_num_hands=n_hands)
 
+    with model as pose:
 
         # Input taken from window
         if input_mode == 'window':
@@ -277,44 +320,13 @@ while(True):
 
 
         # Look for hands 
-        command = track_hands(frame, flag_no_hand, flag_timeout) 
+        command = track_hands(frame, pose, flag_no_hand, flag_timeout) 
 
-        if OS == 'windowsOS': 
-            if make_output_window_fullscreen:
-
-                # To make output window full screen:
-                for monitor in get_monitors():
-                    screen_h = monitor.height
-                    screen_w = monitor.width
-                
-                frame_h, frame_w, _ = frame.shape
-
-                scaleWidth = float(screen_w)/float(frame_w)
-                scaleHeight = float(screen_h)/float(frame_h)
-
-                if scaleHeight>scaleWidth:
-                    imgScale = scaleWidth
-                else:
-                    imgScale = scaleHeight
-
-                newX,newY = frame_w*imgScale, frame_h*imgScale
-
-                cv2.namedWindow('image',cv2.WINDOW_NORMAL)      # Implicitly create the window
-                cv2.resizeWindow('image', int(newX),int(newY))  # Resize the window
-
-
-        try:
-            cv2.imshow('image', frame)                 # Show the window 
-            
-        except:
-            pass
+        # Visualise output
+        show_tracked_wireframe(frame, OS) 
  
         if cv2.waitKey(1) == 27:
             break
 
         if send_command:
-            # Send command to server socket on raspberry pi
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                # s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow reuse of address
-                s.connect((HOST, PORT))
-                s.sendall(command.encode())
+            send_command_to_server(HOST, PORT)
