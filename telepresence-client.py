@@ -68,6 +68,9 @@ n_hands = 2
 flag_no_hand = False 
 flag_timeout = 2
 
+# Detail of hands tracked when True, otherwise whole body frame 
+track_hands_only = False
+
 
 #-------------------------------------------------------------------------------
 
@@ -77,6 +80,8 @@ if OS == 'windowsOS':
 # Setup media pipe solutions 
 drawingModule = mediapipe.solutions.drawing_utils
 handsModule = mediapipe.solutions.hands
+mp_drawing = mediapipe.solutions.drawing_utils
+mp_pose = mediapipe.solutions.pose
 
 # Setup web cam ready for video capture 
 capture = cv2.VideoCapture(0)
@@ -163,6 +168,35 @@ def track_hands(frame, pose, flag_no_hand, flag_timeout):
                     command = 'stop'  
 
     return command
+
+def track_body(frame, pose, flag_no_hand, flag_timeout):
+    # Process the frame with MediaPipe Pose
+    results = pose.process(frame)
+
+    # # Draw the pose landmarks on the frame
+    # frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+    mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+
+    # Extract and print the XYZ coordinates of shoulders, elbows, knees, wrists, and hands
+    if results.pose_landmarks:
+        for idx, landmark in enumerate(results.pose_landmarks.landmark):
+            if idx in [
+                       # mp_pose.PoseLandmark.LEFT_SHOULDER.value,
+                       # mp_pose.PoseLandmark.RIGHT_SHOULDER.value,
+                       # mp_pose.PoseLandmark.LEFT_ELBOW.value,
+                       # mp_pose.PoseLandmark.RIGHT_ELBOW.value,
+                       mp_pose.PoseLandmark.LEFT_WRIST.value,
+                       mp_pose.PoseLandmark.RIGHT_WRIST.value,
+                       # mp_pose.PoseLandmark.LEFT_KNEE.value,
+                       # mp_pose.PoseLandmark.RIGHT_KNEE.value
+                       ]:
+                x = landmark.x
+                y = landmark.y
+                z = landmark.z
+                print(f"Person {idx // 33 + 1}")
+                print(f"Point {mp_pose.PoseLandmark(idx).name}: X={x}, Y={y}, Z={z}")
+    return 10
+
 
 
 def frame_from_window(window_coordinates):
@@ -304,10 +338,14 @@ elif input_mode == 'camera':
 
 while(True):
 
-    model = handsModule.Hands(static_image_mode=False, 
-                       min_detection_confidence=0.7, 
-                       min_tracking_confidence=0.7, 
-                       max_num_hands=n_hands)
+    if track_hands_only:
+        model = handsModule.Hands(static_image_mode=False, 
+                                  min_detection_confidence=0.7, 
+                                  min_tracking_confidence=0.7, 
+                                  max_num_hands=n_hands)
+    else:
+        model = mp_pose.Pose(min_detection_confidence=0.5, 
+                             min_tracking_confidence=0.5)
 
     with model as pose:
 
@@ -320,7 +358,10 @@ while(True):
 
 
         # Look for hands 
-        command = track_hands(frame, pose, flag_no_hand, flag_timeout) 
+        if track_hands_only:
+            command = track_hands(frame, pose, flag_no_hand, flag_timeout) 
+        else:
+            command = track_body(frame, pose, flag_no_hand, flag_timeout)
 
         # Visualise output
         show_tracked_wireframe(frame, OS) 

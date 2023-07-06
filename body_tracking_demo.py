@@ -22,6 +22,8 @@ with mp_pose.Pose(min_detection_confidence=0.5,
         # Convert the frame to RGB
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
+
+
         # Process the frame with MediaPipe Pose
         results = pose.process(frame_rgb)
 
