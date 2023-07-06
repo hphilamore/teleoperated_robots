@@ -34,7 +34,7 @@ HOST = "192.168.60.223"  # The raspberry pi's hostname or IP address
 PORT = 65441            # The port used by the server
 
 # Take video stream from 'camera' or 'window' or 'keys'
-input_mode = 'camera' #'window' ###'keys'#'camera' ##'camera'##'camera'  
+input_mode = 'window' #'camera' ###'keys'#'camera' ##'camera'##'camera'  
 
 # Window name is using window
 win_name = 'zoom.us'                      
@@ -44,7 +44,7 @@ win_name = 'zoom.us:Zoom Meeting'          # Find zoom meeting window
 #win_name = 'Vysor'                        # Find vysor window for robot POV 
 #win_name = 'Vysor:SM'                     # Find vysor window for robot POV 
 #win_name = 'Vysor:ART'                    # Find vysor window for robot POV 
-# win_name = 'Photo Booth:Photo Booth' 
+win_name = 'Photo Booth:Photo Booth' 
 # win_name = 'GoPro Webcam:'  
 
 
@@ -89,13 +89,17 @@ def window_coordinates():
     for w in window_positions:
         # Find window 
         if win_name in w:                        
-            print(w)
             # Separate window info 
             w = w.split(':')                     
             # Separate window coordinates
             coordinates = w[-1].split(',')       
             # Convert coordinates to integer
-            coordinates = [int(float(i)) for i in coordinates]  
+            coordinates = [int(float(i)) for i in coordinates] 
+            break
+    else:
+        print("No window with specified name")
+        print("Exiting program...")
+        sys.exit(1)  
 
     return coordinates
 
@@ -214,7 +218,7 @@ if input_mode == 'keys':
 
 elif input_mode == 'window':
     # Set up window for image capture
-    coordinates = window_coordinates()
+    window_coordinates = window_coordinates()
      
     # process = Popen(['./windowlist', 'windowlist.m'], stdout=PIPE, stderr=PIPE)
     # stdout, stderr = process.communicate()
@@ -255,10 +259,10 @@ while(True):
                 try:
                     # Use coordinates of window
                     # with mss() as sct:
-                    window = {"top": coordinates[1], 
-                          "left": coordinates[0], 
-                          "width": coordinates[3], 
-                          "height": coordinates[2]
+                    window = {"top": window_coordinates[1], 
+                          "left": window_coordinates[0], 
+                          "width": window_coordinates[3], 
+                          "height": window_coordinates[2]
                            }
 
                     # Grab current image    
@@ -287,7 +291,9 @@ while(True):
 
 
         # Look for hands 
-        command = track_hands(frame, flag_no_hand, flag_timeout)   
+        command = track_hands(frame, flag_no_hand, flag_timeout) 
+
+
         # results = hands.process(frame)
 
         # # Check for hands
