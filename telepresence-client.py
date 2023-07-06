@@ -165,6 +165,40 @@ def track_hands(frame, flag_no_hand, flag_timeout):
     return command
 
 
+def frame_from_window(window_coordinates):
+    with mss() as sct:
+
+        # try:
+            # Use coordinates of window
+            # with mss() as sct:
+        window = {"top": window_coordinates[1], 
+              "left": window_coordinates[0], 
+              "width": window_coordinates[3], 
+              "height": window_coordinates[2]
+               }
+
+        # Grab current image    
+        frame = np.array(sct.grab(window))
+
+        # If full screen image grab required
+        if grab_full_screen_image: 
+            frame = np.array(ImageGrab.grab()) 
+
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+        return frame
+
+        # except:
+        #     print("No window with specified name")
+        #     print("Exiting program...")
+        #     sys.exit(1)
+
+def frame_from_camera(capture):
+    ret, frame = capture.read()
+    # Grab current image    
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    frame = cv2.flip(frame, 1)
+    return frame
 
 
 if input_mode == 'keys':
@@ -247,47 +281,45 @@ while(True):
                        max_num_hands=n_hands) as hands:
 
 
-        # with mss() as sct:
-            
-        """
-        Input taken from window
-        """
+        # Input taken from window
         if input_mode == 'window':
+            frame = frame_from_window(window_coordinates)
 
-            with mss() as sct:
+            # with mss() as sct:
 
-                try:
-                    # Use coordinates of window
-                    # with mss() as sct:
-                    window = {"top": window_coordinates[1], 
-                          "left": window_coordinates[0], 
-                          "width": window_coordinates[3], 
-                          "height": window_coordinates[2]
-                           }
+            #     try:
+            #         # Use coordinates of window
+            #         # with mss() as sct:
+            #         window = {"top": window_coordinates[1], 
+            #               "left": window_coordinates[0], 
+            #               "width": window_coordinates[3], 
+            #               "height": window_coordinates[2]
+            #                }
 
-                    # Grab current image    
-                    frame = np.array(sct.grab(window))
+            #         # Grab current image    
+            #         frame = np.array(sct.grab(window))
 
-                    # If full screen image grab required
-                    if grab_full_screen_image: 
-                        frame = np.array(ImageGrab.grab()) 
+            #         # If full screen image grab required
+            #         if grab_full_screen_image: 
+            #             frame = np.array(ImageGrab.grab()) 
 
-                    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            #         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
-                except:
-                    print("No window with specified name")
-                    print("Exiting program...")
-                    sys.exit(1)
+            #     except:
+            #         print("No window with specified name")
+            #         print("Exiting program...")
+            #         sys.exit(1)
             
 
         elif input_mode == 'camera':
             """
-            Input taken from webcam
+            
             """
-            ret, frame = capture.read()
-            # Grab current image    
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frame = cv2.flip(frame, 1)
+            frame = frame_from_camera(capture)
+            # ret, frame = capture.read()
+            # # Grab current image    
+            # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            # frame = cv2.flip(frame, 1)
 
 
         # Look for hands 
