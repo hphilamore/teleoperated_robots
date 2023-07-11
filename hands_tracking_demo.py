@@ -73,10 +73,10 @@ with handsModule.Hands(static_image_mode=False,
                 print(command)
 
  
-        cv2.imshow('Test hand', frame)
+#         cv2.imshow('Test hand', frame)
  
         if cv2.waitKey(1) == 27:
             break
  
-cv2.destroyAllWindows()
+# cv2.destroyAllWindows()
 capture.release()
