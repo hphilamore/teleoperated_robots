@@ -30,12 +30,12 @@ GPIO.setup(6,GPIO.OUT)
 GPIO.setup(26,GPIO.OUT)
 
 # Motor IDs for each arm 
-motor_left_h = 0x03
-motor_right_h = 0x04
-motor_left_v = 0x01
-motor_right_v = 0x02
-motors_left = [motor_left_h, motor_left_v]
+motor_right_h = 0x03
+motor_left_h = 0x04
+motor_right_v = 0x01
+motor_left_v = 0x02
 motors_right = [motor_right_h, motor_right_v]
+motors_left = [motor_left_h, motor_left_v]
 
 
 # HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
@@ -55,12 +55,12 @@ Dynamixel=serial.Serial("/dev/serial0",baudrate=1000000,timeout=0.1, bytesize=8)
 
 # Buffer for each arm to store last N servo position values 
 buffer_length = 5
-arr_left_h = list(np.full((buffer_length,), np.nan))
 arr_right_h = list(np.full((buffer_length,), np.nan))
-arr_left_v = list(np.full((buffer_length,), np.nan))
+arr_left_h = list(np.full((buffer_length,), np.nan))
 arr_right_v = list(np.full((buffer_length,), np.nan))
-arr_left = [arr_left_h, arr_left_v]
+arr_left_v = list(np.full((buffer_length,), np.nan))
 arr_right = [arr_right_h, arr_right_v]
+arr_left = [arr_left_h, arr_left_v]
 
 # Resolution of position hand-tracking 
 # 'fine' or 'coarse'
@@ -140,7 +140,7 @@ while True:
                         #     hands = [hands[0]]
 
                     # For each hand [left, right]
-                    for hand, motors, arr, d in zip(hands, [motors_left, motors_right], [arr_left, arr_right], ['left', 'right']):
+                    for hand, motors, arr, d in zip(hands, [motors_right, motors_left], [arr_right, arr_left], ['right', 'left']):
 
                         # Cap xy coordinates for each hand to between 0 and 1 
                         for i, j in enumerate(hand):
@@ -160,7 +160,9 @@ while True:
 
                         # convert to 10-bit value
                         # servo_position = (y_position * 1023) 
-                        hand = [1023 - h * 1023 for h in hand]
+                        # hand = [1023 - h * 1023 for h in hand]
+                        hand[0] = hand[0] * 1023
+                        hand[1] = 1023 - hand[1] * 1023
 
                         # separate into x and y value (horizontal and vertical position) and convert to integer
                         h_position = int(hand[0])
