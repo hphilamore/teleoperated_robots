@@ -30,8 +30,12 @@ GPIO.setup(6,GPIO.OUT)
 GPIO.setup(26,GPIO.OUT)
 
 # Motor IDs for each arm 
-left_motor = 0x04
-right_motor = 0x03
+motor_left_h = 0x04
+motor_right_h = 0x03
+motor_left_v = 0x02
+motor_right_v = 0x01
+motors_left = [motor_left_h, right_motor_h]
+motors_right = [right_motor_h, right_motor_v]
 
 
 # HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
@@ -51,12 +55,16 @@ Dynamixel=serial.Serial("/dev/serial0",baudrate=1000000,timeout=0.1, bytesize=8)
 
 # Buffer for each arm to store last N servo position values 
 buffer_length = 5
-arr_left = list(np.full((buffer_length,), np.nan))
-arr_right = list(np.full((buffer_length,), np.nan))
+arr_left_h = list(np.full((buffer_length,), np.nan))
+arr_right_h = list(np.full((buffer_length,), np.nan))
+arr_left_v = list(np.full((buffer_length,), np.nan))
+arr_right_v = list(np.full((buffer_length,), np.nan))
+arr_left = [arr_left_h, arr_left_v]
+arr_right = [arr_right_h, arr_right_v]
 
 # Resolution of position hand-tracking 
 # 'fine' or 'coarse'
-tracking_resolution = 'coarse'
+tracking_resolution = 'fine'
 
 
 def moving_average(new_val, arr, win_size):
@@ -128,97 +136,121 @@ while True:
                     # If 2 hands detected:
                     if len(hands) > 1:
 
-                        # If x coordinate of both hands are on the same side of the screen, ignore one hand
-                        if ((hands[0][0]<0.5 and hands[1][0]<0.5) or
-                            (hands[0][0]>=0.5 and hands[1][0]>=0.5)):
-                            hands = [hands[0]]
+                        # # If x coordinate of both hands are on the same side of the screen, ignore one hand
+                        # if ((hands[0][0]<0.5 and hands[1][0]<0.5) or
+                        #     (hands[0][0]>=0.5 and hands[1][0]>=0.5)):
+                        #     hands = [hands[0]]
 
-                    # For each hand 
-                    for i in hands:
+                    # For each hand [left, right]
+                    for hand, motors, arr in zip(hands, [motors_left, motors_right], [arr_left, arr_right]):
 
-                        x_position = i[0]
-                        y_position = i[1] 
+                        # Cap xy coordinates for each hand to between 0 and 1 
+                        for i, j in enumerate(hand):
+                            
+                            if hand[i]<=0: hand[i] = 0 
+                            if hand[i]>=1: hand[i] = 1
 
+                        # x_position = hand[0]
+                        # y_position = hand[1] 
+
+                        # # Cap all values to between 0 and 1 
+                        # if x_position<=0: servo_position = 0 
+                        # if servo_position>=1023: servo_position = 1023
+
+                        print('x pos ', x_position)
                         print('y pos ', y_position)
 
                         # convert to 10-bit value
-                        servo_position = (y_position * 1023) 
+                        # servo_position = (y_position * 1023) 
+                        hand = [h * 1023 for h in hand]
 
-                        # Cap all negative values at 0
-                        if servo_position<1: servo_position = 0 
+                        # separate into x and y value (horizontal and vertical position) and convert to integer
+                        h_position = int(hand[0])
+                        v_position = int(hand[1])
+
+
+                        # # Cap all values to between 0 and 1 
+                        # if servo_position<=0: servo_position = 0 
+                        # if servo_position>=1023: servo_position = 1023
 
                         # Convert floating point to integer
-                        servo_position = int(servo_position)
+                        # servo_position = int(servo_position)
 
                         # Hand x position on LEFT side of screen
-                        if x_position<0.5:
+                        # if x_position<0.5:
 
-                            if tracking_resolution == 'fine':
+                        if tracking_resolution == 'fine':
 
-                                # Moving average filter applied, Position rounded to nearest decimal value
-                                smoothed_position = int(moving_average(servo_position, arr_left, buffer_length)) 
+                            # Moving average filter applied, Position rounded to nearest decimal value
+                            h_smoothed = int(moving_average(h_position, arr[0], buffer_length)) 
+                            v_smoothed = int(moving_average(v_position, arr[1], buffer_length)) 
 
-                                # Speed of hand
-                                speed = hand_speed(arr_left)                  
+                            # Speed of hand in horizontal and vertical direction
+                            h_speed = hand_speed(arr[0]) 
+                            v_speed = hand_speed(arr[1])                  
 
-                                # Correct position to account for mirrored arrangement of servo arm mechanism 
-                                smoothed_position = 1023 - smoothed_position 
+                            # # Correct position to account for mirrored arrangement of servo arm mechanism 
+                            # smoothed_position = 1023 - smoothed_position 
 
-                                # Send 10-bit value to servo
-                                move_speed(left_motor, smoothed_position, speed, Dynamixel)
+                            # Send 10-bit value to servos controlling horizontal and veritcal motion 
+                            # move_speed(motors[0], h_smoothed, speed, Dynamixel)
+                            # move_speed(motors[1], v_smoothed, speed, Dynamixel)
+                            print('test motor commands are correct: str(motors)')
+                            print('h= ', h_smoothed, ' v= ', v_smoothed)
+                            print()
 
-                            # tracking resolution is coarse
-                            else: 
-                                # if y_position<0.5:
-                                #     # Send 10-bit value to servo
-                                #     move_speed(left_motor, 1023, 500, Dynamixel)
-                                # else:
-                                #     # Send 10-bit value to servo
-                                #     move_speed(left_motor, 0, 500, Dynamixel)
-                                if y_position<0.35:
-                                    print('left up')
-                                    move_speed(left_motor, 1023, 500, Dynamixel)
-                                elif 0.35<=y_position<0.65:
-                                    move_speed(left_motor, 512, 500, Dynamixel)
-                                    print('left mid')
-                                else:
-                                    move_speed(left_motor, 0, 500, Dynamixel)
-                                    print('left down')
+                        # tracking resolution is coarse
+                        else: 
+                            # if y_position<0.5:
+                            #     # Send 10-bit value to servo
+                            #     move_speed(motor_left_h, 1023, 500, Dynamixel)
+                            # else:
+                            #     # Send 10-bit value to servo
+                            #     move_speed(motor_left_h, 0, 500, Dynamixel)
+                            if v_position<0.35:
+                                print('up')
+                                move_speed(motors[0], 1023, 500, Dynamixel)
+                            elif 0.35<=v_position<0.65:
+                                move_speed(motors[0], 512, 500, Dynamixel)
+                                print('mid')
+                            else:
+                                move_speed(motors[0], 0, 500, Dynamixel)
+                                print('down')
 
                             
-                        # Hand x position on RIGHT side of screen
-                        if x_position>=0.5:
+                        # # Hand x position on RIGHT side of screen
+                        # if x_position>=0.5:
 
-                            if tracking_resolution == 'fine':
+                        #     if tracking_resolution == 'fine':
 
-                                # Moving average filter applied, Position rounded to nearest decimal value
-                                smoothed_position = int(moving_average(servo_position, arr_right, buffer_length)) 
+                        #         # Moving average filter applied, Position rounded to nearest decimal value
+                        #         smoothed_position = int(moving_average(servo_position, arr_right_h, buffer_length)) 
 
-                                # Speed of hand
-                                speed = hand_speed(arr_right)
+                        #         # Speed of hand
+                        #         speed = hand_speed(arr_right_h)
 
-                                # smoothed_position = 1023 - smoothed_position 
+                        #         # smoothed_position = 1023 - smoothed_position 
 
-                                # Send 10-bit value to servo
-                                move_speed(right_motor, smoothed_position, speed, Dynamixel)
+                        #         # Send 10-bit value to servo
+                        #         move_speed(right_motor_h, smoothed_position, speed, Dynamixel)
 
-                            # tracking resolution is coarse
-                            else: 
-                                # if y_position<0.5:
-                                #     # Send 10-bit value to servo
-                                #     move_speed(right_motor, 0, 500, Dynamixel)
-                                # else:
-                                #     # Send 10-bit value to servo
-                                #     move_speed(right_motor, 1023, 500, Dynamixel)
-                                if y_position<0.35:
-                                    print('right up')
-                                    move_speed(right_motor, 0, 500, Dynamixel)
-                                elif 0.35<=y_position<0.65:
-                                    move_speed(right_motor, 512, 500, Dynamixel)
-                                    print('right mid')
-                                else:
-                                    move_speed(right_motor, 1023, 500, Dynamixel)
-                                    print('right down')
+                        #     # tracking resolution is coarse
+                        #     else: 
+                        #         # if y_position<0.5:
+                        #         #     # Send 10-bit value to servo
+                        #         #     move_speed(right_motor_h, 0, 500, Dynamixel)
+                        #         # else:
+                        #         #     # Send 10-bit value to servo
+                        #         #     move_speed(right_motor_h, 1023, 500, Dynamixel)
+                        #         if y_position<0.35:
+                        #             print('right up')
+                        #             move_speed(right_motor_h, 0, 500, Dynamixel)
+                        #         elif 0.35<=y_position<0.65:
+                        #             move_speed(right_motor_h, 512, 500, Dynamixel)
+                        #             print('right mid')
+                        #         else:
+                        #             move_speed(right_motor_h, 1023, 500, Dynamixel)
+                        #             print('right down')
 
                 if msg == 'stop':
                     pass
