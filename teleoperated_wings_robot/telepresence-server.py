@@ -130,15 +130,6 @@ while True:
                     n_dimensions = 3 # x,y,z coordinates recieved 
                     hands = [coordinates[i:i+n_dimensions] for i in range(0, len(coordinates), n_dimensions)]
 
-                    # print(coordinates)
-
-                    # If 2 hands detected:
-                    # if len(hands) > 1:
-                        # # If x coordinate of both hands are on the same side of the screen, ignore one hand
-                        # if ((hands[0][0]<0.5 and hands[1][0]<0.5) or
-                        #     (hands[0][0]>=0.5 and hands[1][0]>=0.5)):
-                        #     hands = [hands[0]]
-
                     # For each hand [left, right]
                     for hand, motors, arr, d in zip(hands, [motors_right, motors_left], [arr_right, arr_left], ['right', 'left']):
 
@@ -147,12 +138,6 @@ while True:
                             if hand[i]<=0: hand[i] = 0 
                             if hand[i]>=1: hand[i] = 1
 
-                        # x_position = hand[0]
-                        # y_position = hand[1] 
-
-                        # # Cap all values to between 0 and 1 
-                        # if x_position<=0: servo_position = 0 
-                        # if servo_position>=1023: servo_position = 1023
                         print(d)
                         print('x pos ', hand[0])
                         print('y pos ', hand[1])
@@ -167,7 +152,7 @@ while True:
                         # v_position = int(1023 - hand[1] * 1023)
                         # v_position = int((1 - hand[1]) * 1023)
 
-                        # map to particular range 
+                        # map horizontal motion to particular range 
                         min_in_L = 0
                         max_in_L = 0.75
                         min_in_R = 0.35
@@ -178,12 +163,6 @@ while True:
                         min_out_R = 0
                         max_out_R = 512
 
-                        min_in_V = 0.25
-                        max_in_V = 1
-                        min_out_V = 0
-                        max_out_V = 400
-
-                        # horizontal motion
                         if d == 'right':
                             if hand[0]<=min_in_R: hand[0] = min_in_R
                             h_position = min_out_R + (max_out_R - min_out_R) * (hand[0]-min_in_R) / (max_in_R - min_in_R)
@@ -194,7 +173,12 @@ while True:
                         h_position = int(h_position)
 
 
-                        # vertical motion
+                        # map vertical motion to particular range 
+                        min_in_V = 0.25
+                        max_in_V = 1
+                        min_out_V = 0
+                        max_out_V = 400
+
                         hand[1] = 1 - hand[1]
                         if hand[1]<=min_in_V: hand[1] = min_in_V
                         v_position = min_out_V + (max_out_V - min_out_V) * (hand[1]-min_in_V) / (max_in_V - min_in_V)
