@@ -40,7 +40,7 @@ motors_left = [motor_left_h, motor_left_v]
 
 # HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 HOST = "0.0.0.0"  # Listen on all interfaces
-PORT = 65445      # Port to listen on (non-privileged ports are > 1023)
+PORT = 65443      # Port to listen on (non-privileged ports are > 1023)
 
 
 # Setup raspberry pi as server
@@ -144,7 +144,6 @@ while True:
 
                         # Cap xy coordinates for each hand to between 0 and 1 
                         for i, j in enumerate(hand):
-                            
                             if hand[i]<=0: hand[i] = 0 
                             if hand[i]>=1: hand[i] = 1
 
@@ -161,12 +160,48 @@ while True:
                         # convert to 10-bit value
                         # servo_position = (y_position * 1023) 
                         # hand = [1023 - h * 1023 for h in hand]
-                        hand[0] = hand[0] * 1023
-                        hand[1] = 1023 - hand[1] * 1023
+
+                        # map to full 10-bit range of possible servo positions
+                        # hand[0] = hand[0] * 1023
+                        # hand[1] = 1023 - hand[1] * 1023
+                        # v_position = int(1023 - hand[1] * 1023)
+                        v_position = int((1 - hand[1]) * 1023)
+
+                        # map to particular range 
+                        min_in_L = 0
+                        max_in_L = 0.75
+                        min_in_R = 0.35
+                        max_in_R = 1
+
+                        min_out_L = 512
+                        max_out_L = 1023
+                        min_out_R = 0
+                        max_out_R = 512
+
+                        min_in_V = 0.25
+                        max_in_V = 1
+                        min_out_V = 0
+                        max_out_V = 300
+
+                        # horizontal motion
+                        if d == 'right':
+                            if hand[0]<=min_in_R: hand[0] = min_in_R
+                            h_position = min_out_R + (max_out_R - min_out_R) * (hand[0]-min_in_R) / (max_in_R - min_in_R)
+                        elif d == 'left': 
+                            if hand[0]>=max_in_L: hand[0] = max_in_L
+                            h_position = min_out_L + (max_out_L - min_out_L) * (hand[0]-min_in_L) / (max_in_L - min_in_L)
+
+                        h_position = int(h_position)
+
+
+                        # vertical motion
+                        # hand[1] = 1 - hand[1]
+                        # v_position = min_out_V + (max_out_V - min_out_V) * (hand[1]-min_in_V) / (max_in_V - min_in_V)
+                        # v_position = int(v_position)
 
                         # separate into x and y value (horizontal and vertical position) and convert to integer
-                        h_position = int(hand[0])
-                        v_position = int(hand[1])
+                        # h_position = int(hand[0])
+                        # v_position = int(hand[1])
 
 
                         # # Cap all values to between 0 and 1 
