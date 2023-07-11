@@ -30,17 +30,17 @@ GPIO.setup(6,GPIO.OUT)
 GPIO.setup(26,GPIO.OUT)
 
 # Motor IDs for each arm 
-motor_left_h = 0x04
-motor_right_h = 0x03
-motor_left_v = 0x02
-motor_right_v = 0x01
-motors_left = [motor_left_h, right_motor_h]
-motors_right = [right_motor_h, right_motor_v]
+motor_left_h = 0x03
+motor_right_h = 0x04
+motor_left_v = 0x01
+motor_right_v = 0x02
+motors_left = [motor_left_h, motor_left_v]
+motors_right = [motor_right_h, motor_right_v]
 
 
 # HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 HOST = "0.0.0.0"  # Listen on all interfaces
-PORT = 65441      # Port to listen on (non-privileged ports are > 1023)
+PORT = 65445      # Port to listen on (non-privileged ports are > 1023)
 
 
 # Setup raspberry pi as server
@@ -92,7 +92,6 @@ def hand_speed(arr):
     speed = delta * 3 + bias          # Equation to scale motor speed with hand speed
     if speed > 1023 : speed = 1023    # Cap maximum speed value
     if np.isnan(speed) : speed = bias # If difference is nan, use minimum speed
-    print('speed_left', speed)
     return speed
 
 
@@ -128,21 +127,20 @@ while True:
                     coordinates = [float(i) for i in coordinates]
 
                     # Grouped coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
-                    n_dimensions = 2 # x,y,z coordinates recieved 
+                    n_dimensions = 3 # x,y,z coordinates recieved 
                     hands = [coordinates[i:i+n_dimensions] for i in range(0, len(coordinates), n_dimensions)]
 
                     # print(coordinates)
 
                     # If 2 hands detected:
-                    if len(hands) > 1:
-
+                    # if len(hands) > 1:
                         # # If x coordinate of both hands are on the same side of the screen, ignore one hand
                         # if ((hands[0][0]<0.5 and hands[1][0]<0.5) or
                         #     (hands[0][0]>=0.5 and hands[1][0]>=0.5)):
                         #     hands = [hands[0]]
 
                     # For each hand [left, right]
-                    for hand, motors, arr in zip(hands, [motors_left, motors_right], [arr_left, arr_right]):
+                    for hand, motors, arr, d in zip(hands, [motors_left, motors_right], [arr_left, arr_right], ['left', 'right']):
 
                         # Cap xy coordinates for each hand to between 0 and 1 
                         for i, j in enumerate(hand):
@@ -156,13 +154,13 @@ while True:
                         # # Cap all values to between 0 and 1 
                         # if x_position<=0: servo_position = 0 
                         # if servo_position>=1023: servo_position = 1023
-
-                        print('x pos ', x_position)
-                        print('y pos ', y_position)
+                        print(d)
+                        print('x pos ', hand[0])
+                        print('y pos ', hand[1])
 
                         # convert to 10-bit value
                         # servo_position = (y_position * 1023) 
-                        hand = [h * 1023 for h in hand]
+                        hand = [1023 - h * 1023 for h in hand]
 
                         # separate into x and y value (horizontal and vertical position) and convert to integer
                         h_position = int(hand[0])
@@ -193,8 +191,8 @@ while True:
                             # smoothed_position = 1023 - smoothed_position 
 
                             # Send 10-bit value to servos controlling horizontal and veritcal motion 
-                            # move_speed(motors[0], h_smoothed, speed, Dynamixel)
-                            # move_speed(motors[1], v_smoothed, speed, Dynamixel)
+                            move_speed(motors[0], h_smoothed, h_speed, Dynamixel)
+                            move_speed(motors[1], v_smoothed, v_speed, Dynamixel)
                             print('test motor commands are correct: str(motors)')
                             print('h= ', h_smoothed, ' v= ', v_smoothed)
                             print()

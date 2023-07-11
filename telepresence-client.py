@@ -30,8 +30,8 @@ import curses
 #-------------------------------------------------------------------------------
 """ SETUP """
 
-HOST = "192.168.60.223"  # The raspberry pi's hostname or IP address
-PORT = 65441            # The port used by the server
+HOST = "192.168.0.49"  # The raspberry pi's hostname or IP address
+PORT = 65445           # The port used by the server
 
 # Take video stream from 'camera' or 'window' or 'keys'
 input_mode = 'camera' #'window' ###'keys'#'camera' ##'camera'##'camera'  
@@ -58,7 +58,7 @@ grab_full_screen_image = False
 make_output_window_fullscreen = True
 
 # Send command to raspberry pi
-send_command = False
+send_command = True
 
 # Number of hands to track (wings track 2 hands, turtle robots track one hand)
 n_hands = 2
@@ -237,9 +237,9 @@ def frame_from_window(window_coordinates):
             # Use coordinates of window
             # with mss() as sct:
         window = {"top": window_coordinates[1], 
-              "left": window_coordinates[0], 
-              "width": window_coordinates[3], 
-              "height": window_coordinates[2]
+                  "left": window_coordinates[0], 
+                  "width": window_coordinates[3], 
+                  "height": window_coordinates[2]
                }
 
         # Grab current image    
