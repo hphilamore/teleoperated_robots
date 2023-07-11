@@ -121,6 +121,7 @@ def track_hands(frame, pose, flag_no_hand, flag_timeout):
                                          handLandmarks, 
                                          handsModule.HAND_CONNECTIONS)
 
+        # A list to store the x,y,z coordinates of each hand 
         hand_coordinates = []
 
         # Find each hand up to max number of hands 
@@ -147,11 +148,11 @@ def track_hands(frame, pose, flag_no_hand, flag_timeout):
             # Add the mean values to the list of coordinates to send to raspberry pi
             hand_coordinates.append(str(round(x, 2)))
             hand_coordinates.append(str(round(y, 2)))
+            hand_coordinates.append(str(round(z, 2)))
 
-        # Choose a command to send to the raspberry pi robot 
-        # command = pos_to_command(x, y, z)
+        # Convert list of x,y,z coordinates of each hand to string 
         command = ','.join(hand_coordinates)
-        print(command)
+        # print(command)
 
     else:
             print('no hand')
@@ -177,8 +178,13 @@ def track_body(frame, pose, flag_no_hand, flag_timeout):
     # frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
     mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
 
+
     # Extract and print the XYZ coordinates of shoulders, elbows, knees, wrists, and hands
     if results.pose_landmarks:
+
+        # A list to store the x,y,z coordinates of each hand 
+        hand_coordinates = []
+
         for idx, landmark in enumerate(results.pose_landmarks.landmark):
             if idx in [
                        # mp_pose.PoseLandmark.LEFT_SHOULDER.value,
@@ -193,9 +199,34 @@ def track_body(frame, pose, flag_no_hand, flag_timeout):
                 x = landmark.x
                 y = landmark.y
                 z = landmark.z
+
+                # Add the x,y,z values to the list of coordinates to send to raspberry pi
+                hand_coordinates.append(str(round(x, 2)))
+                hand_coordinates.append(str(round(y, 2)))
+                hand_coordinates.append(str(round(z, 2)))
+
                 print(f"Person {idx // 33 + 1}")
-                print(f"Point {mp_pose.PoseLandmark(idx).name}: X={x}, Y={y}, Z={z}")
-    return 10
+                print(f"Point {mp_pose.PoseLandmark(idx).name}: X={round(x,2)}, Y={round(y,2)}, Z={round(z,2)}")
+
+        # Convert list of x,y,z coordinates of each hand to string 
+        command = ','.join(hand_coordinates)
+        # print(command)
+
+    else:
+        print('no hand')
+        if not flag_no_hand:     # If there was a hand in previous frame
+            flag_no_hand = True  # Raise the flag 
+            start = time.time()  # Start the timer
+            command = 'no command'
+
+        else:
+            end = time.time()
+            if end-start >= flag_timeout:
+                flag_no_hand = False  # Lower the flag 
+                print('stop')
+                command = 'stop' 
+
+    return command
 
 
 
@@ -362,6 +393,8 @@ while(True):
             command = track_hands(frame, pose, flag_no_hand, flag_timeout) 
         else:
             command = track_body(frame, pose, flag_no_hand, flag_timeout)
+
+        # print('command ', command)
 
         # Visualise output
         show_tracked_wireframe(frame, OS) 

@@ -113,13 +113,15 @@ while True:
 
                 if msg != 'no command' and msg != 'stop':
 
+                    # Convert recieved string to nested list of x,y,z coordinates of each hand 
                     coordinates = msg.split(',')
 
                     # Convert string to floating point data 
                     coordinates = [float(i) for i in coordinates]
 
-                    # Grouped coordintes in x,y pairs for each hand detected
-                    hands = [coordinates[i:i+2] for i in range(0, len(coordinates), 2)]
+                    # Grouped coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
+                    n_dimensions = 2 # x,y,z coordinates recieved 
+                    hands = [coordinates[i:i+n_dimensions] for i in range(0, len(coordinates), n_dimensions)]
 
                     # print(coordinates)
 
