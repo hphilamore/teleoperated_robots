@@ -26,13 +26,16 @@ from ax12_preprogrammed_motion import *
 # Setup GPIO pins 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(18,GPIO.OUT)     # Control Data Direction Pin
+enable_pin = 18
+GPIO.setup(enable_pin,GPIO.OUT)     # Control Data Direction Pin
 # GPIO.setup(6,GPIO.OUT)      
 # GPIO.setup(26,GPIO.OUT)
 
 # LEDs on buttons 
-GPIO.setup(17,GPIO.OUT)
-GPIO.setup(27,GPIO.OUT)
+teleop_mode_LED = 17
+preprog_mode_LED = 27
+GPIO.setup(teleop_mode_LED ,GPIO.OUT)
+GPIO.setup(preprog_mode_LED,GPIO.OUT)
 # print("LED on")
 # GPIO.output(17,GPIO.LOW)
 # GPIO.output(27,GPIO.LOW)
@@ -41,8 +44,10 @@ GPIO.setup(27,GPIO.OUT)
 # GPIO.output(18,GPIO.LOW)
 
 # Buttons
-GPIO.setup(5, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(6, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+teleop_mode_button = 5
+preprog_mode_button = 6
+GPIO.setup(teleop_mode_button, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(preprog_mode_button, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 
 # Motor IDs for each arm 
@@ -56,7 +61,7 @@ motors_left = [motor_left_h, motor_left_v]
 
 # HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 HOST = "0.0.0.0"  # Listen on all interfaces
-PORT = 65447      # Port to listen on (non-privileged ports are > 1023)
+PORT = 65448      # Port to listen on (non-privileged ports are > 1023)
 
 
 # Setup raspberry pi as server
@@ -119,21 +124,23 @@ def hand_speed(arr):
 
 while True:
 
-    if GPIO.input(5) == GPIO.HIGH:
-        print("Button 5 was pushed!")
-        GPIO.output(17,GPIO.HIGH)
-    else:
-        GPIO.output(17,GPIO.LOW)
+    if (GPIO.input(teleop_mode_button) == GPIO.HIGH and 
+        GPIO.input(preprog_mode_button) == GPIO.LOW):
+        print("Teleoperated")
+        GPIO.output(teleop_mode_LED,GPIO.HIGH)
+        GPIO.output(preprog_mode_LED,GPIO.LOW)
+    # else:
+    #     GPIO.output(17,GPIO.LOW)
 
 
-    if GPIO.input(6) == GPIO.HIGH:
-        print("Button 6 was pushed!")
-        GPIO.output(27,GPIO.HIGH)
-    else:
-        GPIO.output(27,GPIO.LOW)
+    # if GPIO.input(6) == GPIO.HIGH:
+    #     print("Button 6 was pushed!")
+    #     GPIO.output(27,GPIO.HIGH)
+    # else:
+    #     GPIO.output(27,GPIO.LOW)
 
 
-    if operating_mode == 'teleoperated':
+    # if operating_mode == 'teleoperated':
 
         try:
 
@@ -141,16 +148,18 @@ while True:
             with conn:
                 print(f"Connected by {addr}")
 
-                while True:
+                # while True:
+                while (GPIO.input(teleop_mode_button) == GPIO.HIGH and 
+                       GPIO.input(preprog_mode_button) == GPIO.LOW):
 
-                    if GPIO.input(5) == GPIO.HIGH:
-                        print("Button 5 was pushed!")
-                    else:
-                        print("Button 5 not pushed!")
+                    # if GPIO.input(5) == GPIO.HIGH:
+                    #     print("Button 5 was pushed!")
+                    # else:
+                    #     print("Button 5 not pushed!")
 
 
-                    if GPIO.input(6) == GPIO.HIGH:
-                        print("Button 6 was pushed!")
+                    # if GPIO.input(6) == GPIO.HIGH:
+                    #     print("Button 6 was pushed!")
 
                     set_endless(0x03, False, Dynamixel)
                     set_endless(0x04, False, Dynamixel)
@@ -290,19 +299,35 @@ while True:
         except socket.timeout:
             pass
 
-    else:
+    # else:
+    elif (GPIO.input(preprog_mode_button) == GPIO.HIGH and 
+          GPIO.input(teleop_mode_button) == GPIO.LOW):
+        print("Autonomous")
+        GPIO.output(teleop_mode_LED,GPIO.LOW)
+        GPIO.output(preprog_mode_LED,GPIO.HIGH)
 
-        while True:
+        # while True:
+        while(GPIO.input(preprog_mode_button) == GPIO.HIGH and 
+              GPIO.input(teleop_mode_button) == GPIO.LOW):
 
-            if GPIO.input(5) == GPIO.HIGH:
-                print("Button 5 was pushed!")
+            # if GPIO.input(5) == GPIO.HIGH:
+            #     print("Button 5 was pushed!")
 
-            if GPIO.input(6) == GPIO.HIGH:
-                print("Button 6 was pushed!")
+            # if GPIO.input(6) == GPIO.HIGH:
+            #     print("Button 6 was pushed!")
 
             preprogrammed_motion(motor_right_v, 
                                motor_left_v, 
                                motor_right_h, 
                                motor_left_h)
+
+    elif (GPIO.input(preprog_mode_button) == GPIO.HIGH and 
+          GPIO.input(teleop_mode_button) == GPIO.HIGH):
+        GPIO.output(teleop_mode_LED,GPIO.HIGH)
+        GPIO.output(preprog_mode_LED,GPIO.HIGH)
+
+    else:
+        GPIO.output(teleop_mode_LED,GPIO.LOW)
+        GPIO.output(preprog_mode_LED,GPIO.LOW)
 
 
