@@ -30,8 +30,8 @@ import curses
 #-------------------------------------------------------------------------------
 """ SETUP """
 
-HOST = "192.168.0.49"  # The raspberry pi's hostname or IP address
-PORT = 65442           # The port used by the server
+HOST = "192.168.56.223"  # The raspberry pi's hostname or IP address
+PORT = 65443           # The port used by the server
 
 # Take video stream from 'camera' or 'window' or 'keys'
 input_mode = 'camera' #'window' ###'keys'#'camera' ##'camera'##'camera'  
@@ -63,14 +63,13 @@ send_command = True
 # Number of hands to track (wings track 2 hands, turtle robots track one hand)
 n_hands = 2
 
+# Detail of hands tracked when True, otherwise whole body frame 
+track_hands_only = False
+
 # A flag to indicate when no hand is deteced so that a timer can be set to 
 # check of the hand is really gone or if detection has failed momentarily 
 flag_no_hand = False 
 flag_timeout = 2
-
-# Detail of hands tracked when True, otherwise whole body frame 
-track_hands_only = False
-
 
 #-------------------------------------------------------------------------------
 
@@ -107,6 +106,12 @@ def window_coordinates():
         sys.exit(1)  
 
     return coordinates
+
+def calculate_average_depth(person):
+    # Calculate the average depth coordinate across all landmarks
+    depth_sum = sum([landmark.z for landmark in person.landmark])
+    average_depth = depth_sum / len(person.landmark)
+    return average_depth
 
 def track_hands(frame, pose, flag_no_hand, flag_timeout):
     results = pose.process(frame)
@@ -196,6 +201,8 @@ def track_body(frame, pose, flag_no_hand, flag_timeout):
                        # mp_pose.PoseLandmark.LEFT_KNEE.value,
                        # mp_pose.PoseLandmark.RIGHT_KNEE.value
                        ]:
+                print('id=', idx, mp_pose.PoseLandmark.LEFT_WRIST.value)
+
                 x = landmark.x
                 y = landmark.y
                 z = landmark.z
@@ -205,7 +212,8 @@ def track_body(frame, pose, flag_no_hand, flag_timeout):
                 hand_coordinates.append(str(round(y, 2)))
                 hand_coordinates.append(str(round(z, 2)))
 
-                print(f"Person {idx // 33 + 1}")
+                # each person has 33 landmarks so floor divide landmark index by 33 to get a unique index for each person
+                print(f"Person {idx // 33}")
                 print(f"Point {mp_pose.PoseLandmark(idx).name}: X={round(x,2)}, Y={round(y,2)}, Z={round(z,2)}")
 
         # Convert list of x,y,z coordinates of each hand to string 
@@ -376,7 +384,8 @@ while(True):
                                   max_num_hands=n_hands)
     else:
         model = mp_pose.Pose(min_detection_confidence=0.5, 
-                             min_tracking_confidence=0.5)
+                             min_tracking_confidence=0.5,
+                            )
 
     with model as pose:
 

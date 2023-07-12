@@ -20,6 +20,7 @@ import RPi.GPIO as GPIO
 import serial
 import os
 from py_ax12 import *
+from programmed_motion_sequence import *
 
 
 # Setup GPIO pins 
@@ -40,7 +41,7 @@ motors_left = [motor_left_h, motor_left_v]
 
 # HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 HOST = "0.0.0.0"  # Listen on all interfaces
-PORT = 65442      # Port to listen on (non-privileged ports are > 1023)
+PORT = 65443      # Port to listen on (non-privileged ports are > 1023)
 
 
 # Setup raspberry pi as server
@@ -65,6 +66,10 @@ arr_left = [arr_left_h, arr_left_v]
 # Resolution of position hand-tracking 
 # 'fine' or 'coarse'
 tracking_resolution = 'fine'
+
+# Resolution of position hand-tracking 
+# 'autonomous' or 'teleoperated'
+operating_mode = 'autonomous' #'teleoperated'
 
 
 def moving_average(new_val, arr, win_size):
@@ -177,7 +182,7 @@ while True:
                         min_in_V = 0.25
                         max_in_V = 1
                         min_out_V = 0
-                        max_out_V = 400
+                        max_out_V = 600
 
                         hand[1] = 1 - hand[1]
                         if hand[1]<=min_in_V: hand[1] = min_in_V
