@@ -27,8 +27,23 @@ from ax12_preprogrammed_motion import *
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(18,GPIO.OUT)     # Control Data Direction Pin
-GPIO.setup(6,GPIO.OUT)      
-GPIO.setup(26,GPIO.OUT)
+# GPIO.setup(6,GPIO.OUT)      
+# GPIO.setup(26,GPIO.OUT)
+
+# LEDs on buttons 
+GPIO.setup(17,GPIO.OUT)
+GPIO.setup(27,GPIO.OUT)
+# print("LED on")
+# GPIO.output(17,GPIO.LOW)
+# GPIO.output(27,GPIO.LOW)
+# sleep(1)
+# print "LED off"
+# GPIO.output(18,GPIO.LOW)
+
+# Buttons
+GPIO.setup(5, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(6, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
 
 # Motor IDs for each arm 
 motor_right_h = 0x03
@@ -41,7 +56,7 @@ motors_left = [motor_left_h, motor_left_v]
 
 # HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 HOST = "0.0.0.0"  # Listen on all interfaces
-PORT = 65443      # Port to listen on (non-privileged ports are > 1023)
+PORT = 65447      # Port to listen on (non-privileged ports are > 1023)
 
 
 # Setup raspberry pi as server
@@ -103,6 +118,21 @@ def hand_speed(arr):
 
 
 while True:
+
+    if GPIO.input(5) == GPIO.HIGH:
+        print("Button 5 was pushed!")
+        GPIO.output(17,GPIO.HIGH)
+    else:
+        GPIO.output(17,GPIO.LOW)
+
+
+    if GPIO.input(6) == GPIO.HIGH:
+        print("Button 6 was pushed!")
+        GPIO.output(27,GPIO.HIGH)
+    else:
+        GPIO.output(27,GPIO.LOW)
+
+
     if operating_mode == 'teleoperated':
 
         try:
@@ -112,6 +142,15 @@ while True:
                 print(f"Connected by {addr}")
 
                 while True:
+
+                    if GPIO.input(5) == GPIO.HIGH:
+                        print("Button 5 was pushed!")
+                    else:
+                        print("Button 5 not pushed!")
+
+
+                    if GPIO.input(6) == GPIO.HIGH:
+                        print("Button 6 was pushed!")
 
                     set_endless(0x03, False, Dynamixel)
                     set_endless(0x04, False, Dynamixel)
@@ -252,9 +291,18 @@ while True:
             pass
 
     else:
-        preprogrammed_motion(motor_right_v, 
-                           motor_left_v, 
-                           motor_right_h, 
-                           motor_left_h)
+
+        while True:
+
+            if GPIO.input(5) == GPIO.HIGH:
+                print("Button 5 was pushed!")
+
+            if GPIO.input(6) == GPIO.HIGH:
+                print("Button 6 was pushed!")
+
+            preprogrammed_motion(motor_right_v, 
+                               motor_left_v, 
+                               motor_right_h, 
+                               motor_left_h)
 
 
