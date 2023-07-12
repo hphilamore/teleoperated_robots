@@ -165,10 +165,10 @@ while True:
                             min_in_R = 0.35
                             max_in_R = 1
 
-                            min_out_L = 512
+                            min_out_L = 300#512
                             max_out_L = 1023
                             min_out_R = 0
-                            max_out_R = 512
+                            max_out_R = 700#512
 
                             if d == 'right':
                                 if hand[0]<=min_in_R: hand[0] = min_in_R
