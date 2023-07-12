@@ -41,7 +41,7 @@ motors_left = [motor_left_h, motor_left_v]
 
 # HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 HOST = "0.0.0.0"  # Listen on all interfaces
-PORT = 65443      # Port to listen on (non-privileged ports are > 1023)
+PORT = 65442      # Port to listen on (non-privileged ports are > 1023)
 
 
 # Setup raspberry pi as server
@@ -69,7 +69,7 @@ tracking_resolution = 'fine'
 
 # Resolution of position hand-tracking 
 # 'autonomous' or 'teleoperated'
-operating_mode = 'autonomous' #'teleoperated'
+operating_mode = 'teleoperated'#'autonomous' #
 
 
 def moving_average(new_val, arr, win_size):
@@ -103,151 +103,158 @@ def hand_speed(arr):
 
 
 while True:
-    try:
+    if operating_mode == 'teleoperated':
 
-        conn, addr = server_socket.accept()
-        with conn:
-            print(f"Connected by {addr}")
+        try:
 
-            while True:
+            conn, addr = server_socket.accept()
+            with conn:
+                print(f"Connected by {addr}")
 
-                set_endless(0x03, False, Dynamixel)
-                set_endless(0x04, False, Dynamixel)
-                set_endless(0x02, False, Dynamixel)
-                set_endless(0x01, False, Dynamixel)
-                GPIO.output(18,GPIO.HIGH)
+                while True:
 
-                data = conn.recv(1024)
-                if not data:
-                    break
-                msg = data.decode()
-                # print(msg)
+                    set_endless(0x03, False, Dynamixel)
+                    set_endless(0x04, False, Dynamixel)
+                    set_endless(0x02, False, Dynamixel)
+                    set_endless(0x01, False, Dynamixel)
+                    GPIO.output(18,GPIO.HIGH)
 
-                if msg != 'no command' and msg != 'stop':
+                    data = conn.recv(1024)
+                    if not data:
+                        break
+                    msg = data.decode()
+                    # print(msg)
 
-                    # Convert recieved string to nested list of x,y,z coordinates of each hand 
-                    coordinates = msg.split(',')
+                    if msg != 'no command' and msg != 'stop':
 
-                    # Convert string to floating point data 
-                    coordinates = [float(i) for i in coordinates]
+                        # Convert recieved string to nested list of x,y,z coordinates of each hand 
+                        coordinates = msg.split(',')
 
-                    # Grouped coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
-                    n_dimensions = 3 # x,y,z coordinates recieved 
-                    hands = [coordinates[i:i+n_dimensions] for i in range(0, len(coordinates), n_dimensions)]
+                        # Convert string to floating point data 
+                        coordinates = [float(i) for i in coordinates]
 
-                    # For each hand [left, right]
-                    for hand, motors, arr, d in zip(hands, [motors_right, motors_left], [arr_right, arr_left], ['right', 'left']):
+                        # Grouped coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
+                        n_dimensions = 3 # x,y,z coordinates recieved 
+                        hands = [coordinates[i:i+n_dimensions] for i in range(0, len(coordinates), n_dimensions)]
 
-                        # Cap xy coordinates for each hand to between 0 and 1 
-                        for i, j in enumerate(hand):
-                            if hand[i]<=0: hand[i] = 0 
-                            if hand[i]>=1: hand[i] = 1
+                        # For each hand [left, right]
+                        for hand, motors, arr, d in zip(hands, [motors_right, motors_left], [arr_right, arr_left], ['right', 'left']):
 
-                        print(d)
-                        print('x pos ', hand[0])
-                        print('y pos ', hand[1])
+                            # Cap xy coordinates for each hand to between 0 and 1 
+                            for i, j in enumerate(hand):
+                                if hand[i]<=0: hand[i] = 0 
+                                if hand[i]>=1: hand[i] = 1
 
-                        # convert to 10-bit value
-                        # servo_position = (y_position * 1023) 
-                        # hand = [1023 - h * 1023 for h in hand]
+                            print(d)
+                            print('x pos ', hand[0])
+                            print('y pos ', hand[1])
 
-                        # map to full 10-bit range of possible servo positions
-                        # hand[0] = hand[0] * 1023
-                        # hand[1] = 1023 - hand[1] * 1023
-                        # v_position = int(1023 - hand[1] * 1023)
-                        # v_position = int((1 - hand[1]) * 1023)
+                            # convert to 10-bit value
+                            # servo_position = (y_position * 1023) 
+                            # hand = [1023 - h * 1023 for h in hand]
 
-                        # map horizontal motion to particular range 
-                        min_in_L = 0
-                        max_in_L = 0.75
-                        min_in_R = 0.35
-                        max_in_R = 1
+                            # map to full 10-bit range of possible servo positions
+                            # hand[0] = hand[0] * 1023
+                            # hand[1] = 1023 - hand[1] * 1023
+                            # v_position = int(1023 - hand[1] * 1023)
+                            # v_position = int((1 - hand[1]) * 1023)
 
-                        min_out_L = 512
-                        max_out_L = 1023
-                        min_out_R = 0
-                        max_out_R = 512
+                            # map horizontal motion to particular range 
+                            min_in_L = 0
+                            max_in_L = 0.75
+                            min_in_R = 0.35
+                            max_in_R = 1
 
-                        if d == 'right':
-                            if hand[0]<=min_in_R: hand[0] = min_in_R
-                            h_position = min_out_R + (max_out_R - min_out_R) * (hand[0]-min_in_R) / (max_in_R - min_in_R)
-                        elif d == 'left': 
-                            if hand[0]>=max_in_L: hand[0] = max_in_L
-                            h_position = min_out_L + (max_out_L - min_out_L) * (hand[0]-min_in_L) / (max_in_L - min_in_L)
+                            min_out_L = 512
+                            max_out_L = 1023
+                            min_out_R = 0
+                            max_out_R = 512
 
-                        h_position = int(h_position)
+                            if d == 'right':
+                                if hand[0]<=min_in_R: hand[0] = min_in_R
+                                h_position = min_out_R + (max_out_R - min_out_R) * (hand[0]-min_in_R) / (max_in_R - min_in_R)
+                            elif d == 'left': 
+                                if hand[0]>=max_in_L: hand[0] = max_in_L
+                                h_position = min_out_L + (max_out_L - min_out_L) * (hand[0]-min_in_L) / (max_in_L - min_in_L)
 
-
-                        # map vertical motion to particular range 
-                        min_in_V = 0.25
-                        max_in_V = 1
-                        min_out_V = 0
-                        max_out_V = 600
-
-                        hand[1] = 1 - hand[1]
-                        if hand[1]<=min_in_V: hand[1] = min_in_V
-                        v_position = min_out_V + (max_out_V - min_out_V) * (hand[1]-min_in_V) / (max_in_V - min_in_V)
-                        v_position = int(v_position)
+                            h_position = int(h_position)
 
 
-                        if tracking_resolution == 'fine':
+                            # map vertical motion to particular range 
+                            min_in_V = 0.25
+                            max_in_V = 1
+                            min_out_V = 0
+                            max_out_V = 600
 
-                            # Moving average filter applied, Position rounded to nearest decimal value
-                            h_smoothed = int(moving_average(h_position, arr[0], buffer_length)) 
-                            v_smoothed = int(moving_average(v_position, arr[1], buffer_length)) 
+                            hand[1] = 1 - hand[1]
+                            if hand[1]<=min_in_V: hand[1] = min_in_V
+                            v_position = min_out_V + (max_out_V - min_out_V) * (hand[1]-min_in_V) / (max_in_V - min_in_V)
+                            v_position = int(v_position)
 
-                            # Speed of hand in horizontal and vertical direction
-                            h_speed = hand_speed(arr[0]) 
-                            v_speed = hand_speed(arr[1])                  
 
-                            # # Correct position to account for mirrored arrangement of servo arm mechanism 
-                            # smoothed_position = 1023 - smoothed_position 
+                            if tracking_resolution == 'fine':
 
-                            # Send 10-bit value to servos controlling horizontal and veritcal motion 
-                            move_speed(motors[0], h_smoothed, h_speed, Dynamixel)
-                            move_speed(motors[1], v_smoothed, v_speed, Dynamixel)
-                            print('test motor commands are correct: str(motors)')
-                            print('h= ', h_smoothed, ' v= ', v_smoothed)
-                            print()
+                                # Moving average filter applied, Position rounded to nearest decimal value
+                                h_smoothed = int(moving_average(h_position, arr[0], buffer_length)) 
+                                v_smoothed = int(moving_average(v_position, arr[1], buffer_length)) 
 
-                        # tracking resolution is coarse
-                        else: 
-                            if v_position<0.35:
-                                print('up')
-                                move_speed(motors[0], 1023, 500, Dynamixel)
-                            elif 0.35<=v_position<0.65:
-                                move_speed(motors[0], 512, 500, Dynamixel)
-                                print('mid')
-                            else:
-                                move_speed(motors[0], 0, 500, Dynamixel)
-                                print('down')
+                                # Speed of hand in horizontal and vertical direction
+                                h_speed = hand_speed(arr[0]) 
+                                v_speed = hand_speed(arr[1])                  
 
+                                # # Correct position to account for mirrored arrangement of servo arm mechanism 
+                                # smoothed_position = 1023 - smoothed_position 
+
+                                # Send 10-bit value to servos controlling horizontal and veritcal motion 
+                                move_speed(motors[0], h_smoothed, h_speed, Dynamixel)
+                                move_speed(motors[1], v_smoothed, v_speed, Dynamixel)
+                                print('test motor commands are correct: str(motors)')
+                                print('h= ', h_smoothed, ' v= ', v_smoothed)
+                                print()
+
+                            # tracking resolution is coarse
+                            else: 
+                                if v_position<0.35:
+                                    print('up')
+                                    move_speed(motors[0], 1023, 500, Dynamixel)
+                                elif 0.35<=v_position<0.65:
+                                    move_speed(motors[0], 512, 500, Dynamixel)
+                                    print('mid')
+                                else:
+                                    move_speed(motors[0], 0, 500, Dynamixel)
+                                    print('down')
+
+                            
+
+
+                    if msg == 'stop':
+                        pass
+
+                    elif msg == 'left':
+                        move(0x04, 0, Dynamixel)
+                        move(0x03, 0, Dynamixel)
+                        move(0x02, 0, Dynamixel)
+                        move(0x01, 0, Dynamixel)
+                        sleep(0.1)
+
+                    elif msg == 'right':
+                        move(0x04, 150, Dynamixel)
+                        move(0x03, 150, Dynamixel)
+                        move(0x02, 150, Dynamixel)
+                        move(0x01, 150, Dynamixel)
+                        sleep(0.1)
                         
 
+                    elif msg == 'forward':
+                        pass
 
-                if msg == 'stop':
-                    pass
+        except socket.timeout:
+            pass
 
-                elif msg == 'left':
-                    move(0x04, 0, Dynamixel)
-                    move(0x03, 0, Dynamixel)
-                    move(0x02, 0, Dynamixel)
-                    move(0x01, 0, Dynamixel)
-                    sleep(0.1)
-
-                elif msg == 'right':
-                    move(0x04, 150, Dynamixel)
-                    move(0x03, 150, Dynamixel)
-                    move(0x02, 150, Dynamixel)
-                    move(0x01, 150, Dynamixel)
-                    sleep(0.1)
-                    
-
-                elif msg == 'forward':
-                    pass
-
-    except socket.timeout:
-        pass
-    
+    else:
+        preprogrammed_motion(motor_right_v, 
+                           motor_left_v, 
+                           motor_right_h, 
+                           motor_left_h)
 
 
