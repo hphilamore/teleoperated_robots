@@ -57,6 +57,9 @@ grab_full_screen_image = False
 # Output video appears full screen if True
 make_output_window_fullscreen = True
 
+# Show wireframe in output video
+show_wireframe = False
+
 # Send command to raspberry pi
 send_command = True
 
@@ -190,38 +193,57 @@ def track_body(frame, pose, flag_no_hand, flag_timeout):
         # A list to store the x,y,z coordinates of each hand 
         hand_coordinates = []
 
+        # Find the distance between the left and right shoulder
+        shoulder_R = 0
+        shoulder_L = 0
         for idx, landmark in enumerate(results.pose_landmarks.landmark):
-            if idx in [
-                       # mp_pose.PoseLandmark.LEFT_SHOULDER.value,
-                       # mp_pose.PoseLandmark.RIGHT_SHOULDER.value,
-                       # mp_pose.PoseLandmark.LEFT_ELBOW.value,
-                       # mp_pose.PoseLandmark.RIGHT_ELBOW.value,
-                       mp_pose.PoseLandmark.LEFT_WRIST.value,
-                       mp_pose.PoseLandmark.RIGHT_WRIST.value,
-                       # mp_pose.PoseLandmark.LEFT_KNEE.value,
-                       # mp_pose.PoseLandmark.RIGHT_KNEE.value
-                       ]:
-                print('id=', idx, mp_pose.PoseLandmark.LEFT_WRIST.value)
+            if idx == mp_pose.PoseLandmark.LEFT_SHOULDER.value:
+                shoulder_L = landmark.x
+                print('shoulder_L', shoulder_L)
+            if idx == mp_pose.PoseLandmark.RIGHT_SHOULDER.value:
+                shoulder_R = landmark.x
+                print('shoulder_R', shoulder_R)
 
-                x = landmark.x
-                y = landmark.y
-                z = landmark.z
+        # Only output pose as command if distance between shoulders exceeds
+        # threshold and person facing towards camera
+        if shoulder_L-shoulder_R > 0.1:
 
-                # Add the x,y,z values to the list of coordinates to send to raspberry pi
-                hand_coordinates.append(str(round(x, 2)))
-                hand_coordinates.append(str(round(y, 2)))
-                hand_coordinates.append(str(round(z, 2)))
+            for idx, landmark in enumerate(results.pose_landmarks.landmark):
+                if idx in [
+                           # mp_pose.PoseLandmark.LEFT_SHOULDER.value,
+                           # mp_pose.PoseLandmark.RIGHT_SHOULDER.value,
+                           # mp_pose.PoseLandmark.LEFT_ELBOW.value,
+                           # mp_pose.PoseLandmark.RIGHT_ELBOW.value,
+                           mp_pose.PoseLandmark.LEFT_WRIST.value,
+                           mp_pose.PoseLandmark.RIGHT_WRIST.value,
+                           # mp_pose.PoseLandmark.LEFT_KNEE.value,
+                           # mp_pose.PoseLandmark.RIGHT_KNEE.value
+                           ]:
 
-                # each person has 33 landmarks so floor divide landmark index by 33 to get a unique index for each person
-                print(f"Person {idx // 33}")
-                print(f"Point {mp_pose.PoseLandmark(idx).name}: X={round(x,2)}, Y={round(y,2)}, Z={round(z,2)}")
+                    x = landmark.x
+                    y = landmark.y
+                    z = landmark.z
 
-        # Convert list of x,y,z coordinates of each hand to string 
-        command = ','.join(hand_coordinates)
-        # print(command)
+                    # Add the x,y,z values to the list of coordinates to send to raspberry pi
+                    hand_coordinates.append(str(round(x, 2)))
+                    hand_coordinates.append(str(round(y, 2)))
+                    hand_coordinates.append(str(round(z, 2)))
+
+                    # each person has 33 landmarks
+                    # floor divide landmark index by 33 to get a unique index for each person
+                    print(f"Person {idx // 33}")
+                    print(f"Point {mp_pose.PoseLandmark(idx).name}:")
+                    print(f"X={round(x,2)}, Y={round(y,2)}, Z={round(z,2)}")
+
+            # Convert list of x,y,z coordinates of each hand to string 
+            command = ','.join(hand_coordinates)
+
+        else:
+            command = 'no command'
+
 
     else:
-        print('no hand')
+        print('no hand detected')
         if not flag_no_hand:     # If there was a hand in previous frame
             flag_no_hand = True  # Raise the flag 
             start = time.time()  # Start the timer
@@ -241,9 +263,6 @@ def track_body(frame, pose, flag_no_hand, flag_timeout):
 def frame_from_window(window_coordinates):
     with mss() as sct:
 
-        # try:
-            # Use coordinates of window
-            # with mss() as sct:
         window = {"top": window_coordinates[1], 
                   "left": window_coordinates[0], 
                   "width": window_coordinates[3], 
@@ -260,11 +279,6 @@ def frame_from_window(window_coordinates):
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
         return frame
-
-        # except:
-        #     print("No window with specified name")
-        #     print("Exiting program...")
-        #     sys.exit(1)
 
 def frame_from_camera(capture):
     ret, frame = capture.read()
@@ -391,10 +405,12 @@ while(True):
 
         # Input taken from window
         if input_mode == 'window':
-            frame = frame_from_window(window_coordinates)    
+            frame = frame_from_window(window_coordinates)  
+            frame_copy  = frame_from_window(window_coordinates)    
 
         elif input_mode == 'camera':
             frame = frame_from_camera(capture)
+            frame_copy = frame_from_camera(capture)
 
 
         # Look for hands 
@@ -406,7 +422,10 @@ while(True):
         # print('command ', command)
 
         # Visualise output
-        show_tracked_wireframe(frame, OS) 
+        if show_wireframe:
+            show_tracked_wireframe(frame, OS) 
+        else:
+            show_tracked_wireframe(frame_copy, OS) 
  
         if cv2.waitKey(1) == 27:
             break
