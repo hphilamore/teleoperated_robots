@@ -96,16 +96,13 @@ Enter this:
 
 
 ## Run python program on boot 
-https://stackoverflow.com/questions/67487273/raspberry-pi-4b-running-python-script-using-serial-at-boot
-
+(https://stackoverflow.com/questions/67487273/raspberry-pi-4b-running-python-script-using-serial-at-boot)
 
 Run:
-sudo crontab -e
+`sudo crontab -e`
 
 Add this at the bottom of file that opens:
-```
-@reboot sh /home/neon05/start.sh &
-```
+`@reboot sh /home/neon05/start.sh &`
 *(Replace neon05 with pi username)*
 
 Create start.sh script in directory with username i.e. the file path added to the file that was just closed:
@@ -118,25 +115,17 @@ python3 blink__.py
 *(The last line is the path to the script to run)*
 
 To check script runs, Run:
-```
-sh /home/neon05/start.sh
-```
+`sh /home/neon05/start.sh`
 
 Re-boot pi to check runs on start-up:
-```
-sudo reboot
-```
+`sudo reboot`
 
 ### Kill program 
-https://learn.sparkfun.com/tutorials/how-to-run-a-raspberry-pi-program-on-startup/all
+(https://learn.sparkfun.com/tutorials/how-to-run-a-raspberry-pi-program-on-startup/all)
 
 Check which processes are running. Run:
-`
-sudo ps -ax | grep python3
-`
+`sudo ps -ax | grep python3`
 
 Find the process ID (PID) number for your program and run:
-```
-sudo kill <PID>
-```
+`sudo kill <PID>`
 
