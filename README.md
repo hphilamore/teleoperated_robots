@@ -117,18 +117,26 @@ python3 blink__.py
 ```
 *(The last line is the path to the script to run)*
 
-Check script runs. Run:
+To check script runs, Run:
+```
 sh /home/neon05/start.sh
+```
 
 Re-boot pi to check runs on start-up:
+```
 sudo reboot
+```
 
 ### Kill program 
 https://learn.sparkfun.com/tutorials/how-to-run-a-raspberry-pi-program-on-startup/all
 
 Check which processes are running. Run:
+`
 sudo ps -ax | grep python3
+`
 
 Find the process ID (PID) number for your program and run:
+```
 sudo kill <PID>
+```
 
