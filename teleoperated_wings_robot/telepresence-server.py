@@ -28,20 +28,13 @@ GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 enable_pin = 18
 GPIO.setup(enable_pin,GPIO.OUT)     # Control Data Direction Pin
-# GPIO.setup(6,GPIO.OUT)      
-# GPIO.setup(26,GPIO.OUT)
+
 
 # LEDs on buttons 
 teleop_mode_LED = 17
 preprog_mode_LED = 27
 GPIO.setup(teleop_mode_LED ,GPIO.OUT)
 GPIO.setup(preprog_mode_LED,GPIO.OUT)
-# print("LED on")
-# GPIO.output(17,GPIO.LOW)
-# GPIO.output(27,GPIO.LOW)
-# sleep(1)
-# print "LED off"
-# GPIO.output(18,GPIO.LOW)
 
 # Buttons
 teleop_mode_button = 5
@@ -61,7 +54,7 @@ motors_left = [motor_left_h, motor_left_v]
 
 # HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 HOST = "0.0.0.0"  # Listen on all interfaces
-PORT = 65448      # Port to listen on (non-privileged ports are > 1023)
+PORT = 65451      # Port to listen on (non-privileged ports are > 1023)
 
 
 # Setup raspberry pi as server
@@ -89,7 +82,11 @@ tracking_resolution = 'fine'
 
 # Resolution of position hand-tracking 
 # 'autonomous' or 'teleoperated'
-operating_mode = 'teleoperated'#'autonomous' #
+# operating_mode = 'teleoperated'#'autonomous' #
+
+
+# Number of dimensions of recieved coordinates e.g. 3 = x,y,z coordinates recieved 
+n_dimensions = 3
 
 
 def moving_average(new_val, arr, win_size):
@@ -182,11 +179,13 @@ while True:
                         coordinates = [float(i) for i in coordinates]
 
                         # Grouped coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
-                        n_dimensions = 3 # x,y,z coordinates recieved 
                         hands = [coordinates[i:i+n_dimensions] for i in range(0, len(coordinates), n_dimensions)]
 
                         # For each hand [left, right]
-                        for hand, motors, arr, d in zip(hands, [motors_right, motors_left], [arr_right, arr_left], ['right', 'left']):
+                        for hand, motors, arr, side in zip(hands, 
+                                                        [motors_right, motors_left], 
+                                                        [arr_right, arr_left], 
+                                                        ['right', 'left']):
 
                             # Cap xy coordinates for each hand to between 0 and 1 
                             for i, j in enumerate(hand):
@@ -207,7 +206,7 @@ while True:
                             # v_position = int(1023 - hand[1] * 1023)
                             # v_position = int((1 - hand[1]) * 1023)
 
-                            # map horizontal motion to particular range 
+                            # map horizontal motion to 10-bit value within specified range 
                             min_in_L = 0
                             max_in_L = 0.75
                             min_in_R = 0.35
@@ -218,17 +217,17 @@ while True:
                             min_out_R = 0
                             max_out_R = 700#512
 
-                            if d == 'right':
+                            if side == 'right':
                                 if hand[0]<=min_in_R: hand[0] = min_in_R
                                 h_position = min_out_R + (max_out_R - min_out_R) * (hand[0]-min_in_R) / (max_in_R - min_in_R)
-                            elif d == 'left': 
+                            elif side == 'left': 
                                 if hand[0]>=max_in_L: hand[0] = max_in_L
                                 h_position = min_out_L + (max_out_L - min_out_L) * (hand[0]-min_in_L) / (max_in_L - min_in_L)
 
                             h_position = int(h_position)
 
 
-                            # map vertical motion to particular range 
+                            # map vertical motion to 10-bit value within specified range 
                             min_in_V = 0.25
                             max_in_V = 1
                             min_out_V = 0

@@ -55,6 +55,9 @@ DutyCycle = 20
 # Setting the duty cycle to 0 means the motors will not turn
 Stop = 0
 
+# Number of dimensions of recieved coordinates e.g. 3 = x,y,z coordinates recieved 
+n_dimensions = 3
+
 # Set the GPIO Pin mode to be Output
 GPIO.setup(Motor1A, GPIO.OUT)
 GPIO.setup(Motor1B, GPIO.OUT)
@@ -252,30 +255,46 @@ while(1):
                 coordinates = [float(i) for i in coordinates]
 
                 # Grouped coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
-                n_dimensions = 2 # x,y,z coordinates recieved 
                 hands = [coordinates[i:i+n_dimensions] for i in range(0, len(coordinates), n_dimensions)]
+
+                # For each hand [left, right]
+                for hand, motors, arr, side in zip(hands, 
+                                                   [motors_right, motors_left], 
+                                                   [arr_right, arr_left], 
+                                                   ['right', 'left']):
+
+                    # Cap xy coordinates for each hand to between 0 and 1 
+                    for i, j in enumerate(hand):
+                        if hand[i]<=0: hand[i] = 0 
+                        if hand[i]>=1: hand[i] = 1
+
+                    print(d)
+                    print('x pos ', hand[0])
+                    print('y pos ', hand[1])
+
+
 
 
                 # print(coordinates)
 
-                # If 2 hands detected:
-                if len(hands) > 1:
+                # # If 2 hands detected:
+                # if len(hands) > 1:
 
-                    # If x coordinate of both hands are on the same side of the screen, ignore one hand
-                    print("2 hands detected. Change n_hands to '1' in client code...")
-                    print("Exiting program...")
-                    sys.exit(1)
+                #     # If x coordinate of both hands are on the same side of the screen, ignore one hand
+                #     print("2 hands detected. Change n_hands to '1' in client code...")
+                #     print("Exiting program...")
+                #     sys.exit(1)
 
 
-                # For each hand 
-                for i in hands:
+                # # For each hand 
+                # for i in hands:
 
-                    x_position = i[0]
-                    y_position = i[1]
-                    print(x_position) 
+                #     x_position = i[0]
+                #     y_position = i[1]
+                #     print(x_position) 
 
-                    msg = pos_to_command(x_position, y_position)
-                    print('msg', msg)
+                #     msg = pos_to_command(x_position, y_position)
+                #     print('msg', msg)
 
 
 
