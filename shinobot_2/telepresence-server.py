@@ -6,24 +6,10 @@ from time import sleep
 from time import time
 import RPi.GPIO as GPIO
 
-# # Define and setup GPIO pins
-# # Rigth foot
-# motor1 = Motor(24, 27)
-# motor1_enable = OutputDevice(5, initial_value=1)
-# # Left foot
-# motor2 = Motor(6, 22)
-# motor2_enable = OutputDevice(17, initial_value=1)
-# # Right tentacle
-# motor3 = Motor(23, 16)
-# motor3_enable = OutputDevice(12, initial_value=1)
-# # Left tentacle
-# motor4 = Motor(13, 18)
-# motor4_enable = OutputDevice(25, initial_value=1) 
-
 
 # Setup-server socket
 HOST = "0.0.0.0"  # Listen on all interfaces
-PORT = 65443  # Port to listen on (non-privileged ports are > 1023)
+PORT = 65447  # Port to listen on (non-privileged ports are > 1023)
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((HOST, PORT))
 server_socket.listen()
@@ -149,53 +135,40 @@ def Turn_Left():
     PWM_Motor2B.ChangeDutyCycle(Stop)
 
 
-def pos_to_command(x, y):
+def pos_to_command(hands):
     """
     Translates position of hand detected to command sent to robot
     """
-    # Cap max and min x values 
-    if x < 0.0:
-        x = 0
+    print('left', hands[0])
+    print('right', hands[1])
 
-    if x > 1.0:
-        x = 1   
-
-    # Map position to command      
-    if x < 0.4:        # Turn left
+    # if both hands on left, turn left
+    if hands[0][0] < 0.3 and hands[1][0] < 0.3:
         out = 'left'
-         
-    elif x > 0.6:        # Turn right 
+
+    # if both hands on right, turn right
+    elif hands[0][0] > 0.7 and hands[1][0] > 0.7:
         out = 'right'
-        
-    else:                # Go forwards
-        if y >= 0.5:
-            out = 'backward'
-        else:
+
+    # if one hand on left and one hand on right, stop
+    elif (hands[0][0] > 0.7 and hands[1][0] < 0.3 or
+          hands[0][0] < 0.3 and hands[1][0] > 0.7):
+        out = 'stop'
+
+    # if both hands in centre... 
+    else:                
+        # ...and high, go forward
+        if hands[0][1] < 0.5 and hands[1][1] < 0.5:
             out = 'forward'
+        # ...and low, go backwards
+        else:
+            out = 'backward'
+            
 
     return out
 
 
 while(1):
-
-    # # Switch wing direction every 3s
-    # time_new = time()
-    # if time_new-time_old >= 3:
-    #     flag_wings = not flag_wings
-    #     time_old = time_new
-    #     print('switched wing direction')
-
-    # # Switch wings on/off
-    # if flag_wings:
-    #     print('wings up')
-    #     motor3.forward()
-    #     motor4.forward()
-    # else:
-    #     print('wings down')
-    #     motor3.stop()
-    #     motor4.stop()
-
-    # print('looper')
 
     Enable(1)
 
@@ -203,48 +176,13 @@ while(1):
     with conn:
         print(f"Connected by {addr}")
 
-
-
         while True:
-
-            # time_new = time()
-            # if time_new-time_old >= 2:
-            #     flag_wings = not flag_wings
-            #     time_old = time_new
-            #     print('switched wing direction')
-            #     #sleep(2)
-
-            # # # Switch wings on/off
-            #     if flag_wings:
-            #         print('wings up')
-            #         motor3.forward()
-            #         motor4.forward()
-            #     else:
-            #         print('wings down')
-            #         motor3.stop()
-            #         motor4.stop()
-
-            # Spin_Left()
-            # sleep(3)
-            # Spin_Right()
-            # sleep(3)
-            # # Turn_Left()
-            # # sleep(3)
-            # # Turn_Right()
-            # # sleep(3)
-
-            # StopMotors()
-            # Enable(0)
-            # GPIO.cleanup()
-
-
-
 
             data = conn.recv(1024)
             if not data:
                 break
             msg = data.decode()
-            print(msg)
+            # print(msg)
 
             # if msg != 'no command' and msg != 'stop':
             if msg not in ['no command', 'stop', 'forward', 'backward', 'right', 'left']:
@@ -254,48 +192,12 @@ while(1):
                 # Convert string to floating point data 
                 coordinates = [float(i) for i in coordinates]
 
-                # Grouped coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
+                # Nest coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
                 hands = [coordinates[i:i+n_dimensions] for i in range(0, len(coordinates), n_dimensions)]
 
-                # For each hand [left, right]
-                for hand, motors, arr, side in zip(hands, 
-                                                   [motors_right, motors_left], 
-                                                   [arr_right, arr_left], 
-                                                   ['right', 'left']):
 
-                    # Cap xy coordinates for each hand to between 0 and 1 
-                    for i, j in enumerate(hand):
-                        if hand[i]<=0: hand[i] = 0 
-                        if hand[i]>=1: hand[i] = 1
-
-                    print(d)
-                    print('x pos ', hand[0])
-                    print('y pos ', hand[1])
-
-
-
-
-                # print(coordinates)
-
-                # # If 2 hands detected:
-                # if len(hands) > 1:
-
-                #     # If x coordinate of both hands are on the same side of the screen, ignore one hand
-                #     print("2 hands detected. Change n_hands to '1' in client code...")
-                #     print("Exiting program...")
-                #     sys.exit(1)
-
-
-                # # For each hand 
-                # for i in hands:
-
-                #     x_position = i[0]
-                #     y_position = i[1]
-                #     print(x_position) 
-
-                #     msg = pos_to_command(x_position, y_position)
-                #     print('msg', msg)
-
+                msg = pos_to_command(hands)
+                print('msg', msg)
 
 
             if msg == 'stop':
@@ -317,14 +219,4 @@ while(1):
 
             elif msg == 'backward':
                 Backwards()
-
-
-            #conn.sendall(data)
-    
-    # except:
-    #     print('no comms')
-
-
-# except KeyboardInterrupt:
-#         pass
 

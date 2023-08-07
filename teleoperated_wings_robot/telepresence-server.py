@@ -120,24 +120,12 @@ def hand_speed(arr):
 
 
 while True:
-
+    # Teleoperated mode
     if (GPIO.input(teleop_mode_button) == GPIO.HIGH and 
         GPIO.input(preprog_mode_button) == GPIO.LOW):
         print("Teleoperated")
         GPIO.output(teleop_mode_LED,GPIO.HIGH)
         GPIO.output(preprog_mode_LED,GPIO.LOW)
-    # else:
-    #     GPIO.output(17,GPIO.LOW)
-
-
-    # if GPIO.input(6) == GPIO.HIGH:
-    #     print("Button 6 was pushed!")
-    #     GPIO.output(27,GPIO.HIGH)
-    # else:
-    #     GPIO.output(27,GPIO.LOW)
-
-
-    # if operating_mode == 'teleoperated':
 
         try:
 
@@ -145,18 +133,9 @@ while True:
             with conn:
                 print(f"Connected by {addr}")
 
-                # while True:
+                # teleoperation mode
                 while (GPIO.input(teleop_mode_button) == GPIO.HIGH and 
                        GPIO.input(preprog_mode_button) == GPIO.LOW):
-
-                    # if GPIO.input(5) == GPIO.HIGH:
-                    #     print("Button 5 was pushed!")
-                    # else:
-                    #     print("Button 5 not pushed!")
-
-
-                    # if GPIO.input(6) == GPIO.HIGH:
-                    #     print("Button 6 was pushed!")
 
                     set_endless(0x03, False, Dynamixel)
                     set_endless(0x04, False, Dynamixel)
@@ -178,21 +157,21 @@ while True:
                         # Convert string to floating point data 
                         coordinates = [float(i) for i in coordinates]
 
-                        # Grouped coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
+                        # Nest coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
                         hands = [coordinates[i:i+n_dimensions] for i in range(0, len(coordinates), n_dimensions)]
 
                         # For each hand [left, right]
                         for hand, motors, arr, side in zip(hands, 
-                                                        [motors_right, motors_left], 
-                                                        [arr_right, arr_left], 
-                                                        ['right', 'left']):
+                                                           [motors_right, motors_left], 
+                                                           [arr_right, arr_left], 
+                                                           ['right', 'left']):
 
-                            # Cap xy coordinates for each hand to between 0 and 1 
-                            for i, j in enumerate(hand):
-                                if hand[i]<=0: hand[i] = 0 
-                                if hand[i]>=1: hand[i] = 1
+                            # # Cap xy coordinates for each hand to between 0 and 1 
+                            # for i, j in enumerate(hand):
+                            #     if hand[i]<=0: hand[i] = 0 
+                            #     if hand[i]>=1: hand[i] = 1
 
-                            print(d)
+                            print(side)
                             print('x pos ', hand[0])
                             print('y pos ', hand[1])
 
@@ -298,22 +277,16 @@ while True:
         except socket.timeout:
             pass
 
-    # else:
+    # Autonomous mode 
     elif (GPIO.input(preprog_mode_button) == GPIO.HIGH and 
           GPIO.input(teleop_mode_button) == GPIO.LOW):
         print("Autonomous")
         GPIO.output(teleop_mode_LED,GPIO.LOW)
         GPIO.output(preprog_mode_LED,GPIO.HIGH)
 
-        # while True:
+        # Autonomous mode 
         while(GPIO.input(preprog_mode_button) == GPIO.HIGH and 
               GPIO.input(teleop_mode_button) == GPIO.LOW):
-
-            # if GPIO.input(5) == GPIO.HIGH:
-            #     print("Button 5 was pushed!")
-
-            # if GPIO.input(6) == GPIO.HIGH:
-            #     print("Button 6 was pushed!")
 
             preprogrammed_motion(motor_right_v, 
                                motor_left_v, 

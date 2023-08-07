@@ -31,10 +31,10 @@ import curses
 """ SETUP """
 
 HOST = "192.168.0.53"  # The raspberry pi's hostname or IP address
-PORT = 65443           # The port used by the server
+PORT = 65447           # The port used by the server
 
 # Take video stream from 'camera' or 'window' or 'keys'
-input_mode = 'keys' #'window' ###'keys'#'camera' ##'camera'##'camera'  
+input_mode = 'camera'#'keys' #'window' ###'keys'#'camera' ##'camera'##'camera'  
 
 # Window name is using window
 win_name = 'zoom.us'                      
@@ -58,10 +58,10 @@ grab_full_screen_image = False
 make_output_window_fullscreen = True
 
 # Show wireframe in output video
-show_wireframe = False
+show_wireframe = True
 
 # Send command to raspberry pi
-send_command = False
+send_command = True
 
 # Number of hands to track (wings track 2 hands, turtle robots track one hand)
 n_hands = 2
@@ -153,10 +153,13 @@ def track_hands(frame, pose, flag_no_hand, flag_timeout):
 
             print(x, y, z)
 
-            # Add the mean values to the list of coordinates to send to raspberry pi
-            hand_coordinates.append(str(round(x, 2)))
-            hand_coordinates.append(str(round(y, 2)))
-            hand_coordinates.append(str(round(z, 2)))
+            for dimension in [x,y,z]:
+                # Cap x,y,z, coordinates for each hand to between 0 and 1 
+                if dimension <= 0: dimension = 0 
+                if dimension >= 1: dimension = 1 
+
+                # Add the x,y,z values to the list of coordinates to send to raspberry pi
+                hand_coordinates.append(str(round(dimension, 2)))
 
         # Convert list of x,y,z coordinates of each hand to string 
         command = ','.join(hand_coordinates)
@@ -224,10 +227,13 @@ def track_body(frame, pose, flag_no_hand, flag_timeout):
                     y = landmark.y
                     z = landmark.z
 
-                    # Add the x,y,z values to the list of coordinates to send to raspberry pi
-                    hand_coordinates.append(str(round(x, 2)))
-                    hand_coordinates.append(str(round(y, 2)))
-                    hand_coordinates.append(str(round(z, 2)))
+                    for dimension in [x,y,z]:
+                        # Cap x,y,z, coordinates for each hand to between 0 and 1 
+                        if dimension <= 0: dimension = 0 
+                        if dimension >= 1: dimension = 1 
+
+                        # Add the x,y,z values to the list of coordinates to send to raspberry pi
+                        hand_coordinates.append(str(round(dimension, 2)))
 
                     # each person has 33 landmarks
                     # floor divide landmark index by 33 to get a unique index for each person
@@ -344,9 +350,6 @@ if input_mode == 'keys':
         while(True):
             char = screen.getch()
 
-            # if char == curses.KEY_UP:
-            #     print("up")
-            #     command = 'forward'
             if char == ord('q'):
                 break
             elif char == curses.KEY_UP:
