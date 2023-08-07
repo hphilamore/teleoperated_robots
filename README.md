@@ -103,15 +103,19 @@ Run:
 sudo crontab -e
 
 Add this at the bottom of file that opens:
+```
 @reboot sh /home/neon05/start.sh &
-(Replace neon05 with pi username)
+```
+*(Replace neon05 with pi username)*
 
 Create start.sh script in directory with username i.e. the file path added to the file that was just closed:
+```
 #!/bin/sh
 # start.sh
 cd /home/neon05
 python3 blink__.py
-(The last line is the path to the script to run)
+```
+*(The last line is the path to the script to run)*
 
 Check script runs. Run:
 sh /home/neon05/start.sh
