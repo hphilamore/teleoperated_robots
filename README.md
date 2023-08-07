@@ -120,6 +120,8 @@ To check script runs, Run:
 Re-boot pi to check runs on start-up:
 `sudo reboot`
 
+ssh into pi to launch program
+
 ### Kill program 
 (https://learn.sparkfun.com/tutorials/how-to-run-a-raspberry-pi-program-on-startup/all)
 
