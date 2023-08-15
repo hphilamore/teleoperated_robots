@@ -68,7 +68,7 @@ send_command = False
 n_hands = 2
 
 # Detail of hands tracked when True, otherwise whole body frame 
-track_hands_only = True
+track_hands_only = False
 
 # A flag to indicate when no hand is deteced so that a timer can be set to 
 # check of the person is really gone or if detection has failed momentarily 

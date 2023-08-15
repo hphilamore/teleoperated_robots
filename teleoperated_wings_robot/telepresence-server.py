@@ -23,6 +23,10 @@ from py_ax12 import *
 from ax12_preprogrammed_motion import *
 
 
+# Set as True to discretise vertical servo posotion to up/down/mid instead of following hand
+coarse_servo_v_position = False
+
+
 # Setup GPIO pins 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -69,61 +73,61 @@ Dynamixel=serial.Serial("/dev/serial0",baudrate=1000000,timeout=0.1, bytesize=8)
 
 # Buffer for each arm to store last N servo position values 
 buffer_length = 5
-arr_right_h = list(np.full((buffer_length,), np.nan))
-arr_left_h = list(np.full((buffer_length,), np.nan))
-arr_right_v = list(np.full((buffer_length,), np.nan))
-arr_left_v = list(np.full((buffer_length,), np.nan))
-arr_right = [arr_right_h, arr_right_v]
-arr_left = [arr_left_h, arr_left_v]
+buffer_right_h = list(np.full((buffer_length,), np.nan))
+buffer_left_h = list(np.full((buffer_length,), np.nan))
+buffer_right_v = list(np.full((buffer_length,), np.nan))
+buffer_left_v = list(np.full((buffer_length,), np.nan))
+buffer_right = [buffer_right_h, buffer_right_v]
+buffer_left = [buffer_left_h, buffer_left_v]
+# Indexing of horizontal and vertical direction
+h = 0
+v = 1
 
 # Resolution of position hand-tracking 
 # 'fine' or 'coarse'
 tracking_resolution = 'fine'
 
-# Resolution of position hand-tracking 
-# 'autonomous' or 'teleoperated'
-# operating_mode = 'teleoperated'#'autonomous' #
+# Indexing of xyz coordinates
+x = 0
+y = 1
+z = 2
 
 
-# Number of dimensions of recieved coordinates e.g. 3 = x,y,z coordinates recieved 
-n_dimensions = 3
 
-
-def moving_average(new_val, arr, win_size):
+def moving_average(new_val, buffer, win_size=buffer_length):
     """ 
     Moving average filter 
     Returns average of last N values where N = window size
     """
     # Add the new value at start of list
-    arr.insert(0, new_val)
+    buffer.insert(0, new_val)
     
     # Crop buffer to the correct length
-    arr = arr[:win_size]
-    print(arr)
+    buffer = buffer[:win_size]
+    print(buffer)
 
-    return np.nanmean(np.array(arr[:win_size]))
+    return np.nanmean(np.array(buffer[:win_size]))
 
 
-def hand_speed(arr):
+def hand_speed(buffer):
     """ 
     Returns a value that increases with the difference 
     between the current and last recorded hand position
     """
     bias = 100                        # Minimum speed
-    delta =  abs(arr[0] - arr[1])     # Difference between current and last position
+    delta =  abs(buffer[0] - buffer[1])     # Difference between current and last position
     speed = delta * 3 + bias          # Equation to scale motor speed with hand speed
     if speed > 1023 : speed = 1023    # Cap maximum speed value
     if np.isnan(speed) : speed = bias # If difference is nan, use minimum speed
     return speed
 
 
-
-
 while True:
-    # Teleoperated mode
+    # Teleoperated mode button pressed
     if (GPIO.input(teleop_mode_button) == GPIO.HIGH and 
         GPIO.input(preprog_mode_button) == GPIO.LOW):
         print("Teleoperated")
+        # Turn button pressed LED on and other LED off
         GPIO.output(teleop_mode_LED,GPIO.HIGH)
         GPIO.output(preprog_mode_LED,GPIO.LOW)
 
@@ -133,7 +137,7 @@ while True:
             with conn:
                 print(f"Connected by {addr}")
 
-                # teleoperation mode
+                # Teleoperation mode
                 while (GPIO.input(teleop_mode_button) == GPIO.HIGH and 
                        GPIO.input(preprog_mode_button) == GPIO.LOW):
 
@@ -147,111 +151,100 @@ while True:
                     if not data:
                         break
                     msg = data.decode()
-                    # print(msg)
 
-                    if msg != 'no command' and msg != 'stop':
+                    if msg not in ['no command', 'stop', 'forward', 'backward', 'right', 'left']:
 
-                        # Convert recieved string to nested list of x,y,z coordinates of each hand 
-                        coordinates = msg.split(',')
+                        # convert string-dictionary of node coordinates to dictionary
+                        msg = json.loads(msg)
 
-                        # Convert string to floating point data 
-                        coordinates = [float(i) for i in coordinates]
+                        print('msg2', type(msg), msg)
 
-                        # Nest coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
-                        hands = [coordinates[i:i+n_dimensions] for i in range(0, len(coordinates), n_dimensions)]
+                        # array to store x,y,z coordinates for each hand  
+                        hands = ["RIGHT_WRIST", "LEFT_WRIST"]
 
                         # For each hand [left, right]
-                        for hand, motors, arr, side in zip(hands, 
+                        for hand, motors, buffer, side in zip(hands, 
                                                            [motors_right, motors_left], 
-                                                           [arr_right, arr_left], 
-                                                           ['right', 'left']):
+                                                           [buffer_right, buffer_left]):
+                            
+                            x_pos = msg[hand][x]
+                            y_pos = msg[hand][y]
 
-                            # # Cap xy coordinates for each hand to between 0 and 1 
-                            # for i, j in enumerate(hand):
-                            #     if hand[i]<=0: hand[i] = 0 
-                            #     if hand[i]>=1: hand[i] = 1
+                            print('x pos ', x_pos)
+                            print('y pos ', y_pos)
 
-                            print(side)
-                            print('x pos ', hand[0])
-                            print('y pos ', hand[1])
-
-                            # convert to 10-bit value
-                            # servo_position = (y_position * 1023) 
-                            # hand = [1023 - h * 1023 for h in hand]
-
-                            # map to full 10-bit range of possible servo positions
-                            # hand[0] = hand[0] * 1023
-                            # hand[1] = 1023 - hand[1] * 1023
-                            # v_position = int(1023 - hand[1] * 1023)
-                            # v_position = int((1 - hand[1]) * 1023)
-
-                            # map horizontal motion to 10-bit value within specified range 
+                            # Input range for horizontal position of left and right hand 
+                            # (absolute min=0, absolute max=1)
                             min_in_L = 0
                             max_in_L = 0.75
                             min_in_R = 0.35
                             max_in_R = 1
 
+                            # Input range for vertical position of left and right hand 
+                            # (absolute min=0, absolute max=1)
+                            min_in_L = 0
+                            max_in_L = 0.75
+                            min_in_R = 0.35
+                            max_in_R = 1
+
+                            # Output range for horizontal position servos 
+                            # (absolute min=0, absolute max=1023)
                             min_out_L = 300#512
                             max_out_L = 1023
                             min_out_R = 0
                             max_out_R = 700#512
 
-                            if side == 'right':
-                                if hand[0]<=min_in_R: hand[0] = min_in_R
-                                h_position = min_out_R + (max_out_R - min_out_R) * (hand[0]-min_in_R) / (max_in_R - min_in_R)
-                            elif side == 'left': 
-                                if hand[0]>=max_in_L: hand[0] = max_in_L
-                                h_position = min_out_L + (max_out_L - min_out_L) * (hand[0]-min_in_L) / (max_in_L - min_in_L)
-
-                            h_position = int(h_position)
-
-
-                            # map vertical motion to 10-bit value within specified range 
+                            # Output range for vertical position servos 
+                            # (absolute min=0, absolute max=1023)
                             min_in_V = 0.25
                             max_in_V = 1
                             min_out_V = 0
                             max_out_V = 600
 
-                            hand[1] = 1 - hand[1]
-                            if hand[1]<=min_in_V: hand[1] = min_in_V
-                            v_position = min_out_V + (max_out_V - min_out_V) * (hand[1]-min_in_V) / (max_in_V - min_in_V)
+                            # Map horizontal pose to servos  
+                            if side == 'right':
+                                if x_pos<=min_in_R: x_pos = min_in_R
+                                h_position = (min_out_R + (max_out_R - min_out_R) * (x_pos-min_in_R) / 
+                                             (max_in_R - min_in_R))
+                            elif side == 'left': 
+                                if x_pos>=max_in_L: x_pos = max_in_L
+                                h_position = (min_out_L + (max_out_L - min_out_L) * (x_pos-min_in_L) / 
+                                             (max_in_L - min_in_L))
+
+                            h_position = int(h_position)
+
+                            # Map vertical pose to servos 
+                            y_pos = 1 - y_pos # Correct position to account for mirrored servo arrangement
+                            if y_pos<=min_in_V: y_pos = min_in_V
+                            v_position = (min_out_V + (max_out_V - min_out_V) * (y_pos-min_in_V) / 
+                                         (max_in_V - min_in_V))
                             v_position = int(v_position)
 
+                            # Moving average filter applied, Position rounded to nearest decimal value
+                            h_smoothed = int(moving_average(new_val = h_position, buffer[h])) 
+                            v_smoothed = int(moving_average(new_val = v_position, buffer[v])) 
 
-                            if tracking_resolution == 'fine':
+                            # Scale speed of servo to speed of hand in horizontal and vertical direction
+                            h_speed = hand_speed(buffer[h]) 
+                            v_speed = hand_speed(buffer[v])                  
 
-                                # Moving average filter applied, Position rounded to nearest decimal value
-                                h_smoothed = int(moving_average(h_position, arr[0], buffer_length)) 
-                                v_smoothed = int(moving_average(v_position, arr[1], buffer_length)) 
+                            # Send 10-bit value to servos controlling horizontal and veritcal motion 
+                            move_speed(motors[0], h_smoothed, h_speed, Dynamixel)
+                            move_speed(motors[1], v_smoothed, v_speed, Dynamixel)
+                            print('h_servo= ', h_smoothed, ' v_servo= ', v_smoothed)
+                            print()
 
-                                # Speed of hand in horizontal and vertical direction
-                                h_speed = hand_speed(arr[0]) 
-                                v_speed = hand_speed(arr[1])                  
-
-                                # # Correct position to account for mirrored arrangement of servo arm mechanism 
-                                # smoothed_position = 1023 - smoothed_position 
-
-                                # Send 10-bit value to servos controlling horizontal and veritcal motion 
-                                move_speed(motors[0], h_smoothed, h_speed, Dynamixel)
-                                move_speed(motors[1], v_smoothed, v_speed, Dynamixel)
-                                print('test motor commands are correct: str(motors)')
-                                print('h= ', h_smoothed, ' v= ', v_smoothed)
-                                print()
-
-                            # tracking resolution is coarse
-                            else: 
-                                if v_position<0.35:
+                            # Servo control resolution is coarse
+                            if coarse_servo_v_position:
+                                if v_smoothed<0.35:
                                     print('up')
                                     move_speed(motors[0], 1023, 500, Dynamixel)
-                                elif 0.35<=v_position<0.65:
+                                elif 0.35<=v_smoothed<0.65:
                                     move_speed(motors[0], 512, 500, Dynamixel)
                                     print('mid')
                                 else:
                                     move_speed(motors[0], 0, 500, Dynamixel)
                                     print('down')
-
-                            
-
 
                     if msg == 'stop':
                         pass
@@ -269,7 +262,6 @@ while True:
                         move(0x02, 150, Dynamixel)
                         move(0x01, 150, Dynamixel)
                         sleep(0.1)
-                        
 
                     elif msg == 'forward':
                         pass
@@ -277,10 +269,11 @@ while True:
         except socket.timeout:
             pass
 
-    # Autonomous mode 
+    # Autonomous mode button pressed
     elif (GPIO.input(preprog_mode_button) == GPIO.HIGH and 
           GPIO.input(teleop_mode_button) == GPIO.LOW):
-        print("Autonomous")
+        print("Autonomous mode")
+        # Turn button pressed LED on and other LED off
         GPIO.output(teleop_mode_LED,GPIO.LOW)
         GPIO.output(preprog_mode_LED,GPIO.HIGH)
 
@@ -289,16 +282,21 @@ while True:
               GPIO.input(teleop_mode_button) == GPIO.LOW):
 
             preprogrammed_motion(motor_right_v, 
-                               motor_left_v, 
-                               motor_right_h, 
-                               motor_left_h)
+                                 motor_left_v, 
+                                 motor_right_h, 
+                                 motor_left_h)
 
+    # Both teleoperated and Autonomous mode button pressed
     elif (GPIO.input(preprog_mode_button) == GPIO.HIGH and 
           GPIO.input(teleop_mode_button) == GPIO.HIGH):
+        # Turn both LEDs on
         GPIO.output(teleop_mode_LED,GPIO.HIGH)
         GPIO.output(preprog_mode_LED,GPIO.HIGH)
 
+
+    # No button pressed
     else:
+        # Turn both LEDs off
         GPIO.output(teleop_mode_LED,GPIO.LOW)
         GPIO.output(preprog_mode_LED,GPIO.LOW)
 
