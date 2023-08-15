@@ -75,6 +75,9 @@ track_hands_only = False
 flag_no_hand = False 
 flag_timeout = 2
 
+# Swap left and right values if image captured is mirror of tracked person
+mirror_nodes = True
+
 #-------------------------------------------------------------------------------
 
 if OS == 'windowsOS': 
@@ -217,8 +220,8 @@ def track_body(frame, pose, flag_no_hand, flag_timeout):
                 # nodes on human body to detect 
                 if idx in [
                            mp_pose.PoseLandmark.NOSE.value,
-                           mp_pose.PoseLandmark.LEFT_SHOULDER.value,
-                           mp_pose.PoseLandmark.RIGHT_SHOULDER.value,
+                           # mp_pose.PoseLandmark.LEFT_SHOULDER.value,
+                           # mp_pose.PoseLandmark.RIGHT_SHOULDER.value,
                            # mp_pose.PoseLandmark.LEFT_ELBOW.value,
                            # mp_pose.PoseLandmark.RIGHT_ELBOW.value,
                            mp_pose.PoseLandmark.LEFT_WRIST.value,
@@ -252,6 +255,13 @@ def track_body(frame, pose, flag_no_hand, flag_timeout):
 
             # # Convert list of x,y,z coordinates of each hand to string 
             # command = ','.join(pose_coordinates)
+
+            # Swap left and right values if image captured is mirror of tracked person
+            if mirror_nodes:
+                pose_coordinates["LEFT_HIP"], pose_coordinates["RIGHT_HIP"] = pose_coordinates["RIGHT_HIP"], pose_coordinates["LEFT_HIP"]
+                # pose_coordinates["LEFT_HAND"], pose_coordinates["RIGHT_HAND"] = pose_coordinates["RIGHT_HAND"], pose_coordinates["LEFT_HAND"]
+                pose_coordinates["LEFT_WRIST"], pose_coordinates["RIGHT_WRIST"] = pose_coordinates["RIGHT_WRIST"], pose_coordinates["LEFT_WRIST"]
+
             
             # Convert to json fomrat (keys enclosed in double quotes)
             pose_coordinates = json.dumps(pose_coordinates)

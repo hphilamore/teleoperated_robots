@@ -45,6 +45,11 @@ Stop = 0
 # Number of dimensions of recieved coordinates e.g. 3 = x,y,z coordinates recieved 
 n_dimensions = 3
 
+# Indexing of xyz coordinates
+x = 0
+y = 1
+z = 2
+
 # Set the GPIO Pin mode to be Output
 GPIO.setup(Motor1A, GPIO.OUT)
 GPIO.setup(Motor1B, GPIO.OUT)
@@ -136,37 +141,113 @@ def Turn_Left():
     PWM_Motor2B.ChangeDutyCycle(Stop)
 
 
-def pos_to_command(hands):
+# def pos_to_command(hands):
     """
-    Translates position of hand detected to command sent to robot
+    Translates pose detected to command sent to robot
     """
-    print('left', hands[0])
-    print('right', hands[1])
+    # print('left', hands[0])
+    # print('right', hands[1])
 
-    # if both hands on left, turn left
-    if hands[0][0] < 0.3 and hands[1][0] < 0.3:
-        out = 'left'
+    # # if both hands on left, turn left
+    # if hands[0][0] < 0.3 and hands[1][0] < 0.3:
+    #     out = 'left'
 
-    # if both hands on right, turn right
-    elif hands[0][0] > 0.7 and hands[1][0] > 0.7:
-        out = 'right'
+    # # if both hands on right, turn right
+    # elif hands[0][0] > 0.7 and hands[1][0] > 0.7:
+    #     out = 'right'
 
-    # if one hand on left and one hand on right, stop
-    elif (hands[0][0] > 0.7 and hands[1][0] < 0.3 or
-          hands[0][0] < 0.3 and hands[1][0] > 0.7):
-        out = 'stop'
+    # # if one hand on left and one hand on right, stop
+    # elif (hands[0][0] > 0.7 and hands[1][0] < 0.3 or
+    #       hands[0][0] < 0.3 and hands[1][0] > 0.7):
+    #     out = 'stop'
 
-    # if both hands in centre... 
-    else:                
-        # ...and high, go forward
-        if hands[0][1] < 0.5 and hands[1][1] < 0.5:
-            out = 'forward'
-        # ...and low, go backwards
-        else:
-            out = 'backward'
+    # # if both hands in centre... 
+    # else:                
+    #     # ...and high, go forward
+    #     if hands[0][1] < 0.5 and hands[1][1] < 0.5:
+    #         out = 'forward'
+    #     # ...and low, go backwards
+    #     else:
+    #         out = 'backward'
             
+    # return out
 
-    return out
+
+def pose_to_command(msg):
+    """
+    Translates pose detected to command sent to robot
+    """
+
+    try:
+        # Get xyz coordinates of each node sent
+        nose = msg["NOSE"]
+        hip_l = msg["LEFT_HIP"]
+        hip_r = msg["RIGHT_HIP"]
+        hand_l = msg["LEFT_WRIST"]
+        hand_r = msg["RIGHT_WRIST"]
+
+        print('left_hand', hand_l)
+        print('right_hand', hand_r)
+        print('left_hip', hip_l)
+        print('right_hip', hip_r)
+        print('nose', nose)
+
+        # If hands above head, go forwards
+        if hand_l[y] <= nose[y] and hand_r[y] <= nose[y]:
+            command = 'forward'
+
+        # If hands below hips, go backwards 
+        elif hand_l[y] >= hip_l[y] and hand_r[y] >= hip_r[y]:
+            command = 'backward'
+
+        # If both hands left of left hip, turn left 
+        elif hand_l[x] < hip_l[x] and hand_r[x] < hip_l[x]:
+            command = 'left'
+
+        # If both hands right of right hip, turn right 
+        elif hand_l[x] > hip_r[x] and hand_r[x] > hip_r[x]:
+            command = 'right'
+
+        # If hands either side of head, stop 
+        elif hand_l[x] < nose[x] and hand_r[x] > nose[x]:
+            command = 'stop'
+
+        # If none of these opses are detected, no change 
+        else:
+            command = 'no command'
+
+    except:
+        print("Warning: Nodes for pose detection not in data sent to robot!")
+        command = 'no command'
+
+    print(command)
+    return command
+
+    # # if both hands on left, turn left
+    # if hands[0][0] < 0.3 and hands[1][0] < 0.3:
+    #     out = 'left'
+
+    # # if both hands on right, turn right
+    # elif hands[0][0] > 0.7 and hands[1][0] > 0.7:
+    #     out = 'right'
+
+    # # if one hand on left and one hand on right, stop
+    # elif (hands[0][0] > 0.7 and hands[1][0] < 0.3 or
+    #       hands[0][0] < 0.3 and hands[1][0] > 0.7):
+    #     out = 'stop'
+
+    # # if both hands in centre... 
+    # else:                
+    #     # ...and high, go forward
+    #     if hands[0][1] < 0.5 and hands[1][1] < 0.5:
+    #         out = 'forward'
+    #     # ...and low, go backwards
+    #     else:
+    #         out = 'backward'
+            
+    # return out
+
+
 
 
 while(1):
@@ -198,12 +279,16 @@ while(1):
 
 
                 # msg = pos_to_command(hands)
-                print('msg1', type(msg), msg)
+                # print('msg1', type(msg), msg)
 
                 # convert dictionary string to dictionary
                 msg = json.loads(msg)
 
                 print('msg2', type(msg), msg)
+
+                pose_to_command(msg)
+
+
 
 
             if msg == 'stop':
