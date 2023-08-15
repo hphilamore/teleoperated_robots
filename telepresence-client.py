@@ -62,18 +62,19 @@ make_output_window_fullscreen = True
 show_wireframe = True
 
 # Send command to raspberry pi
-send_command = True
+send_command = False
 
-# Number of hands to track (wings track 2 hands, turtle robots track one hand)
+# Max number of hands to track (wings: track 2 hands, turtle robots: track 1 hand)
 n_hands = 2
 
 # Detail of hands tracked when True, otherwise whole body frame 
-track_hands_only = False
+track_hands_only = True
 
 # A flag to indicate when no hand is deteced so that a timer can be set to 
-# check of the hand is really gone or if detection has failed momentarily 
+# check of the person is really gone or if detection has failed momentarily 
 flag_no_person_detected = False 
-flag_timeout = 2
+# Number of seconds to wait until timeout  
+flag_timeout = 2 
 
 # Swap left and right values if image captured is mirror of tracked person
 mirror_nodes = True
@@ -123,65 +124,71 @@ def calculate_average_depth(person):
 def track_hands(frame, pose, flag_no_person_detected, flag_timeout):
     results = pose.process(frame)
 
-    # Check for hands
+    # If hands detected in the frame
     if results.multi_hand_landmarks != None:
 
-        # Draw hands
+        # Draw landmarks onto frame
         for handLandmarks in results.multi_hand_landmarks:
-            # Draw landmarks onto frame 
             drawingModule.draw_landmarks(frame, 
                                          handLandmarks, 
                                          handsModule.HAND_CONNECTIONS)
 
-        # A list to store the x,y,z coordinates of each hand 
-        pose_coordinates = []
+        # # A list to store the x,y,z coordinates of each hand 
+        # pose_coordinates = []
+        # A dictionary to store the x,y,z coordinates of each node
+        pose_coordinates = {}
 
-        # Find each hand up to max number of hands 
+        # Cyle through each hand detected 
         for hand_no, hand_landmarks in enumerate(results.multi_hand_landmarks):
             print(f'HAND NUMBER: {hand_no+1}')
             print('-----------------------')
 
+            # Array to store all nodes on each hand 
             x_ = []
             y_ = []
             z_ = []
 
+            # 20 nodes per hand 
             for i in range(20):
                 x_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].x)
                 y_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].y)
                 z_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].z)
                     
-            # Find mean value of x and z coordinate of nodes 
-            x = sum(x_)/len(x_)                
-            y = sum(y_)/len(y_)                
-            z = sum(z_)/len(z_)
+            # Find mean value of nodes on each hand, to 2 d.p., to treat as single node per hand   
+            x = round(sum(x_)/len(x_), 2)                
+            y = round(sum(y_)/len(y_), 2)                
+            z = round(sum(z_)/len(z_), 2)
 
-            print(x, y, z)
+            node = [x,y,z]
 
-            for dimension in [x,y,z]:
-                # Cap x,y,z, coordinates for each hand to between 0 and 1 
+            # Cap x,y,z, coordinates for each hand to between 0 and 1 
+            for dimension in node:
                 if dimension <= 0: dimension = 0 
                 if dimension >= 1: dimension = 1 
 
-                # Add the x,y,z values to the list of coordinates to send to raspberry pi
-                pose_coordinates.append(str(round(dimension, 2)))
+            # Store hand node in dictionary 
+            pose_coordinates['HAND' + str(hand_no+1)] = node
 
-        # Convert list of x,y,z coordinates of each hand to string 
-        command = ','.join(pose_coordinates)
-        # print(command)
+            # Convert to json format (keys enclosed in double quotes)
+            command = pose_coordinates
+            command = json.dumps(command)
+
+            # Convert to string to send to robot
+            command = str(command)
 
     else:
-            print('no hand')
-            if not flag_no_person_detected:     # If there was a hand in previous frame
-                flag_no_person_detected = True  # Raise the flag 
-                start = time.time()  # Start the timer
-                command = 'no command'
+        print('No hand detected')
+        if not flag_no_person_detected:     # If there was a hand in previous frame
+            flag_no_person_detected = True  # Raise the flag 
+            start = time.time()             # Start the timer
+            command = 'no command'
 
-            else:
-                end = time.time()
-                if end-start >= flag_timeout:
-                    flag_no_person_detected = False  # Lower the flag 
-                    print('stop')
-                    command = 'stop'  
+        else:
+            end = time.time()
+            if end-start >= flag_timeout:
+                flag_no_person_detected = False  # Lower the flag 
+                print('stop')
+                command = 'stop'  
 
     return command
 
@@ -198,7 +205,7 @@ def track_body(frame, pose, flag_no_person_detected, flag_timeout):
         # a dictionary to store the x,y,z coordinates of each node
         pose_coordinates = {}
 
-
+        # cycle through each node detected
         for idx, landmark in enumerate(results.pose_landmarks.landmark):
             
             # nodes on human body to detect 
@@ -437,7 +444,7 @@ while(True):
         else:
             command = track_body(frame, pose, flag_no_person_detected, flag_timeout)
 
-        # print('command ', command)
+        print('command ', command)
 
         # Visualise output
         if show_wireframe:
