@@ -217,36 +217,11 @@ def pose_to_command(msg):
             command = 'no command'
 
     except:
-        print("Warning: Nodes for pose detection not in data sent to robot!")
+        print("Warning: Nodes required for pose detection not in data sent to robot!")
         command = 'no command'
 
     print(command)
     return command
-
-    # # if both hands on left, turn left
-    # if hands[0][0] < 0.3 and hands[1][0] < 0.3:
-    #     out = 'left'
-
-    # # if both hands on right, turn right
-    # elif hands[0][0] > 0.7 and hands[1][0] > 0.7:
-    #     out = 'right'
-
-    # # if one hand on left and one hand on right, stop
-    # elif (hands[0][0] > 0.7 and hands[1][0] < 0.3 or
-    #       hands[0][0] < 0.3 and hands[1][0] > 0.7):
-    #     out = 'stop'
-
-    # # if both hands in centre... 
-    # else:                
-    #     # ...and high, go forward
-    #     if hands[0][1] < 0.5 and hands[1][1] < 0.5:
-    #         out = 'forward'
-    #     # ...and low, go backwards
-    #     else:
-    #         out = 'backward'
-            
-    # return out
-
 
 
 
@@ -264,28 +239,16 @@ while(1):
             if not data:
                 break
             msg = data.decode()
-            # print(msg)
 
             # if msg != 'no command' and msg != 'stop':
             if msg not in ['no command', 'stop', 'forward', 'backward', 'right', 'left']:
 
-                # coordinates = msg.split(',')
-
-                # # Convert string to floating point data 
-                # coordinates = [float(i) for i in coordinates]
-
-                # # Nest coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
-                # hands = [coordinates[i:i+n_dimensions] for i in range(0, len(coordinates), n_dimensions)]
-
-
-                # msg = pos_to_command(hands)
-                # print('msg1', type(msg), msg)
-
-                # convert dictionary string to dictionary
+                # convert dictionary string of node coordinates to dictionary
                 msg = json.loads(msg)
 
                 print('msg2', type(msg), msg)
 
+                # convert pose to motor command
                 pose_to_command(msg)
 
 

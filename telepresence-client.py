@@ -72,7 +72,7 @@ track_hands_only = False
 
 # A flag to indicate when no hand is deteced so that a timer can be set to 
 # check of the hand is really gone or if detection has failed momentarily 
-flag_no_hand = False 
+flag_no_person_detected = False 
 flag_timeout = 2
 
 # Swap left and right values if image captured is mirror of tracked person
@@ -120,7 +120,7 @@ def calculate_average_depth(person):
     average_depth = depth_sum / len(person.landmark)
     return average_depth
 
-def track_hands(frame, pose, flag_no_hand, flag_timeout):
+def track_hands(frame, pose, flag_no_person_detected, flag_timeout):
     results = pose.process(frame)
 
     # Check for hands
@@ -171,21 +171,21 @@ def track_hands(frame, pose, flag_no_hand, flag_timeout):
 
     else:
             print('no hand')
-            if not flag_no_hand:     # If there was a hand in previous frame
-                flag_no_hand = True  # Raise the flag 
+            if not flag_no_person_detected:     # If there was a hand in previous frame
+                flag_no_person_detected = True  # Raise the flag 
                 start = time.time()  # Start the timer
                 command = 'no command'
 
             else:
                 end = time.time()
                 if end-start >= flag_timeout:
-                    flag_no_hand = False  # Lower the flag 
+                    flag_no_person_detected = False  # Lower the flag 
                     print('stop')
                     command = 'stop'  
 
     return command
 
-def track_body(frame, pose, flag_no_hand, flag_timeout):
+def track_body(frame, pose, flag_no_person_detected, flag_timeout):
     # Process the frame with MediaPipe Pose
     results = pose.process(frame)
 
@@ -198,91 +198,82 @@ def track_body(frame, pose, flag_no_hand, flag_timeout):
         # a dictionary to store the x,y,z coordinates of each node
         pose_coordinates = {}
 
-        # Find the distance between the left and right shoulder
-        shoulder_R = 0
-        shoulder_L = 0
+
         for idx, landmark in enumerate(results.pose_landmarks.landmark):
-            if idx == mp_pose.PoseLandmark.LEFT_SHOULDER.value:
-                shoulder_L = landmark.x
-                print('shoulder_L', shoulder_L)
-            if idx == mp_pose.PoseLandmark.RIGHT_SHOULDER.value:
-                shoulder_R = landmark.x
-                print('shoulder_R', shoulder_R)
-
-        # Only detect people within certian range from camera by only outputting pose as command 
-        # if distance between shoulders exceeds threshold and left shoulder has greater x position 
-        # than right shoulder (i.e. person facing towards camera)
-        if shoulder_L-shoulder_R > 0.1:
-
-
-            for idx, landmark in enumerate(results.pose_landmarks.landmark):
-                
-                # nodes on human body to detect 
-                if idx in [
-                           mp_pose.PoseLandmark.NOSE.value,
-                           # mp_pose.PoseLandmark.LEFT_SHOULDER.value,
-                           # mp_pose.PoseLandmark.RIGHT_SHOULDER.value,
-                           # mp_pose.PoseLandmark.LEFT_ELBOW.value,
-                           # mp_pose.PoseLandmark.RIGHT_ELBOW.value,
-                           mp_pose.PoseLandmark.LEFT_WRIST.value,
-                           mp_pose.PoseLandmark.RIGHT_WRIST.value,
-                           mp_pose.PoseLandmark.LEFT_HIP.value,
-                           mp_pose.PoseLandmark.RIGHT_HIP.value,
-                           ]:
-
-                    # array to store coodinates of individual node       
-                    node_coordinates = []
-
-                    x = landmark.x
-                    y = landmark.y
-                    z = landmark.z
-
-                    # restrict value of each coordinate to within range (0, 1) 
-                    for coordinate in [x,y,z]:
-                        if coordinate <= 0: coordinate = 0 
-                        if coordinate >= 1: coordinate = 1 
-
-                        # round coordinate to 2 d.p. and store in array
-                        node_coordinates.append(round(coordinate, 2))
-
-                    # floor divide landmark index by 33 to get a unique index for each person 
-                    # (each person has 33 landmarks)
-                    print(f"Person {idx // 33}")
-                    print(f"Point {mp_pose.PoseLandmark(idx).name}:")
-                    print(f"X={round(x,2)}, Y={round(y,2)}, Z={round(z,2)}")
-                    node_name = mp_pose.PoseLandmark(idx).name
-                    pose_coordinates[node_name] = node_coordinates
-
-            # # Convert list of x,y,z coordinates of each hand to string 
-            # command = ','.join(pose_coordinates)
-
-            # Swap left and right values if image captured is mirror of tracked person
-            if mirror_nodes:
-                pose_coordinates["LEFT_HIP"], pose_coordinates["RIGHT_HIP"] = pose_coordinates["RIGHT_HIP"], pose_coordinates["LEFT_HIP"]
-                # pose_coordinates["LEFT_HAND"], pose_coordinates["RIGHT_HAND"] = pose_coordinates["RIGHT_HAND"], pose_coordinates["LEFT_HAND"]
-                pose_coordinates["LEFT_WRIST"], pose_coordinates["RIGHT_WRIST"] = pose_coordinates["RIGHT_WRIST"], pose_coordinates["LEFT_WRIST"]
-
             
-            # Convert to json fomrat (keys enclosed in double quotes)
-            pose_coordinates = json.dumps(pose_coordinates)
-            print(pose_coordinates)
-            command = str(pose_coordinates)
+            # nodes on human body to detect 
+            if idx in [
+                       mp_pose.PoseLandmark.NOSE.value,
+                       mp_pose.PoseLandmark.LEFT_SHOULDER.value,
+                       mp_pose.PoseLandmark.RIGHT_SHOULDER.value,
+                       # mp_pose.PoseLandmark.LEFT_ELBOW.value,
+                       # mp_pose.PoseLandmark.RIGHT_ELBOW.value,
+                       mp_pose.PoseLandmark.LEFT_WRIST.value,
+                       mp_pose.PoseLandmark.RIGHT_WRIST.value,
+                       mp_pose.PoseLandmark.LEFT_HIP.value,
+                       mp_pose.PoseLandmark.RIGHT_HIP.value,
+                       ]:
 
-        else:
+                # array to store coodinates of individual node       
+                node_coordinates = []
+
+                x = landmark.x
+                y = landmark.y
+                z = landmark.z
+
+                # restrict value of each coordinate to within range (0, 1) 
+                for coordinate in [x,y,z]:
+                    if coordinate <= 0: coordinate = 0 
+                    if coordinate >= 1: coordinate = 1 
+
+                    # round coordinate to 2 d.p. and store in array
+                    node_coordinates.append(round(coordinate, 2))
+
+                # floor divide landmark index by 33 to get a unique index for each person 
+                # (each person has 33 landmarks)
+                print(f"Person {idx // 33}")
+                print(f"Point {mp_pose.PoseLandmark(idx).name}:")
+                print(f"X={round(x,2)}, Y={round(y,2)}, Z={round(z,2)}")
+                node_name = mp_pose.PoseLandmark(idx).name
+                pose_coordinates[node_name] = node_coordinates
+
+
+        # Swap left and right values if image captured is mirror of tracked person
+        if mirror_nodes:
+            pose_coordinates["LEFT_HIP"], pose_coordinates["RIGHT_HIP"] = pose_coordinates["RIGHT_HIP"], pose_coordinates["LEFT_HIP"]
+            pose_coordinates["LEFT_WRIST"], pose_coordinates["RIGHT_WRIST"] = pose_coordinates["RIGHT_WRIST"], pose_coordinates["LEFT_WRIST"]
+            pose_coordinates["LEFT_SHOULDER"], pose_coordinates["RIGHT_SHOULDER"] = pose_coordinates["RIGHT_SHOULDER"], pose_coordinates["LEFT_SHOULDER"]
+
+
+        # Don't send pose if person far from camera (i.e. distance between shoulders too small) 
+        # or if person facing away from camera (i.e. right shoulder has greater x position than left shoulder) 
+        if (pose_coordinates["RIGHT_SHOULDER"][0]-pose_coordinates["LEFT_SHOULDER"][0]) < 0.1:
+            print(pose_coordinates["RIGHT_SHOULDER"][0]-pose_coordinates["LEFT_SHOULDER"][0])
+            print("Warning: Person detected but not close enough to screen!")
             command = 'no command'
+
+        # Otherwise send dictionary as description of pose         
+        else:
+            # Convert to json format (keys enclosed in double quotes)
+            command = pose_coordinates
+            command = json.dumps(command)
+        
+        # Convert to string to send to robot
+        command = str(command)
+
 
 
     else:
-        print('no hand detected')
-        if not flag_no_hand:     # If there was a hand in previous frame
-            flag_no_hand = True  # Raise the flag 
+        print('No person detected')
+        if not flag_no_person_detected:     # If there was a hand in previous frame
+            flag_no_person_detected = True  # Raise the flag 
             start = time.time()  # Start the timer
             command = 'no command'
 
         else:
             end = time.time()
             if end-start >= flag_timeout:
-                flag_no_hand = False  # Lower the flag 
+                flag_no_person_detected = False  # Lower the flag 
                 print('stop')
                 command = 'stop' 
 
@@ -442,9 +433,9 @@ while(True):
 
         # Look for hands 
         if track_hands_only:
-            command = track_hands(frame, pose, flag_no_hand, flag_timeout) 
+            command = track_hands(frame, pose, flag_no_person_detected, flag_timeout) 
         else:
-            command = track_body(frame, pose, flag_no_hand, flag_timeout)
+            command = track_body(frame, pose, flag_no_person_detected, flag_timeout)
 
         # print('command ', command)
 
