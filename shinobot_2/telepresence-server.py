@@ -5,6 +5,7 @@ import socket
 from time import sleep
 from time import time
 import RPi.GPIO as GPIO
+import json
 
 
 # Setup-server socket
@@ -187,17 +188,22 @@ while(1):
             # if msg != 'no command' and msg != 'stop':
             if msg not in ['no command', 'stop', 'forward', 'backward', 'right', 'left']:
 
-                coordinates = msg.split(',')
+                # coordinates = msg.split(',')
 
-                # Convert string to floating point data 
-                coordinates = [float(i) for i in coordinates]
+                # # Convert string to floating point data 
+                # coordinates = [float(i) for i in coordinates]
 
-                # Nest coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
-                hands = [coordinates[i:i+n_dimensions] for i in range(0, len(coordinates), n_dimensions)]
+                # # Nest coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
+                # hands = [coordinates[i:i+n_dimensions] for i in range(0, len(coordinates), n_dimensions)]
 
 
-                msg = pos_to_command(hands)
-                print('msg', msg)
+                # msg = pos_to_command(hands)
+                print('msg1', type(msg), msg)
+
+                # convert dictionary string to dictionary
+                msg = json.loads(msg)
+
+                print('msg2', type(msg), msg)
 
 
             if msg == 'stop':

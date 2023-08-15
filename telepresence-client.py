@@ -26,6 +26,7 @@ from subprocess import Popen, PIPE
 import numpy as np
 
 import curses
+import json
 
 #-------------------------------------------------------------------------------
 """ SETUP """
@@ -61,7 +62,7 @@ make_output_window_fullscreen = True
 show_wireframe = True
 
 # Send command to raspberry pi
-send_command = False
+send_command = True
 
 # Number of hands to track (wings track 2 hands, turtle robots track one hand)
 n_hands = 2
@@ -251,6 +252,9 @@ def track_body(frame, pose, flag_no_hand, flag_timeout):
 
             # # Convert list of x,y,z coordinates of each hand to string 
             # command = ','.join(pose_coordinates)
+            
+            # Convert to json fomrat (keys enclosed in double quotes)
+            pose_coordinates = json.dumps(pose_coordinates)
             print(pose_coordinates)
             command = str(pose_coordinates)
 
