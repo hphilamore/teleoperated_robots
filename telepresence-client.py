@@ -30,7 +30,7 @@ import curses
 #-------------------------------------------------------------------------------
 """ SETUP """
 
-HOST = "192.168.0.53"  # The raspberry pi's hostname or IP address
+HOST = "192.168.56.103"#7"#103"  # The raspberry pi's hostname or IP address
 PORT = 65447           # The port used by the server
 
 # Take video stream from 'camera' or 'window' or 'keys'
@@ -61,7 +61,7 @@ make_output_window_fullscreen = True
 show_wireframe = True
 
 # Send command to raspberry pi
-send_command = True
+send_command = False
 
 # Number of hands to track (wings track 2 hands, turtle robots track one hand)
 n_hands = 2
@@ -130,7 +130,7 @@ def track_hands(frame, pose, flag_no_hand, flag_timeout):
                                          handsModule.HAND_CONNECTIONS)
 
         # A list to store the x,y,z coordinates of each hand 
-        hand_coordinates = []
+        pose_coordinates = []
 
         # Find each hand up to max number of hands 
         for hand_no, hand_landmarks in enumerate(results.multi_hand_landmarks):
@@ -159,10 +159,10 @@ def track_hands(frame, pose, flag_no_hand, flag_timeout):
                 if dimension >= 1: dimension = 1 
 
                 # Add the x,y,z values to the list of coordinates to send to raspberry pi
-                hand_coordinates.append(str(round(dimension, 2)))
+                pose_coordinates.append(str(round(dimension, 2)))
 
         # Convert list of x,y,z coordinates of each hand to string 
-        command = ','.join(hand_coordinates)
+        command = ','.join(pose_coordinates)
         # print(command)
 
     else:
@@ -185,16 +185,14 @@ def track_body(frame, pose, flag_no_hand, flag_timeout):
     # Process the frame with MediaPipe Pose
     results = pose.process(frame)
 
-    # # Draw the pose landmarks on the frame
-    # frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+    # Draw the pose landmarks on the frame
     mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
 
-
-    # Extract and print the XYZ coordinates of shoulders, elbows, knees, wrists, and hands
+    # if a person is detected in the frame...
     if results.pose_landmarks:
 
-        # A list to store the x,y,z coordinates of each hand 
-        hand_coordinates = []
+        # a dictionary to store the x,y,z coordinates of each node
+        pose_coordinates = {}
 
         # Find the distance between the left and right shoulder
         shoulder_R = 0
@@ -207,42 +205,54 @@ def track_body(frame, pose, flag_no_hand, flag_timeout):
                 shoulder_R = landmark.x
                 print('shoulder_R', shoulder_R)
 
-        # Only output pose as command if distance between shoulders exceeds
-        # threshold and person facing towards camera
+        # Only detect people within certian range from camera by only outputting pose as command 
+        # if distance between shoulders exceeds threshold and left shoulder has greater x position 
+        # than right shoulder (i.e. person facing towards camera)
         if shoulder_L-shoulder_R > 0.1:
 
+
             for idx, landmark in enumerate(results.pose_landmarks.landmark):
+                
+                # nodes on human body to detect 
                 if idx in [
-                           # mp_pose.PoseLandmark.LEFT_SHOULDER.value,
-                           # mp_pose.PoseLandmark.RIGHT_SHOULDER.value,
+                           mp_pose.PoseLandmark.NOSE.value,
+                           mp_pose.PoseLandmark.LEFT_SHOULDER.value,
+                           mp_pose.PoseLandmark.RIGHT_SHOULDER.value,
                            # mp_pose.PoseLandmark.LEFT_ELBOW.value,
                            # mp_pose.PoseLandmark.RIGHT_ELBOW.value,
                            mp_pose.PoseLandmark.LEFT_WRIST.value,
                            mp_pose.PoseLandmark.RIGHT_WRIST.value,
-                           # mp_pose.PoseLandmark.LEFT_KNEE.value,
-                           # mp_pose.PoseLandmark.RIGHT_KNEE.value
+                           mp_pose.PoseLandmark.LEFT_HIP.value,
+                           mp_pose.PoseLandmark.RIGHT_HIP.value,
                            ]:
+
+                    # array to store coodinates of individual node       
+                    node_coordinates = []
 
                     x = landmark.x
                     y = landmark.y
                     z = landmark.z
 
-                    for dimension in [x,y,z]:
-                        # Cap x,y,z, coordinates for each hand to between 0 and 1 
-                        if dimension <= 0: dimension = 0 
-                        if dimension >= 1: dimension = 1 
+                    # restrict value of each coordinate to within range (0, 1) 
+                    for coordinate in [x,y,z]:
+                        if coordinate <= 0: coordinate = 0 
+                        if coordinate >= 1: coordinate = 1 
 
-                        # Add the x,y,z values to the list of coordinates to send to raspberry pi
-                        hand_coordinates.append(str(round(dimension, 2)))
+                        # round coordinate to 2 d.p. and store in array
+                        node_coordinates.append(round(coordinate, 2))
 
-                    # each person has 33 landmarks
-                    # floor divide landmark index by 33 to get a unique index for each person
+                    # floor divide landmark index by 33 to get a unique index for each person 
+                    # (each person has 33 landmarks)
                     print(f"Person {idx // 33}")
                     print(f"Point {mp_pose.PoseLandmark(idx).name}:")
                     print(f"X={round(x,2)}, Y={round(y,2)}, Z={round(z,2)}")
+                    node_name = mp_pose.PoseLandmark(idx).name
+                    pose_coordinates[node_name] = node_coordinates
 
-            # Convert list of x,y,z coordinates of each hand to string 
-            command = ','.join(hand_coordinates)
+            # # Convert list of x,y,z coordinates of each hand to string 
+            # command = ','.join(pose_coordinates)
+            print(pose_coordinates)
+            command = str(pose_coordinates)
 
         else:
             command = 'no command'
