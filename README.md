@@ -15,6 +15,7 @@ The raspberry pi server recieves commands over wifi and controls the motion of t
     -https://stackoverflow.com/questions/53347759/importerror-libcblas-so-3-cannot-open-shared-object-file-no-such-file-or-dire)
 - Run:[`pip3 install opencv-python`]
 - Run:[`pip3 install mediapipe`]
+- If installing on windows OS, run: [`python -m pip install windows-curses`]
 
 ## Listing all windows
 <br>**A program written in C (called from within a Python program) to list names of all windows  on computer desktop**
