@@ -42,8 +42,8 @@ DutyCycle = 20
 # Setting the duty cycle to 0 means the motors will not turn
 Stop = 0
 
-# Number of dimensions of recieved coordinates e.g. 3 = x,y,z coordinates recieved 
-n_dimensions = 3
+# # Number of dimensions of recieved coordinates e.g. 3 = x,y,z coordinates recieved 
+# n_dimensions = 3
 
 # Indexing of xyz coordinates
 x = 0
@@ -243,34 +243,35 @@ while(1):
             # if msg != 'no command' and msg != 'stop':
             if msg not in ['no command', 'stop', 'forward', 'backward', 'right', 'left']:
 
-                # convert dictionary string of node coordinates to dictionary
+                # convert string-dictionary of node coordinates to dictionary
                 msg = json.loads(msg)
 
                 print('msg2', type(msg), msg)
 
-                # convert pose to motor command
-                pose_to_command(msg)
+                # # convert pose to motor command
+                command = pose_to_command(msg)
+
+            else:
+                command = msg
 
 
-
-
-            if msg == 'stop':
+            if command == 'stop':
                 StopMotors()
 
 
-            elif msg == 'left':
+            elif command == 'left':
                 Spin_Left()
 
 
-            elif msg == 'right':
+            elif command == 'right':
                 Spin_Right()
 
                 
 
-            elif msg == 'forward':
+            elif command == 'forward':
                 Forwards()
 
 
-            elif msg == 'backward':
+            elif command == 'backward':
                 Backwards()
 

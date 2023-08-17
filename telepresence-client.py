@@ -31,7 +31,7 @@ import json
 #-------------------------------------------------------------------------------
 """ SETUP """
 
-HOST = "192.168.56.103"#7"#103"  # The raspberry pi's hostname or IP address
+HOST = "192.168.0.53"#56.103"#7"#103"  # The raspberry pi's hostname or IP address
 PORT = 65447           # The port used by the server
 
 # Take video stream from 'camera' or 'window' or 'keys'
@@ -62,7 +62,7 @@ make_output_window_fullscreen = True
 show_wireframe = True
 
 # Send command to raspberry pi
-send_command = False
+send_command = True
 
 # Max number of hands to track (wings: track 2 hands, turtle robots: track 1 hand)
 n_hands = 2
@@ -91,7 +91,7 @@ mp_drawing = mediapipe.solutions.drawing_utils
 mp_pose = mediapipe.solutions.pose
 
 # Setup web cam ready for video capture 
-capture = cv2.VideoCapture(0)
+capture = cv2.VideoCapture(1)
 
 def window_coordinates():
     process = Popen(['./windowlist', 'windowlist.m'], stdout=PIPE, stderr=PIPE)
