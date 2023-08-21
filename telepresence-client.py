@@ -48,7 +48,6 @@ win_name = 'zoom.us:Zoom Meeting'          # Find zoom meeting window
 win_name = 'Photo Booth:Photo Booth' 
 # win_name = 'GoPro Webcam:'  
 
-
 # Choose OC as macOS or windowsOS 
 OS = 'macOS' #'windowsOS'
 
@@ -62,7 +61,7 @@ make_output_window_fullscreen = True
 show_wireframe = True
 
 # Send command to raspberry pi
-send_command = True
+send_command = False
 
 # Max number of hands to track (wings: track 2 hands, turtle robots: track 1 hand)
 n_hands = 2
@@ -70,16 +69,18 @@ n_hands = 2
 # Detail of hands tracked when True, otherwise whole body frame 
 track_hands_only = False
 
+# Swap left and right values if image captured is mirror of tracked person
+mirror_nodes = True
+
+# Take camera image from webcam 0 or webcam 1
+which_camera = 0
+
+#-------------------------------------------------------------------------------
 # A flag to indicate when no hand is deteced so that a timer can be set to 
 # check of the person is really gone or if detection has failed momentarily 
 flag_no_person_detected = False 
 # Number of seconds to wait until timeout  
 flag_timeout = 2 
-
-# Swap left and right values if image captured is mirror of tracked person
-mirror_nodes = True
-
-#-------------------------------------------------------------------------------
 
 if OS == 'windowsOS': 
     from screeninfo import get_monitors # windows only
@@ -90,8 +91,10 @@ handsModule = mediapipe.solutions.hands
 mp_drawing = mediapipe.solutions.drawing_utils
 mp_pose = mediapipe.solutions.pose
 
-# Setup web cam ready for video capture 
-capture = cv2.VideoCapture(1)
+# Setup web cam 0 and web cam 1, ready for video capture 
+capture0 = cv2.VideoCapture(0)
+capture1 = cv2.VideoCapture(1)
+
 
 def window_coordinates():
     process = Popen(['./windowlist', 'windowlist.m'], stdout=PIPE, stderr=PIPE)
@@ -309,9 +312,19 @@ def frame_from_window(window_coordinates):
         return frame
 
 def frame_from_camera(capture):
-    ret, frame = capture.read()
-    # Grab current image    
+    # Grab current image 
+    ret0, frame0 = capture0.read()
+    ret1, frame1 = capture1.read()
+
+    # Take image from selected camera
+    if which_camera == 0:
+    	frame = frame0
+    else:
+    	frame = frame1
+
+    # Modify colours
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    # Flip image
     frame = cv2.flip(frame, 1)
     return frame
 
