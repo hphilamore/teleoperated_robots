@@ -47,7 +47,7 @@ motors_left = [motor_left_h, motor_left_v]
 
 # HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 HOST = "0.0.0.0"  # Listen on all interfaces
-PORT = 65451      # Port to listen on (non-privileged ports are > 1023)
+PORT = 65447      # Port to listen on (non-privileged ports are > 1023)
 
 
 # Setup raspberry pi as server
@@ -126,7 +126,7 @@ while True:
     try:
         conn, addr = server_socket.accept()
         with conn:
-            # print(f"Connected by {addr}")
+            print(f"Connected by {addr}")
 
             # Teleoperated mode button pressed
             while (GPIO.input(teleop_mode_button) == GPIO.HIGH and 
