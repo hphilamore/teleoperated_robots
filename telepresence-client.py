@@ -61,7 +61,7 @@ make_output_window_fullscreen = True
 show_wireframe = True
 
 # Send command to raspberry pi
-send_command = True
+send_command = False
 
 # Max number of hands to track (wings: track 2 hands, turtle robots: track 1 hand)
 n_hands = 2
@@ -74,6 +74,9 @@ mirror_nodes = True
 
 # Take camera image from webcam 0 or webcam 1
 which_camera = 0
+
+# Set to True if the computer running the lcient program has two camera feeds in 
+dual_camera_feed = False
 
 #-------------------------------------------------------------------------------
 # A flag to indicate when no hand is deteced so that a timer can be set to 
@@ -93,7 +96,8 @@ mp_pose = mediapipe.solutions.pose
 
 # Setup web cam 0 and web cam 1, ready for video capture 
 capture0 = cv2.VideoCapture(0)
-capture1 = cv2.VideoCapture(1)
+if dual_camera_feed:
+    capture1 = cv2.VideoCapture(1)
 
 
 def window_coordinates():
@@ -314,7 +318,8 @@ def frame_from_window(window_coordinates):
 def frame_from_camera(capture):
     # Grab current image 
     ret0, frame0 = capture0.read()
-    ret1, frame1 = capture1.read()
+    if dual_camera_feed:
+        ret1, frame1 = capture1.read()
 
     # Take image from selected camera
     if which_camera == 0:
