@@ -82,6 +82,34 @@ x = 0
 y = 1
 z = 2
 
+# Input range for horizontal position of left and right hand 
+# (absolute min=0, absolute max=1)
+min_in_L = 0
+max_in_L = 0.75
+min_in_R = 0.35
+max_in_R = 1
+
+# Input range for vertical position of left and right hand 
+# (absolute min=0, absolute max=1)
+min_in_L = 0
+max_in_L = 0.75
+min_in_R = 0.35
+max_in_R = 1
+
+# Output range for horizontal position servos 
+# (absolute min=0, absolute max=1023)
+min_out_L = 300#512
+max_out_L = 1023
+min_out_R = 0
+max_out_R = 700#512
+
+# Output range for vertical position servos 
+# (absolute min=0, absolute max=1023)
+min_in_V = 0.25
+max_in_V = 1
+min_out_V = 0
+max_out_V = 600
+
 
 
 def moving_average(new_val, buffer, win_size=buffer_length):
@@ -172,33 +200,33 @@ while True:
                         print('x pos ', x_pos)
                         print('y pos ', y_pos)
 
-                        # Input range for horizontal position of left and right hand 
-                        # (absolute min=0, absolute max=1)
-                        min_in_L = 0
-                        max_in_L = 0.75
-                        min_in_R = 0.35
-                        max_in_R = 1
+                        # # Input range for horizontal position of left and right hand 
+                        # # (absolute min=0, absolute max=1)
+                        # min_in_L = 0
+                        # max_in_L = 0.75
+                        # min_in_R = 0.35
+                        # max_in_R = 1
 
-                        # Input range for vertical position of left and right hand 
-                        # (absolute min=0, absolute max=1)
-                        min_in_L = 0
-                        max_in_L = 0.75
-                        min_in_R = 0.35
-                        max_in_R = 1
+                        # # Input range for vertical position of left and right hand 
+                        # # (absolute min=0, absolute max=1)
+                        # min_in_L = 0
+                        # max_in_L = 0.75
+                        # min_in_R = 0.35
+                        # max_in_R = 1
 
-                        # Output range for horizontal position servos 
-                        # (absolute min=0, absolute max=1023)
-                        min_out_L = 300#512
-                        max_out_L = 1023
-                        min_out_R = 0
-                        max_out_R = 700#512
+                        # # Output range for horizontal position servos 
+                        # # (absolute min=0, absolute max=1023)
+                        # min_out_L = 300#512
+                        # max_out_L = 1023
+                        # min_out_R = 0
+                        # max_out_R = 700#512
 
-                        # Output range for vertical position servos 
-                        # (absolute min=0, absolute max=1023)
-                        min_in_V = 0.25
-                        max_in_V = 1
-                        min_out_V = 0
-                        max_out_V = 600
+                        # # Output range for vertical position servos 
+                        # # (absolute min=0, absolute max=1023)
+                        # min_in_V = 0.25
+                        # max_in_V = 1
+                        # min_out_V = 0
+                        # max_out_V = 600
 
                         # Map horizontal pose to servos  
                         if side == 'right':
