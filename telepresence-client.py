@@ -61,7 +61,7 @@ make_output_window_fullscreen = True
 show_wireframe = True
 
 # Send command to raspberry pi
-send_command = False
+send_command = True
 
 # Max number of hands to track (wings: track 2 hands, turtle robots: track 1 hand)
 n_hands = 2
