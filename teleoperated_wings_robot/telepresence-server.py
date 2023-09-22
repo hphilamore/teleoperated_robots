@@ -10,6 +10,7 @@ import serial
 import os
 from py_ax12 import *
 from ax12_preprogrammed_motion import *
+import json
 
 
 # Set as True to discretise vertical servo posotion to up/down/mid instead of following hand
