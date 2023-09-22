@@ -39,7 +39,7 @@ while True:
   move(0x01, 10, Dynamixel)
   move(0x02, 10, Dynamixel)
   move(0x03, 0, Dynamixel)
-  move(0x04, 1023, Dynamixel)
+  move(0x04, 0, Dynamixel)
   # sleep(1)
   # sweep(0x01, range(300), Dynamixel)
   # sweep(0x01, range(300, 0, -1), Dynamixel)
