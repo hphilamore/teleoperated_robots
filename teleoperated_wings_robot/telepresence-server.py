@@ -163,7 +163,8 @@ while True:
                     # For each hand [left, right]
                     for hand, motors, buffer, side in zip(hands, 
                                                        [motors_right, motors_left], 
-                                                       [buffer_right, buffer_left]):
+                                                       [buffer_right, buffer_left],
+                                                       ['right','left']):
                         
                         x_pos = msg[hand][x]
                         y_pos = msg[hand][y]
