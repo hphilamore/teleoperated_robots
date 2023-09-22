@@ -37,7 +37,7 @@ while True:
   # # i = move_check(0x04, 544)  
   # sleep(1)
   move(0x01, 0, Dynamixel)
-  move(0x02, 1023, Dynamixel)
+  move(0x02, 0, Dynamixel)
   move(0x03, 1023, Dynamixel)
   move(0x04, 1023, Dynamixel)
   # sleep(1)
