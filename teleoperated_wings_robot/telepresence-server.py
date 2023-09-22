@@ -36,19 +36,19 @@ preprog_mode_button = 6
 GPIO.setup(teleop_mode_button, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(preprog_mode_button, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-
 # Motor IDs for each arm 
-motor_right_h = 0x03
-motor_left_h = 0x04
 motor_right_v = 0x01
 motor_left_v = 0x02
+motor_right_h = 0x03
+motor_left_h = 0x04
+
 motors_right = [motor_right_h, motor_right_v]
 motors_left = [motor_left_h, motor_left_v]
 
 
 # HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 HOST = "0.0.0.0"  # Listen on all interfaces
-PORT = 65447      # Port to listen on (non-privileged ports are > 1023)
+PORT = 65448      # Port to listen on (non-privileged ports are > 1023)
 
 
 # Setup raspberry pi as server
