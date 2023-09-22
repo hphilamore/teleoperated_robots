@@ -9,7 +9,7 @@ import RPi.GPIO as GPIO
 import serial
 import os
 from py_ax12 import *
-from ax12_preprogrammed_motion_ import *
+from ax12_preprogrammed_motion import *
 import json
 
 
@@ -48,7 +48,7 @@ motors_left = [motor_left_h, motor_left_v]
 
 # HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 HOST = "0.0.0.0"  # Listen on all interfaces
-PORT = 65450      # Port to listen on (non-privileged ports are > 1023)
+PORT = 65456     # Port to listen on (non-privileged ports are > 1023)
 
 
 # Setup raspberry pi as server
@@ -151,6 +151,8 @@ while True:
           GPIO.input(teleop_mode_button) == GPIO.LOW):
 
         print("Autonomous mode")
+        print(GPIO.input(preprog_mode_button))
+        sleep(2)
 
         # Turn button pressed LED on and other LED off
         GPIO.output(teleop_mode_LED,GPIO.LOW)
@@ -160,7 +162,7 @@ while True:
                              motor_left_v, 
                              motor_right_h, 
                              motor_left_h,
-                             GPIO.input(preprog_mode_button)
+                             preprog_mode_button
                              )
 
     """

@@ -25,22 +25,11 @@ set_endless(motor_left_v, False, Dynamixel)
 set_endless(motor_right_h, False, Dynamixel)
 set_endless(motor_left_h, False, Dynamixel)
 
-
-
-def abortable_sleep(seconds, button):
-   short_delay=0.001
-   iterations = int(seconds/short_delay)
-   for i in range(iterations):
-      if button == GPIO.HIGH:
-         break
-      time.sleep(short_delay)
-
 def preprogrammed_motion(motor_right_v, 
                          motor_left_v, 
                          motor_right_h, 
                          motor_left_h,
-                         button
-                         ):
+                         button):
 
   while button == GPIO.HIGH:
 
@@ -58,119 +47,125 @@ def preprogrammed_motion(motor_right_v,
 
     # Move forward
     for i, j in zip(range(1023), range(1023,0,-1)):
-      print('hello')
       move(motor_right_h, i, Dynamixel)
       move(motor_left_h, j, Dynamixel)
-      abortable_sleep(0.003, button)
-    abortable_sleep(0.1, button)
+      sleep(0.003)
+    sleep(0.1)
+    if button == GPIO.HIGH:
+      break
 
     # Move back 
     for i, j in zip(range(1023,0,-1), range(1023)):
       move(motor_right_h, i, Dynamixel)
       move(motor_left_h, j, Dynamixel)
-      abortable_sleep(0.007, button)
-    abortable_sleep(0.1, button)
-
+      sleep(0.007)
+    sleep(0.1)
+    if button == GPIO.HIGH:
+      break
 
     # Move forward asynchronous
     for i in range(500):
       move(motor_right_h, i, Dynamixel)
-      abortable_sleep(0.005, button)
+      sleep(0.005)
+      if button == GPIO.HIGH:
+      break
 
     for i, j in zip(range(501,1023), range(1023, 500, -1)):
       move(motor_right_h, i, Dynamixel)
       move(motor_left_h, j, Dynamixel)
-      abortable_sleep(0.005, button)
+      sleep(0.005)
+      if button == GPIO.HIGH:
+      break
 
-    for j in range(500, 0, -1):
-      move(motor_left_h, j, Dynamixel)
-      abortable_sleep(0.005, button)
+    # for j in range(500, 0, -1):
+    #   move(motor_left_h, j, Dynamixel)
+    #   sleep(0.005)
 
 
     # # Move back asynchronous 
     # for j in range(500):
     #   move(motor_left_h, j, Dynamixel)
-    #   abortable_sleep(0.003, button)
+    #   sleep(0.003)
 
     # for i, j in zip(range(1023, 500, -1), range(501,1023)):
     #   move(motor_right_h, i, Dynamixel)
     #   move(motor_left_h, j, Dynamixel)
-    #   abortable_sleep(0.003, button)
+    #   sleep(0.003)
 
     # for i in range(500, 0, -1):
     #   move(motor_right_h, i, Dynamixel)
-    #   abortable_sleep(0.003, button)
+    #   sleep(0.003)
 
     # # centre
     # for i, j in zip(range(0,512), range(1023, 512, -1)):
     #   move(motor_right_h, i, Dynamixel)
     #   move(motor_left_h, j, Dynamixel)
-    #   abortable_sleep(0.006, button)
+    #   sleep(0.006)
 
     # # lift
     # for i in range(0,512):
     #   move(motor_right_v, i, Dynamixel)
     #   move(motor_left_v, i, Dynamixel)
-    #   abortable_sleep(0.006, button)
+    #   sleep(0.006)
 
     # # lower
     # for i in range(512,0, -1):
     #   move(motor_right_v, i, Dynamixel)
     #   move(motor_left_v, i, Dynamixel)
-    #   abortable_sleep(0.006, button)
+    #   sleep(0.006)
 
     # # Move back 
     # for i, j in zip(range(512,0,-1), range(512, 1023)):
     #   move(motor_right_h, i, Dynamixel)
     #   move(motor_left_h, j, Dynamixel)
-    #   abortable_sleep(0.010, button)
-    # abortable_sleep(0.1, button)
+    #   sleep(0.010)
+    # sleep(0.1)
 
     # # centre
     # for i, j in zip(range(0,512), range(1023, 512, -1)):
     #   move(motor_right_h, i, Dynamixel)
     #   move(motor_left_h, j, Dynamixel)
-    #   abortable_sleep(0.005, button)
-    # abortable_sleep(0.1, button)
+    #   sleep(0.005)
+    # sleep(0.1)
 
 
     # # lift
     # for i in range(0,512):
     #   move(motor_right_v, i, Dynamixel)
     #   move(motor_left_v, i, Dynamixel)
-    #   abortable_sleep(0.006, button)
+    #   sleep(0.006)
 
 
     # # Move left
     # for i in range(512,300,-1):
     #   move(motor_right_h, i, Dynamixel)
     #   move(motor_left_h, i, Dynamixel)
-    #   abortable_sleep(0.005, button)
-    # abortable_sleep(0.1, button)
+    #   sleep(0.005)
+    # sleep(0.1)
 
     # # Move right
     # for i in range(300, 1023):
     #   move(motor_right_h, i, Dynamixel)
     #   move(motor_left_h, i, Dynamixel)
-    #   abortable_sleep(0.004, button)
-    # abortable_sleep(0.1, button)
+    #   sleep(0.004)
+    # sleep(0.1)
 
 
     # # lower
     # for i in range(512,0, -1):
     #   move(motor_right_v, i, Dynamixel)
     #   move(motor_left_v, i, Dynamixel)
-    #   abortable_sleep(0.006, button)
+    #   sleep(0.006)
 
     # # Move back 
     # for i in range(1023,0,-1):
     #   move(motor_right_h, i, Dynamixel)
-    #   abortable_sleep(0.002, button)
-    # abortable_sleep(0.1, button)
+    #   sleep(0.002)
+    # sleep(0.1)
 
 
     print('done')
-    abortable_sleep(1, button)
+    sleep(1)
 
 
 if __name__ == "__main__":
@@ -178,8 +173,7 @@ if __name__ == "__main__":
       preprogrammed_motion(motor_right_v, 
                            motor_left_v, 
                            motor_right_h, 
-                           motor_left_h,
-                           button)
+                           motor_left_h)
 
 
   # for i, j in zip(range(1023,0,-1), range(1023)):
