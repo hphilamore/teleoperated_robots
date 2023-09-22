@@ -32,7 +32,7 @@ import json
 """ SETUP """
 
 HOST = "192.168.145.223" # 1.14"#56.103"#7"#103"  # The raspberry pi's hostname or IP address
-PORT = 65448           # The port used by the server
+PORT = 65449           # The port used by the server
 
 # Take video stream from 'camera' or 'window' or 'keys'
 input_mode = 'camera'#'keys' #'window' ###'keys'#'camera' ##'camera'##'camera'  
