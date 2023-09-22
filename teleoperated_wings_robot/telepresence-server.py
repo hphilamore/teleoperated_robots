@@ -218,8 +218,8 @@ while True:
                         v_position = int(v_position)
 
                         # Moving average filter applied, Position rounded to nearest decimal value
-                        h_smoothed = int(moving_average(new_val = h_position, buffer[h])) 
-                        v_smoothed = int(moving_average(new_val = v_position, buffer[v])) 
+                        h_smoothed = int(moving_average(new_val=h_position, buffer=buffer[h])) 
+                        v_smoothed = int(moving_average(new_val=v_position, buffer=buffer[v])) 
 
                         # Scale speed of servo to speed of hand in horizontal and vertical direction
                         h_speed = hand_speed(buffer[h]) 
