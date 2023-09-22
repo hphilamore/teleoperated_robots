@@ -186,7 +186,7 @@ while True:
                     print('msg', type(msg), msg)
 
                     # For each hand: right, left
-                    for hand, motors, buffer, min_in_H, max_in_H, min_out_H, max_out_H in zip(["RIGHT_WRIST", "LEFT_WRIST"] 
+                    for hand, motors, buffer, min_in_H, max_in_H, min_out_H, max_out_H in zip(["RIGHT_WRIST", "LEFT_WRIST"], 
                                                                                               [motors_right, motors_left],
                                                                                               [buffer_right, buffer_left],
                                                                                               [min_in_R, min_in_L],
