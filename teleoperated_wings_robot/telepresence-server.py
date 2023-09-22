@@ -188,11 +188,12 @@ while True:
                     # array to store x,y,z coordinates for each hand  
                     hands = ["RIGHT_WRIST", "LEFT_WRIST"]
 
-                    # For each hand [left, right]
-                    for hand, motors, buffer, side in zip(hands, 
+                    # For each hand: right, left
+                    for hand, motors, buffer in zip(hands, 
                                                        [motors_right, motors_left], 
                                                        [buffer_right, buffer_left],
-                                                       ['right','left']):
+                                                       ):
+                        
                         
                         x_pos = msg[hand][x]
                         y_pos = msg[hand][y]
@@ -200,40 +201,13 @@ while True:
                         print('x pos ', x_pos)
                         print('y pos ', y_pos)
 
-                        # # Input range for horizontal position of left and right hand 
-                        # # (absolute min=0, absolute max=1)
-                        # min_in_L = 0
-                        # max_in_L = 0.75
-                        # min_in_R = 0.35
-                        # max_in_R = 1
-
-                        # # Input range for vertical position of left and right hand 
-                        # # (absolute min=0, absolute max=1)
-                        # min_in_L = 0
-                        # max_in_L = 0.75
-                        # min_in_R = 0.35
-                        # max_in_R = 1
-
-                        # # Output range for horizontal position servos 
-                        # # (absolute min=0, absolute max=1023)
-                        # min_out_L = 300#512
-                        # max_out_L = 1023
-                        # min_out_R = 0
-                        # max_out_R = 700#512
-
-                        # # Output range for vertical position servos 
-                        # # (absolute min=0, absolute max=1023)
-                        # min_in_V = 0.25
-                        # max_in_V = 1
-                        # min_out_V = 0
-                        # max_out_V = 600
 
                         # Map horizontal pose to servos  
-                        if side == 'right':
+                        if hand == "RIGHT_WRIST":
                             if x_pos<=min_in_R: x_pos = min_in_R
                             h_position = (min_out_R + (max_out_R - min_out_R) * (x_pos-min_in_R) / 
                                          (max_in_R - min_in_R))
-                        elif side == 'left': 
+                        elif hand == "LEFT_WRIST": 
                             if x_pos>=max_in_L: x_pos = max_in_L
                             h_position = (min_out_L + (max_out_L - min_out_L) * (x_pos-min_in_L) / 
                                          (max_in_L - min_in_L))
