@@ -61,7 +61,7 @@ make_output_window_fullscreen = True
 show_wireframe = True
 
 # Send command to raspberry pi
-send_command = False
+send_command = True
 
 # Max number of hands to track (wings: track 2 hands, turtle robots: track 1 hand)
 n_hands = 2
@@ -75,7 +75,11 @@ mirror_nodes = True
 # Take camera image from webcam 0 or webcam 1
 which_camera = 0
 
-# Set to True if the computer running the lcient program has two camera feeds in 
+"""
+Set to True if the computer running the lcient program has two camera feeds in
+It is important that this flag is set to False if there is only one camera as trying 
+to grab an image from a camera that isn't there will slow down the program significantly
+"""
 dual_camera_feed = False
 
 #-------------------------------------------------------------------------------
