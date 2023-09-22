@@ -143,21 +143,34 @@ def hand_speed(buffer):
 # Loop forever checking for mode button press and/or connection by remote client  
 while True:
 
-    # # Teleoperated mode button pressed
-    # if (GPIO.input(teleop_mode_button) == GPIO.HIGH and 
-    #     GPIO.input(preprog_mode_button) == GPIO.LOW):
-    #     print("Teleoperated")
-    #     # Turn button pressed LED on and other LED off
-    #     GPIO.output(teleop_mode_LED,GPIO.HIGH)
-    #     GPIO.output(preprog_mode_LED,GPIO.LOW)
+    """
+    AUTONOMOUS MODE
+    """
+    # Listen for button press to run pre-programmed sequence 
+    while(GPIO.input(preprog_mode_button) == GPIO.HIGH and 
+          GPIO.input(teleop_mode_button) == GPIO.LOW):
 
+        print("Autonomous mode")
+
+        # Turn button pressed LED on and other LED off
+        GPIO.output(teleop_mode_LED,GPIO.LOW)
+        GPIO.output(preprog_mode_LED,GPIO.HIGH)
+
+        preprogrammed_motion(motor_right_v, 
+                             motor_left_v, 
+                             motor_right_h, 
+                             motor_left_h)
+
+    """
+    TELEOPERATED MODE
+    """
     # Listen for message from client 
     try:
         conn, addr = server_socket.accept()
         with conn:
             print(f"Connected by {addr}")
 
-            # Teleoperated mode button pressed
+            # Listen for button press to use message from client to teleoperate robot
             while (GPIO.input(teleop_mode_button) == GPIO.HIGH and 
                    GPIO.input(preprog_mode_button) == GPIO.LOW):
 
@@ -202,28 +215,12 @@ while True:
                         print('x pos ', x_pos)
                         print('y pos ', y_pos)
 
-
                         # Map horizontal pose to servos  
                         # if hand == "RIGHT_WRIST":
                         if x_pos<=min_in_H: x_pos = min_in_H
                         h_position = (min_out_H + (max_out_H - min_out_H) * (x_pos-min_in_H) / (max_in_H - min_in_H))
-                        # elif hand == "LEFT_WRIST": 
-                        #     if x_pos>=max_in_L: x_pos = max_in_L
-                        #     h_position = (min_out_L + (max_out_L - min_out_L) * (x_pos-min_in_L) / 
-                        #                  (max_in_L - min_in_L))
-
-
-                        # # Map horizontal pose to servos  
-                        # if hand == "RIGHT_WRIST":
-                        #     if x_pos<=min_in_R: x_pos = min_in_R
-                        #     h_position = (min_out_R + (max_out_R - min_out_R) * (x_pos-min_in_R) / 
-                        #                  (max_in_R - min_in_R))
-                        # elif hand == "LEFT_WRIST": 
-                        #     if x_pos>=max_in_L: x_pos = max_in_L
-                        #     h_position = (min_out_L + (max_out_L - min_out_L) * (x_pos-min_in_L) / 
-                        #                  (max_in_L - min_in_L))
-
                         h_position = int(h_position)
+
 
                         # Map vertical pose to servos 
                         y_pos = 1 - y_pos # Correct position to account for mirrored servo arrangement
@@ -282,28 +279,21 @@ while True:
     except socket.timeout:
         pass
 
-    # # Autonomous mode button pressed
-    # elif (GPIO.input(preprog_mode_button) == GPIO.HIGH and 
+
+    # # Autonomous mode 
+    # while(GPIO.input(preprog_mode_button) == GPIO.HIGH and 
     #       GPIO.input(teleop_mode_button) == GPIO.LOW):
+
     #     print("Autonomous mode")
+
     #     # Turn button pressed LED on and other LED off
     #     GPIO.output(teleop_mode_LED,GPIO.LOW)
     #     GPIO.output(preprog_mode_LED,GPIO.HIGH)
 
-    # Autonomous mode 
-    while(GPIO.input(preprog_mode_button) == GPIO.HIGH and 
-          GPIO.input(teleop_mode_button) == GPIO.LOW):
-
-        print("Autonomous mode")
-
-        # Turn button pressed LED on and other LED off
-        GPIO.output(teleop_mode_LED,GPIO.LOW)
-        GPIO.output(preprog_mode_LED,GPIO.HIGH)
-
-        preprogrammed_motion(motor_right_v, 
-                             motor_left_v, 
-                             motor_right_h, 
-                             motor_left_h)
+    #     preprogrammed_motion(motor_right_v, 
+    #                          motor_left_v, 
+    #                          motor_right_h, 
+    #                          motor_left_h)
 
     # Both teleoperated and Autonomous mode button pressed
     while (GPIO.input(preprog_mode_button) == GPIO.HIGH and 
