@@ -120,8 +120,9 @@ Find the process ID (PID) number for your program and run:
 
 
 ## Set a static IP on raspberry pi
-Edit the file **/etc/dhcpcd.conf** using a template from this page (for wlan0):
+Edit the file **/etc/dhcpcd.conf** using a template from this page:
 <br>https://forums.raspberrypi.com/viewtopic.php?t=140252
+<br>(for wlan0)
 
 ## Troubleshooting
 <br>If you see this warning when using ssh:
