@@ -183,18 +183,19 @@ while True:
                     # convert string-dictionary of node coordinates to dictionary
                     msg = json.loads(msg)
 
-                    print('msg2', type(msg), msg)
-
-                    # array to store x,y,z coordinates for each hand  
-                    hands = ["RIGHT_WRIST", "LEFT_WRIST"]
+                    print('msg', type(msg), msg)
 
                     # For each hand: right, left
-                    for hand, motors, buffer in zip(hands, 
-                                                       [motors_right, motors_left], 
-                                                       [buffer_right, buffer_left],
-                                                       ):
+                    for hand, motors, buffer, min_in_H, max_in_H, min_out_H, max_out_H in zip(["RIGHT_WRIST", "LEFT_WRIST"] 
+                                                                                              [motors_right, motors_left],
+                                                                                              [buffer_right, buffer_left],
+                                                                                              [min_in_R, min_in_L],
+                                                                                              [max_in_R, max_in_L],
+                                                                                              [min_out_R, min_out_L],
+                                                                                              [max_out_R, max_out_L],
+                                                                                              ):
                         
-                        
+                        # Get position data for hand node from dictionary
                         x_pos = msg[hand][x]
                         y_pos = msg[hand][y]
 
@@ -203,14 +204,24 @@ while True:
 
 
                         # Map horizontal pose to servos  
-                        if hand == "RIGHT_WRIST":
-                            if x_pos<=min_in_R: x_pos = min_in_R
-                            h_position = (min_out_R + (max_out_R - min_out_R) * (x_pos-min_in_R) / 
-                                         (max_in_R - min_in_R))
-                        elif hand == "LEFT_WRIST": 
-                            if x_pos>=max_in_L: x_pos = max_in_L
-                            h_position = (min_out_L + (max_out_L - min_out_L) * (x_pos-min_in_L) / 
-                                         (max_in_L - min_in_L))
+                        # if hand == "RIGHT_WRIST":
+                        if x_pos<=min_in_H: x_pos = min_in_H
+                        h_position = (min_out_H + (max_out_H - min_out_H) * (x_pos-min_in_H) / (max_in_H - min_in_H))
+                        # elif hand == "LEFT_WRIST": 
+                        #     if x_pos>=max_in_L: x_pos = max_in_L
+                        #     h_position = (min_out_L + (max_out_L - min_out_L) * (x_pos-min_in_L) / 
+                        #                  (max_in_L - min_in_L))
+
+
+                        # # Map horizontal pose to servos  
+                        # if hand == "RIGHT_WRIST":
+                        #     if x_pos<=min_in_R: x_pos = min_in_R
+                        #     h_position = (min_out_R + (max_out_R - min_out_R) * (x_pos-min_in_R) / 
+                        #                  (max_in_R - min_in_R))
+                        # elif hand == "LEFT_WRIST": 
+                        #     if x_pos>=max_in_L: x_pos = max_in_L
+                        #     h_position = (min_out_L + (max_out_L - min_out_L) * (x_pos-min_in_L) / 
+                        #                  (max_in_L - min_in_L))
 
                         h_position = int(h_position)
 
