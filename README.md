@@ -117,6 +117,11 @@ Check which processes are running. Run:
 Find the process ID (PID) number for your program and run:
 `sudo kill <PID>`
 
+## Set a static IP on raspberry pi
+Edit the file **/etc/dhcpcd.conf** using a template from this page (for wlan0):
+<br>https://forums.raspberrypi.com/viewtopic.php?t=140252
+
+
 
 
 
