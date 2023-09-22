@@ -126,7 +126,7 @@ while True:
     try:
         conn, addr = server_socket.accept()
         with conn:
-            print(f"Connected by {addr}")
+            # print(f"Connected by {addr}")
 
             # Teleoperated mode button pressed
             while (GPIO.input(teleop_mode_button) == GPIO.HIGH and 
