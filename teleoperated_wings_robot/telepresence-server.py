@@ -9,7 +9,7 @@ import RPi.GPIO as GPIO
 import serial
 import os
 from py_ax12 import *
-from ax12_preprogrammed_motion import *
+from ax12_preprogrammed_motion_ import *
 import json
 
 
@@ -48,7 +48,7 @@ motors_left = [motor_left_h, motor_left_v]
 
 # HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 HOST = "0.0.0.0"  # Listen on all interfaces
-PORT = 65449      # Port to listen on (non-privileged ports are > 1023)
+PORT = 65450      # Port to listen on (non-privileged ports are > 1023)
 
 
 # Setup raspberry pi as server
@@ -159,7 +159,9 @@ while True:
         preprogrammed_motion(motor_right_v, 
                              motor_left_v, 
                              motor_right_h, 
-                             motor_left_h)
+                             motor_left_h,
+                             GPIO.input(preprog_mode_button)
+                             )
 
     """
     TELEOPERATED MODE
