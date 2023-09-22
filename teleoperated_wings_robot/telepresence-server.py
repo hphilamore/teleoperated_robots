@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
 
-"""
-
-TODO:
-- servo should read current positions and not do a full rotation when returning to start position
-- Close port if program crashes so that new number doesn’t have to be used 
-- GPIO all pins to zero when program killed (e.g. no motors left spinning)
-    - https://raspi.tv/2013/rpi-gpio-basics-3-how-to-exit-gpio-programs-cleanly-avoid-warnings-and-protect-your-pi
-    - https://gpiozero.readthedocs.io/en/stable/migrating_from_rpigpio.html
-
-"""
 
 import socket
 # from gpiozero import Motor, OutputDevice
