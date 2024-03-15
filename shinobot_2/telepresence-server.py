@@ -5,25 +5,12 @@ import socket
 from time import sleep
 from time import time
 import RPi.GPIO as GPIO
-
-# # Define and setup GPIO pins
-# # Rigth foot
-# motor1 = Motor(24, 27)
-# motor1_enable = OutputDevice(5, initial_value=1)
-# # Left foot
-# motor2 = Motor(6, 22)
-# motor2_enable = OutputDevice(17, initial_value=1)
-# # Right tentacle
-# motor3 = Motor(23, 16)
-# motor3_enable = OutputDevice(12, initial_value=1)
-# # Left tentacle
-# motor4 = Motor(13, 18)
-# motor4_enable = OutputDevice(25, initial_value=1) 
+import json
 
 
 # Setup-server socket
 HOST = "0.0.0.0"  # Listen on all interfaces
-PORT = 65443  # Port to listen on (non-privileged ports are > 1023)
+PORT = 65447  # Port to listen on (non-privileged ports are > 1023)
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((HOST, PORT))
 server_socket.listen()
@@ -50,10 +37,18 @@ EnableB = 26
 Frequency = 20
 
 # How long the pin stays on each cycle, as a percent 
-DutyCycle = 20
+DutyCycle = 45
 
 # Setting the duty cycle to 0 means the motors will not turn
 Stop = 0
+
+# # Number of dimensions of recieved coordinates e.g. 3 = x,y,z coordinates recieved 
+# n_dimensions = 3
+
+# Indexing of xyz coordinates
+x = 0
+y = 1
+z = 2
 
 # Set the GPIO Pin mode to be Output
 GPIO.setup(Motor1A, GPIO.OUT)
@@ -146,53 +141,93 @@ def Turn_Left():
     PWM_Motor2B.ChangeDutyCycle(Stop)
 
 
-def pos_to_command(x, y):
+# def pos_to_command(hands):
     """
-    Translates position of hand detected to command sent to robot
+    Translates pose detected to command sent to robot
     """
-    # Cap max and min x values 
-    if x < 0.0:
-        x = 0
+    # print('left', hands[0])
+    # print('right', hands[1])
 
-    if x > 1.0:
-        x = 1   
+    # # if both hands on left, turn left
+    # if hands[0][0] < 0.3 and hands[1][0] < 0.3:
+    #     out = 'left'
 
-    # Map position to command      
-    if x < 0.4:        # Turn left
-        out = 'left'
-         
-    elif x > 0.6:        # Turn right 
-        out = 'right'
-        
-    else:                # Go forwards
-        if y >= 0.5:
-            out = 'backward'
+    # # if both hands on right, turn right
+    # elif hands[0][0] > 0.7 and hands[1][0] > 0.7:
+    #     out = 'right'
+
+    # # if one hand on left and one hand on right, stop
+    # elif (hands[0][0] > 0.7 and hands[1][0] < 0.3 or
+    #       hands[0][0] < 0.3 and hands[1][0] > 0.7):
+    #     out = 'stop'
+
+    # # if both hands in centre... 
+    # else:                
+    #     # ...and high, go forward
+    #     if hands[0][1] < 0.5 and hands[1][1] < 0.5:
+    #         out = 'forward'
+    #     # ...and low, go backwards
+    #     else:
+    #         out = 'backward'
+            
+    # return out
+
+
+def pose_to_command(msg):
+    """
+    Translates pose detected to command sent to robot
+    """
+
+    try:
+        # Get xyz coordinates of each node sent
+        nose = msg["NOSE"]
+        hip_l = msg["LEFT_HIP"]
+        hip_r = msg["RIGHT_HIP"]
+        hand_l = msg["LEFT_WRIST"]
+        hand_r = msg["RIGHT_WRIST"]
+
+        print('left_hand', hand_l)
+        print('right_hand', hand_r)
+        print('left_hip', hip_l)
+        print('right_hip', hip_r)
+        print('nose', nose)
+
+        # If hands above head, go forwards
+        if hand_l[y] <= nose[y] and hand_r[y] <= nose[y]:
+            command = 'forward'
+
+        # If hands below hips, go backwards 
+        elif hand_l[y] >= hip_l[y] and hand_r[y] >= hip_r[y]:
+            command = 'backward'
+
+        # If both hands left of left hip, turn left 
+        elif hand_l[x] < hip_l[x] and hand_r[x] < hip_l[x]:
+            # command = 'left'
+            command = 'right' # video sphere as mirror world
+
+        # If both hands right of right hip, turn right 
+        elif hand_l[x] > hip_r[x] and hand_r[x] > hip_r[x]:
+            # command = 'right'
+            command = 'left' # video sphere as mirror world 
+
+        # If hands either side of head, stop 
+        elif hand_l[x] < nose[x] and hand_r[x] > nose[x]:
+            command = 'stop'
+
+        # If none of these opses are detected, no change 
         else:
-            out = 'forward'
+            command = 'no command'
 
-    return out
+    except:
+        print("Warning: Nodes required for pose detection not in data sent to robot!")
+        command = 'no command'
+
+    print(command)
+    return command
+
 
 
 while(1):
-
-    # # Switch wing direction every 3s
-    # time_new = time()
-    # if time_new-time_old >= 3:
-    #     flag_wings = not flag_wings
-    #     time_old = time_new
-    #     print('switched wing direction')
-
-    # # Switch wings on/off
-    # if flag_wings:
-    #     print('wings up')
-    #     motor3.forward()
-    #     motor4.forward()
-    # else:
-    #     print('wings down')
-    #     motor3.stop()
-    #     motor4.stop()
-
-    # print('looper')
 
     Enable(1)
 
@@ -200,110 +235,45 @@ while(1):
     with conn:
         print(f"Connected by {addr}")
 
-
-
         while True:
-
-            # time_new = time()
-            # if time_new-time_old >= 2:
-            #     flag_wings = not flag_wings
-            #     time_old = time_new
-            #     print('switched wing direction')
-            #     #sleep(2)
-
-            # # # Switch wings on/off
-            #     if flag_wings:
-            #         print('wings up')
-            #         motor3.forward()
-            #         motor4.forward()
-            #     else:
-            #         print('wings down')
-            #         motor3.stop()
-            #         motor4.stop()
-
-            # Spin_Left()
-            # sleep(3)
-            # Spin_Right()
-            # sleep(3)
-            # # Turn_Left()
-            # # sleep(3)
-            # # Turn_Right()
-            # # sleep(3)
-
-            # StopMotors()
-            # Enable(0)
-            # GPIO.cleanup()
-
-
-
 
             data = conn.recv(1024)
             if not data:
                 break
             msg = data.decode()
-            print(msg)
 
             # if msg != 'no command' and msg != 'stop':
             if msg not in ['no command', 'stop', 'forward', 'backward', 'right', 'left']:
 
-                coordinates = msg.split(',')
+                # convert string-dictionary of node coordinates to dictionary
+                msg = json.loads(msg)
 
-                # Convert string to floating point data 
-                coordinates = [float(i) for i in coordinates]
+                print('msg2', type(msg), msg)
 
-                # Grouped coordinates as nested list of x,y pairs for each hand detected
-                hands = [coordinates[i:i+2] for i in range(0, len(coordinates), 2)]
+                # # convert pose to motor command
+                command = pose_to_command(msg)
 
-                # print(coordinates)
-
-                # If 2 hands detected:
-                if len(hands) > 1:
-
-                    # If x coordinate of both hands are on the same side of the screen, ignore one hand
-                    print("2 hands detected. Change n_hands to '1' in client code...")
-                    print("Exiting program...")
-                    sys.exit(1)
+            else:
+                command = msg
 
 
-                # For each hand 
-                for i in hands:
-
-                    x_position = i[0]
-                    y_position = i[1]
-                    print(x_position) 
-
-                    msg = pos_to_command(x_position, y_position)
-                    print('msg', msg)
-
-
-
-            if msg == 'stop':
+            if command == 'stop':
                 StopMotors()
 
 
-            elif msg == 'left':
+            elif command == 'left':
                 Spin_Left()
 
 
-            elif msg == 'right':
+            elif command == 'right':
                 Spin_Right()
 
                 
 
-            elif msg == 'forward':
+            elif command == 'forward':
                 Forwards()
 
 
-            elif msg == 'backward':
+            elif command == 'backward':
                 Backwards()
-
-
-            #conn.sendall(data)
-    
-    # except:
-    #     print('no comms')
-
-
-# except KeyboardInterrupt:
-#         pass
 

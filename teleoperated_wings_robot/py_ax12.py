@@ -34,6 +34,7 @@ def move(servo_id, position, serial_object):
     Moves a servo with specified ID to specified angle (degrees)
 
     """
+    
     P = position  # position as integer representation of 10-bit value (in range 0 to 1024)
 
     # print(type(P))
@@ -71,6 +72,7 @@ def move_speed(servo_id, position, speed, serial_object):
     Moves a servo with specified ID to specified angle (degrees)
 
     """
+    # P = int(angle/300 * 1024)
     P = position  # position as integer representation of 10-bit value (in range 0 to 1024)
 
     # print(type(P))
@@ -212,15 +214,16 @@ def turn(servo_id, direction, speed, serial_object):
     return(instruction_packet)
 
 
-def sweep(servo_id, angles, serial_object):
+def sweep(servo_id, positions, wait, serial_object):
 
     """
     Sweep a servo with specified ID over range specified
     """
-    for i in angles:
-        move(servo_id, int(i/300 * 1024), serial_object)
-        sleep(0.01)
-        print(i)
+    for p in positions:
+        move(servo_id, p, serial_object)
+        sleep(wait)
+        # move_speed(servo_id, p, speed, serial_object)
+        print(p)
         
 
 def binary_position(servo_id, x, serial_object):
