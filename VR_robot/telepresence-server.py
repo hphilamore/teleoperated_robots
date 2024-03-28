@@ -9,7 +9,7 @@ import json
 
 # Setup-server socket
 HOST = "0.0.0.0"  # Listen on all interfaces
-PORT = 65447  # Port to listen on (non-privileged ports are > 1023)
+PORT = 65448  # Port to listen on (non-privileged ports are > 1023)
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((HOST, PORT))
 server_socket.listen()

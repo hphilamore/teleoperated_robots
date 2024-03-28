@@ -54,7 +54,7 @@ make_output_window_fullscreen = True
 show_wireframe = True
 
 # Set to True to send command to raspberry pi
-send_command = False
+send_command = True
 
 # Max number of hands to track
 n_hands = 2
@@ -325,8 +325,6 @@ def track_body(frame, results, flag_no_person_detected, flag_timeout):
         for k, v in pose_coordinates.items():
             print(k, v)
 
-
-            
         """
         Detect if:
         - person too far from camera 
