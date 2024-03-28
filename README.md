@@ -50,7 +50,6 @@ The server robot is controlled by the client computer over a local wifi network.
 - Test everything is working by going into the subfolder for the relevant robot (tentacle_robot/ turtle_robot/ VR_robot) and running the motor test prpgram)
 
 # Remote controlling the server Raspberry pi robot using the client computer
-
 ## Raspberry pi robot
 - Make a note of the robot's IP address on the Wifi network you will use for communication
 - Make a note of the port number (variable `PORT`) in `telepresence-server.py` within the subfolder for the relevant robot (tentacle_robot/ turtle_robot/ VR_robot)
