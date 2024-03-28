@@ -168,13 +168,13 @@ def pose_to_command(msg):
 
         # If both hands left of left hip, turn left 
         elif hand_l[x] < hip_l[x] and hand_r[x] < hip_l[x]:
-            # command = 'left'
-            command = 'right' # video sphere as mirror world
+            command = 'left'
+            # command = 'right' # video sphere as mirror world
 
         # If both hands right of right hip, turn right 
         elif hand_l[x] > hip_r[x] and hand_r[x] > hip_r[x]:
-            # command = 'right'
-            command = 'left' # video sphere as mirror world 
+            command = 'right'
+            # command = 'left' # video sphere as mirror world 
 
         # If hands either side of body and vertical position is between nose and hips 
         elif hand_l[x] < nose[x] and hand_r[x] > nose[x]:
