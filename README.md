@@ -17,7 +17,8 @@ The server robot is controlled by the client computer over a local wifi network.
 - Install other requirements, run:[`pip3 install -r requirements.txt`]
 - Test motion tracking is working by running demos/body_tracking_demo.py and demos/hand_tracking_demo.py
 
-## Setting up the server Raspberry pi robot (tentacle_robot/ turtle_robot/ VR_robot):
+## Setting up the server Raspberry pi robot
+### (tentacle_robot/ turtle_robot/ VR_robot)
 - Install buster legacy lite OS 
 - Add any additional wifi networks to etc/wpa_supplicant/wpa_supplicant.conf
 - (Optional) Add static IP for wifi network. Add following snippet to /etc/dhcpcd.conf:
