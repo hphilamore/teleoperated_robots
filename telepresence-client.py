@@ -156,7 +156,7 @@ def no_person_detected_timeout(flag_no_person_detected, flag_timeout):
     return command
 
 
-def windows_output_fullscreen():
+def windows_output_fullscreen(frame):
 
     """
     Make output window full screen on windows OS
@@ -374,8 +374,6 @@ def track_body(frame, results, flag_no_person_detected, flag_timeout):
 
     return command
 
-
-
 def frame_from_window(window_coordinates):
     with mss() as sct:
 
@@ -415,47 +413,12 @@ def frame_from_camera(capture, camera):
     frame = cv2.flip(frame, 1)
     return frame
 
-
-def show_tracked_wireframe(frame, OS):
-    if OS == 'windowsOS': 
-        if make_output_window_fullscreen:
-
-            # To make output window full screen:
-            for monitor in get_monitors():
-                screen_h = monitor.height
-                screen_w = monitor.width
-            
-            frame_h, frame_w, _ = frame.shape
-
-            scaleWidth = float(screen_w)/float(frame_w)
-            scaleHeight = float(screen_h)/float(frame_h)
-
-            if scaleHeight>scaleWidth:
-                imgScale = scaleWidth
-            else:
-                imgScale = scaleHeight
-
-            newX,newY = frame_w*imgScale, frame_h*imgScale
-
-            cv2.namedWindow('image',cv2.WINDOW_NORMAL)      # Implicitly create the window
-            cv2.resizeWindow('image', int(newX),int(newY))  # Resize the window
-
-    try:
-        cv2.imshow('image', frame)                 # Show the window 
-        
-    except:
-        pass
-
-
 def send_command_to_server(HOST, PORT):
     # Send command to server socket on raspberry pi
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
         s.sendall(command.encode())
 
-
-
-# if input_mode == 'keys':
 def track_keys():
 
     """
@@ -594,7 +557,7 @@ def track_video():
             else:
                 command = track_body(*parameters)
 
-            print('command ', command)
+            # print('command ', command)
 
             # ----------------------------------------------
             # Send command to server socket on raspberry pi
@@ -604,6 +567,15 @@ def track_video():
                 # with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 #     s.connect((HOST, PORT))
                 #     s.sendall(command.encode())
+
+
+            # ----------------------------------------------
+            # Optionally show wireframe in output window
+            # ----------------------------------------------  
+            if show_wireframe:
+                pass
+            else:
+                frame = frame_copy
 
             # ----------------------------------------------
             # Setup output window
@@ -619,7 +591,7 @@ def track_video():
             # ----------------------------------------------
             if OS == 'windowsOS': 
                 if make_output_window_fullscreen:
-                    windows_output_fullscreen()
+                    windows_output_fullscreen(frame)
 
                 # def windows_output_fullscreen():
 
@@ -644,6 +616,9 @@ def track_video():
                 #     cv2.resizeWindow('image', int(newX),int(newY))  # Resize the window
 
 
+            # ----------------------------------------------
+            # Show the outut image if possible
+            # ----------------------------------------------    
             try:
                 # cv2.namedWindow('image',cv2.WINDOW_NORMAL) # Implicitly create the window
                 # cv2.resizeWindow('image', 600, 400)        # Resize the window
@@ -651,19 +626,19 @@ def track_video():
             except:
                 pass
 
-            # Visualise output
-            if show_wireframe:
-                show_tracked_wireframe(frame, OS) 
-            else:
-                show_tracked_wireframe(frame_copy, OS) 
+            # # Optionally show wireframe    
+            # if show_wireframe:
+            #     pass
+            #     # show_tracked_wireframe(frame, OS) 
+            # else:
+            #     # show_tracked_wireframe(frame_copy, OS) 
+            #     frame = frame_copy
 
-     
-            # Needed to display video feed 
+    
+            # This line needed to display video feed 
             if cv2.waitKey(1) == 27:
                 break
 
-            # if send_command:
-            #     send_command_to_server(HOST, PORT)
 
 if __name__ == "__main__":
 
