@@ -248,19 +248,7 @@ def track_hands(frame, results, flag_no_person_detected, flag_timeout):
             command = str(command)
 
     else:
-        command = no_person_detected_timeout(flag_no_person_detected, flag_timeout) 
-        # print('No hand detected')
-        # if not flag_no_person_detected:     # If there was a hand in previous frame
-        #     flag_no_person_detected = True  # Raise the flag 
-        #     start = time.time()             # Start the timer
-        #     command = 'no command'
-
-        # else:
-        #     end = time.time()
-        #     if end-start >= flag_timeout:
-        #         flag_no_person_detected = False  # Lower the flag 
-        #         print('stop')
-        #         command = 'stop'  
+        command = no_person_detected_timeout(flag_no_person_detected, flag_timeout)  
 
     return command
 
@@ -317,9 +305,9 @@ def track_body(frame, results, flag_no_person_detected, flag_timeout):
                 # # (each person has 33 landmarks)
                 # print(f"Person {idx // 33}")
 
-                print(f"Point {mp_pose.PoseLandmark(idx).name}:")
-                print(f"X={round(x,2)}, Y={round(y,2)}, Z={round(z,2)}")
-                print()
+                # print(f"Point {mp_pose.PoseLandmark(idx).name}:")
+                # print(f"X={round(x,2)}, Y={round(y,2)}, Z={round(z,2)}")
+                # print()
 
                 # Get node name as a string
                 node_name = mp_pose.PoseLandmark(idx).name
@@ -329,10 +317,15 @@ def track_body(frame, results, flag_no_person_detected, flag_timeout):
 
 
         # Swap left and right values if image captured is mirror of tracked person
-        if not mirror_image:
+        if mirror_image:          
             pose_coordinates["LEFT_HIP"], pose_coordinates["RIGHT_HIP"] = pose_coordinates["RIGHT_HIP"], pose_coordinates["LEFT_HIP"]
             pose_coordinates["LEFT_WRIST"], pose_coordinates["RIGHT_WRIST"] = pose_coordinates["RIGHT_WRIST"], pose_coordinates["LEFT_WRIST"]
             pose_coordinates["LEFT_SHOULDER"], pose_coordinates["RIGHT_SHOULDER"] = pose_coordinates["RIGHT_SHOULDER"], pose_coordinates["LEFT_SHOULDER"]
+
+        for k, v in pose_coordinates.items():
+            print(k, v)
+
+
             
         """
         Detect if:
@@ -342,7 +335,7 @@ def track_body(frame, results, flag_no_person_detected, flag_timeout):
           (i.e. right shoulder has greater x position than left shoulder) 
         And don't send command to robot 
         """
-        too_far = (pose_coordinates["LEFT_SHOULDER"][0] - pose_coordinates["RIGHT_SHOULDER"][0]) < shoulder_distance_th
+        too_far = (pose_coordinates["LEFT_SHOULDER"][0] - pose_coordinates["RIGHT_SHOULDER"][0]) > shoulder_distance_th
         if too_far:
             print("Warning: Person detected but facing wrong way or too far away!")
             command = 'no command'
@@ -358,19 +351,6 @@ def track_body(frame, results, flag_no_person_detected, flag_timeout):
     else:
         # Check if there is no person in the frame or if detection has failed momentarily
         command = no_person_detected_timeout(flag_no_person_detected, flag_timeout) 
-
-        # if not flag_no_person_detected:     # If there was a hand in previous frame
-        #     flag_no_person_detected = True  # Raise the flag 
-        #     start = time.time()             # Start the timer
-        #     print('no command (person not detected)') # Send the command to stop moving 
-        #     command = 'no command'
-
-        # else:
-        #     end = time.time()
-        #     if end-start >= flag_timeout:           # If no person detected for time exceeding timeout 
-        #         flag_no_person_detected = False     # Lower the flag 
-        #         print('stop (person not detected)') # Send the command to stop moving 
-        #         command = 'stop' 
 
     return command
 
@@ -413,7 +393,7 @@ def frame_from_camera(capture, camera):
     frame = cv2.flip(frame, 1)
     return frame
 
-def send_command_to_server(HOST, PORT):
+def send_command_to_server(HOST, PORT, command):
     # Send command to server socket on raspberry pi
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
@@ -468,7 +448,7 @@ def track_keys():
                 command = 'stop' 
 
             # Send command to server socket on raspberry pi
-            send_command_to_server(HOST, PORT)
+            send_command_to_server(HOST, PORT, command)
             # with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             #     s.connect((HOST, PORT))
             #     s.sendall(command.encode())
@@ -480,21 +460,7 @@ def track_keys():
         sys.exit(1)
 
 
-
-# Input mode video not keys 
-# else:
-
-# elif input_mode == 'window':
-#     # Set up window for image capture
-#     window_coordinates = window_coordinates()
-     
-
-# elif input_mode == 'camera':
-#     """ Setup web cam ready for video capture """
-#     capture = cv2.VideoCapture(0)
-
 def track_video():
-
 
     # Input mode is window
     if input_mode == 'window':
@@ -563,11 +529,7 @@ def track_video():
             # Send command to server socket on raspberry pi
             # ----------------------------------------------
             if send_command:
-                send_command_to_server(HOST, PORT)
-                # with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                #     s.connect((HOST, PORT))
-                #     s.sendall(command.encode())
-
+                send_command_to_server(HOST, PORT, command)
 
             # ----------------------------------------------
             # Optionally show wireframe in output window
@@ -593,47 +555,13 @@ def track_video():
                 if make_output_window_fullscreen:
                     windows_output_fullscreen(frame)
 
-                # def windows_output_fullscreen():
-
-                #     # To make output window full screen:
-                #     for monitor in get_monitors():
-                #         screen_h = monitor.height
-                #         screen_w = monitor.width
-                    
-                #     frame_h, frame_w, _ = frame.shape
-
-                #     scaleWidth = float(screen_w)/float(frame_w)
-                #     scaleHeight = float(screen_h)/float(frame_h)
-
-                #     if scaleHeight>scaleWidth:
-                #         imgScale = scaleWidth
-                #     else:
-                #         imgScale = scaleHeight
-
-                #     newX,newY = frame_w*imgScale, frame_h*imgScale
-
-                #     cv2.namedWindow('image',cv2.WINDOW_NORMAL)      # Implicitly create the window
-                #     cv2.resizeWindow('image', int(newX),int(newY))  # Resize the window
-
-
             # ----------------------------------------------
-            # Show the outut image if possible
+            # Show the outut image 
             # ----------------------------------------------    
             try:
-                # cv2.namedWindow('image',cv2.WINDOW_NORMAL) # Implicitly create the window
-                # cv2.resizeWindow('image', 600, 400)        # Resize the window
                 cv2.imshow('image', frame)                 # Show the window 
             except:
                 pass
-
-            # # Optionally show wireframe    
-            # if show_wireframe:
-            #     pass
-            #     # show_tracked_wireframe(frame, OS) 
-            # else:
-            #     # show_tracked_wireframe(frame_copy, OS) 
-            #     frame = frame_copy
-
     
             # This line needed to display video feed 
             if cv2.waitKey(1) == 27:
