@@ -189,47 +189,47 @@ def pose_to_command(msg):
     return command
 
 
-# while(1):
+while(1):
 
-#     enable(1)
+    enable(1)
 
-conn, addr = server_socket.accept()
-with conn:
-    print(f"Connected by {addr}")
+    conn, addr = server_socket.accept()
+    with conn:
+        print(f"Connected by {addr}")
 
-    while True:
+        while True:
 
-        data = conn.recv(1024)
-        if not data:
-            break
-        msg = data.decode()
+            data = conn.recv(1024)
+            if not data:
+                break
+            msg = data.decode()
 
-        # If message recieved is not already in form of a command
-        if msg not in ['no command', 'stop', 'forward', 'backward', 'right', 'left']:
+            # If message recieved is not already in form of a command
+            if msg not in ['no command', 'stop', 'forward', 'backward', 'right', 'left']:
 
-            # convert string-dictionary of node coordinates to dictionary
-            msg = json.loads(msg)
+                # convert string-dictionary of node coordinates to dictionary
+                msg = json.loads(msg)
 
-            print('msg2', type(msg), msg)
+                # print('msg2', type(msg), msg)
 
-            # Convert pose to robot command
-            command = pose_to_command(msg)
+                # Convert pose to robot command
+                command = pose_to_command(msg)
 
-        else:
-            command = msg
+            else:
+                command = msg
 
-        if command == 'stop':
-            Stopmotors()
+            if command == 'stop':
+                Stopmotors()
 
-        elif command == 'left':
-            Spin_Left()
+            elif command == 'left':
+                Spin_Left()
 
-        elif command == 'right':
-            Spin_Right()
+            elif command == 'right':
+                Spin_Right()
 
-        elif command == 'forward':
-            Forwards()
+            elif command == 'forward':
+                Forwards()
 
-        elif command == 'backward':
-            Backwards()
+            elif command == 'backward':
+                Backwards()
 
