@@ -189,19 +189,24 @@ def pose_to_command(msg):
     return command
 
 
-while(1):
+# while True:
 
-    enable(1)
+#     enable(1)
 
-    conn, addr = server_socket.accept()
-    with conn:
-        print(f"Connected by {addr}")
+conn, addr = server_socket.accept()
+with conn:
+    print(f"Connected by {addr}")
 
-        while True:
+    while True:
 
-            data = conn.recv(1024)
-            if not data:
-                break
+        data = conn.recv(1024)
+
+        # # Break out of loop if no data received 
+        # if not data:
+        #     break
+
+        if data:
+
             msg = data.decode()
 
             # If message recieved is not already in form of a command
