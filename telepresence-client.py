@@ -27,7 +27,7 @@ import json
 
 
 HOST = "192.168.0.52"      # The raspberry pi's hostname or IP address
-PORT = 65447               # The port used by the server
+PORT = 65448               # The port used by the server
 
 # Source of video stream: 'camera' or 'window' or 'keys'
 input_mode = 'camera'#'keys' #'window' ###'keys'#'camera' ##'camera'##'camera'  
@@ -54,7 +54,7 @@ make_output_window_fullscreen = True
 show_wireframe = True
 
 # Set to True to send command to raspberry pi
-send_command = True
+send_command = False
 
 # Max number of hands to track
 n_hands = 2
@@ -63,8 +63,8 @@ n_hands = 2
 tracked_feature = 'body'
 # track_hands_only = False
 
-# Set to True to swap left and right values if image captured is mirror of tracked person
-mirror_nodes = True
+# Set to true if image captured is a mirror of tracked person
+mirror_image = True
 
 """
 Set to True if the computer running the client program has two camera feeds, for example if 
@@ -79,8 +79,10 @@ camera = 0
 
 
 #-------------------------------------------------------------------------------
-# Flag to indicate when no hand is deteced so that a timer can be set to 
-# check of the person is really gone or if detection has failed momentarily 
+"""
+Flag to indicate when no hand is deteced so that a timer can be set to 
+check of the person is really gone or if detection has failed momentarily 
+"""
 flag_no_person_detected = False 
 # Number of seconds to wait until timeout  
 flag_timeout = 2 
@@ -99,6 +101,9 @@ mp_pose = mediapipe.solutions.pose
 capture0 = cv2.VideoCapture(0)
 if dual_camera_feed:
     capture1 = cv2.VideoCapture(1)
+
+# Threshold distance between shoulders, below which person is too far away
+shoulder_distance_th = 0.1
 
 def window_coordinates():
     """
@@ -129,16 +134,67 @@ def window_coordinates():
 
     return coordinates
 
+def no_person_detected_timeout(flag_no_person_detected, flag_timeout):
+
+    """
+    Checks if there is no person in the frame or if detection has failed momentarily
+    """
+
+    if not flag_no_person_detected:     # If there was a hand in previous frame
+        flag_no_person_detected = True  # Raise the flag 
+        start = time.time()             # Start the timer
+        print('no command (person not detected)') # Send the command to stop moving 
+        command = 'no command'
+
+    else:
+        end = time.time()
+        if end-start >= flag_timeout:           # If no person detected for time exceeding timeout 
+            flag_no_person_detected = False     # Lower the flag 
+            print('stop (person not detected)') # Send the command to stop moving 
+            command = 'stop' 
+
+    return command
+
+
+def windows_output_fullscreen():
+
+    """
+    Make output window full screen on windows OS
+    """
+
+    # Get screen width and height
+    for monitor in get_monitors():
+        screen_h = monitor.height
+        screen_w = monitor.width
+    
+    # Get frame width and height
+    frame_h, frame_w, _ = frame.shape
+
+    # Get scaling factors
+    scaleWidth = float(screen_w)/float(frame_w)
+    scaleHeight = float(screen_h)/float(frame_h)
+
+    # Choose smaller of two scaling factors
+    if scaleHeight>scaleWidth:
+        imgScale = scaleWidth
+    else:
+        imgScale = scaleHeight
+
+    # Get output window dimensions
+    newX,newY = frame_w*imgScale, frame_h*imgScale
+
+    # Implicitly create the window
+    cv2.namedWindow('image',cv2.WINDOW_NORMAL)
+
+    # Resize the window        
+    cv2.resizeWindow('image', int(newX),int(newY))  
+
 
 def track_hands(frame, results, flag_no_person_detected, flag_timeout):
 
     """
-    Identify pose of hands from frame and convert to robot command
+    Convert pose of hands to robot command
     """
-
-
-
-    # results = pose.process(frame)
 
     # If hands detected in the frame
     if results.multi_hand_landmarks != None:
@@ -149,9 +205,7 @@ def track_hands(frame, results, flag_no_person_detected, flag_timeout):
                                          handLandmarks, 
                                          handsModule.HAND_CONNECTIONS)
 
-        # # A list to store the x,y,z coordinates of each hand 
-        # pose_coordinates = []
-        # A dictionary to store the x,y,z coordinates of each node
+        # A data structure to store the x,y,z coordinates of each node
         pose_coordinates = {}
 
         # Cyle through each hand detected 
@@ -159,7 +213,7 @@ def track_hands(frame, results, flag_no_person_detected, flag_timeout):
             print(f'HAND NUMBER: {hand_no+1}')
             print('-----------------------')
 
-            # Array to store all nodes on each hand 
+            # Create arrays to store coordinates all nodes on each hand 
             x_ = []
             y_ = []
             z_ = []
@@ -170,19 +224,20 @@ def track_hands(frame, results, flag_no_person_detected, flag_timeout):
                 y_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].y)
                 z_.append(hand_landmarks.landmark[handsModule.HandLandmark(i).value].z)
                     
-            # Find mean value of nodes on each hand, to 2 d.p., to treat as single node per hand   
+            # Find hand centroid as mean value of nodes on each hand  
             x = round(sum(x_)/len(x_), 2)                
             y = round(sum(y_)/len(y_), 2)                
             z = round(sum(z_)/len(z_), 2)
 
+            # Use centroid as single hand node
             node = [x,y,z]
 
-            # Cap x,y,z, coordinates for each hand to between 0 and 1 
+            # Restrict value of each coordinate to within range (0, 1) 
             for dimension in node:
                 if dimension <= 0: dimension = 0 
                 if dimension >= 1: dimension = 1 
 
-            # Store hand node in dictionary 
+            # Store node for each hand in dictionary 
             pose_coordinates['HAND' + str(hand_no+1)] = node
 
             # Convert to json format (keys enclosed in double quotes)
@@ -193,38 +248,43 @@ def track_hands(frame, results, flag_no_person_detected, flag_timeout):
             command = str(command)
 
     else:
-        print('No hand detected')
-        if not flag_no_person_detected:     # If there was a hand in previous frame
-            flag_no_person_detected = True  # Raise the flag 
-            start = time.time()             # Start the timer
-            command = 'no command'
+        command = no_person_detected_timeout(flag_no_person_detected, flag_timeout) 
+        # print('No hand detected')
+        # if not flag_no_person_detected:     # If there was a hand in previous frame
+        #     flag_no_person_detected = True  # Raise the flag 
+        #     start = time.time()             # Start the timer
+        #     command = 'no command'
 
-        else:
-            end = time.time()
-            if end-start >= flag_timeout:
-                flag_no_person_detected = False  # Lower the flag 
-                print('stop')
-                command = 'stop'  
+        # else:
+        #     end = time.time()
+        #     if end-start >= flag_timeout:
+        #         flag_no_person_detected = False  # Lower the flag 
+        #         print('stop')
+        #         command = 'stop'  
 
     return command
 
 def track_body(frame, results, flag_no_person_detected, flag_timeout):
-    # Process the frame with MediaPipe Pose
-    # results = pose.process(frame)
+
+    """
+    Convert pose of body to robot command
+    """
 
     # Draw the pose landmarks on the frame
-    mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+    mp_drawing.draw_landmarks(frame, 
+                              results.pose_landmarks, 
+                              mp_pose.POSE_CONNECTIONS)
 
-    # if a person is detected in the frame...
+    # If a person is detected in the frame...
     if results.pose_landmarks:
 
-        # a dictionary to store the x,y,z coordinates of each node
+        # Create a dictionary to store the coordinates of each node
         pose_coordinates = {}
 
-        # cycle through each node detected
+        # Cycle through each node detected
         for idx, landmark in enumerate(results.pose_landmarks.landmark):
             
-            # nodes on human body to detect 
+            # Nodes on human body to detect 
             if idx in [
                        mp_pose.PoseLandmark.NOSE.value,
                        mp_pose.PoseLandmark.LEFT_SHOULDER.value,
@@ -237,68 +297,80 @@ def track_body(frame, results, flag_no_person_detected, flag_timeout):
                        mp_pose.PoseLandmark.RIGHT_HIP.value,
                        ]:
 
-                # array to store coodinates of individual node       
+                # Create array to store coodinates of individual node       
                 node_coordinates = []
 
+                # Get coordinates of node
                 x = landmark.x
                 y = landmark.y
                 z = landmark.z
 
-                # restrict value of each coordinate to within range (0, 1) 
+                # Restrict value of each coordinate to within range (0, 1) 
                 for coordinate in [x,y,z]:
                     if coordinate <= 0: coordinate = 0 
                     if coordinate >= 1: coordinate = 1 
 
-                    # round coordinate to 2 d.p. and store in array
+                    # Round coordinate to 2 d.p. and store in array
                     node_coordinates.append(round(coordinate, 2))
 
-                # floor divide landmark index by 33 to get a unique index for each person 
-                # (each person has 33 landmarks)
-                print(f"Person {idx // 33}")
+                # # floor divide landmark index by 33 to get a unique index for each person 
+                # # (each person has 33 landmarks)
+                # print(f"Person {idx // 33}")
+
                 print(f"Point {mp_pose.PoseLandmark(idx).name}:")
                 print(f"X={round(x,2)}, Y={round(y,2)}, Z={round(z,2)}")
+                print()
+
+                # Get node name as a string
                 node_name = mp_pose.PoseLandmark(idx).name
+
+                # Add the coordinates to the dictionary using node name 
                 pose_coordinates[node_name] = node_coordinates
 
 
         # Swap left and right values if image captured is mirror of tracked person
-        if mirror_nodes:
+        if not mirror_image:
             pose_coordinates["LEFT_HIP"], pose_coordinates["RIGHT_HIP"] = pose_coordinates["RIGHT_HIP"], pose_coordinates["LEFT_HIP"]
             pose_coordinates["LEFT_WRIST"], pose_coordinates["RIGHT_WRIST"] = pose_coordinates["RIGHT_WRIST"], pose_coordinates["LEFT_WRIST"]
             pose_coordinates["LEFT_SHOULDER"], pose_coordinates["RIGHT_SHOULDER"] = pose_coordinates["RIGHT_SHOULDER"], pose_coordinates["LEFT_SHOULDER"]
-
-
-        # Don't send pose if person far from camera (i.e. distance between shoulders too small) 
-        # or if person facing away from camera (i.e. right shoulder has greater x position than left shoulder) 
-        if (pose_coordinates["RIGHT_SHOULDER"][0]-pose_coordinates["LEFT_SHOULDER"][0]) < 0.1:
-            print(pose_coordinates["RIGHT_SHOULDER"][0]-pose_coordinates["LEFT_SHOULDER"][0])
-            print("Warning: Person detected but not close enough to screen!")
+            
+        """
+        Detect if:
+        - person too far from camera 
+          (i.e. distance between shoulders too small) 
+        - person facing away from camera 
+          (i.e. right shoulder has greater x position than left shoulder) 
+        And don't send command to robot 
+        """
+        too_far = (pose_coordinates["LEFT_SHOULDER"][0] - pose_coordinates["RIGHT_SHOULDER"][0]) < shoulder_distance_th
+        if too_far:
+            print("Warning: Person detected but facing wrong way or too far away!")
             command = 'no command'
-
-        # Otherwise send dictionary as description of pose         
+            
+        # Otherwise, send dictionary of coorinates of nodes         
         else:
             # Convert to json format (keys enclosed in double quotes)
             command = pose_coordinates
             command = json.dumps(command)
-        
-        # Convert to string to send to robot
-        command = str(command)
-
-
+            # Convert to string to send to robot
+            command = str(command)  
 
     else:
-        print('No person detected')
-        if not flag_no_person_detected:     # If there was a hand in previous frame
-            flag_no_person_detected = True  # Raise the flag 
-            start = time.time()  # Start the timer
-            command = 'no command'
+        # Check if there is no person in the frame or if detection has failed momentarily
+        command = no_person_detected_timeout(flag_no_person_detected, flag_timeout) 
 
-        else:
-            end = time.time()
-            if end-start >= flag_timeout:
-                flag_no_person_detected = False  # Lower the flag 
-                print('stop')
-                command = 'stop' 
+        # if not flag_no_person_detected:     # If there was a hand in previous frame
+        #     flag_no_person_detected = True  # Raise the flag 
+        #     start = time.time()             # Start the timer
+        #     print('no command (person not detected)') # Send the command to stop moving 
+        #     command = 'no command'
+
+        # else:
+        #     end = time.time()
+        #     if end-start >= flag_timeout:           # If no person detected for time exceeding timeout 
+        #         flag_no_person_detected = False     # Lower the flag 
+        #         print('stop (person not detected)') # Send the command to stop moving 
+        #         command = 'stop' 
 
     return command
 
@@ -324,7 +396,8 @@ def frame_from_window(window_coordinates):
 
         return frame
 
-def frame_from_camera(capture):
+def frame_from_camera(capture, camera):
+    
     # Grab current image 
     ret0, frame0 = capture0.read()
     if dual_camera_feed:
@@ -367,7 +440,6 @@ def show_tracked_wireframe(frame, OS):
             cv2.namedWindow('image',cv2.WINDOW_NORMAL)      # Implicitly create the window
             cv2.resizeWindow('image', int(newX),int(newY))  # Resize the window
 
-
     try:
         cv2.imshow('image', frame)                 # Show the window 
         
@@ -378,7 +450,6 @@ def show_tracked_wireframe(frame, OS):
 def send_command_to_server(HOST, PORT):
     # Send command to server socket on raspberry pi
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        # s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow reuse of address
         s.connect((HOST, PORT))
         s.sendall(command.encode())
 
@@ -434,9 +505,10 @@ def track_keys():
                 command = 'stop' 
 
             # Send command to server socket on raspberry pi
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.connect((HOST, PORT))
-                s.sendall(command.encode())
+            send_command_to_server(HOST, PORT)
+            # with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            #     s.connect((HOST, PORT))
+            #     s.sendall(command.encode())
 
     except KeyboardInterrupt:
         #Close down curses properly, inc turn echo back on!
@@ -490,7 +562,6 @@ def track_video():
             model = mp_pose.Pose(min_detection_confidence=0.5, 
                                  min_tracking_confidence=0.5,
                                 )
-
         # ------------------------------------
         # Get current frame from video feed
         # ------------------------------------
@@ -503,8 +574,8 @@ def track_video():
 
             # Frame taken from camera
             else:
-                frame = frame_from_camera(capture)
-                frame_copy = frame_from_camera(capture)
+                frame = frame_from_camera(capture, camera)
+                frame_copy = frame_from_camera(capture, camera)
 
             # -------------------------------------------------------------------------
             # Identify pose of tracked feature from frame and convert to robot command
@@ -514,52 +585,68 @@ def track_video():
             # ---------------------------------
             # Convert pose to robot command
             # ---------------------------------
+            parameters = [frame, results, flag_no_person_detected, flag_timeout]
             # Hands tracked 
             if tracked_feature == 'hands':
-                command = track_hands(frame, results, flag_no_person_detected, flag_timeout) 
+                command = track_hands(*parameters) 
 
             # Body tracked
             else:
-                command = track_body(frame, results, flag_no_person_detected, flag_timeout)
+                command = track_body(*parameters)
 
             print('command ', command)
 
-
+            # ----------------------------------------------
+            # Send command to server socket on raspberry pi
+            # ----------------------------------------------
             if send_command:
-                # Send command to server socket on raspberry pi
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    # s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow reuse of address
-                    s.connect((HOST, PORT))
-                    s.sendall(command.encode())
+                send_command_to_server(HOST, PORT)
+                # with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                #     s.connect((HOST, PORT))
+                #     s.sendall(command.encode())
 
+            # ----------------------------------------------
+            # Setup output window
+            # ----------------------------------------------
+            # Implicitly create the window
+            cv2.namedWindow('image',cv2.WINDOW_NORMAL) 
 
+            # Resize the window
+            cv2.resizeWindow('image', 600, 400)        
+
+            # ----------------------------------------------
+            # Make output window full screen on windows OS
+            # ----------------------------------------------
             if OS == 'windowsOS': 
                 if make_output_window_fullscreen:
+                    windows_output_fullscreen()
 
-                    # To make output window full screen:
-                    for monitor in get_monitors():
-                        screen_h = monitor.height
-                        screen_w = monitor.width
+                # def windows_output_fullscreen():
+
+                #     # To make output window full screen:
+                #     for monitor in get_monitors():
+                #         screen_h = monitor.height
+                #         screen_w = monitor.width
                     
-                    frame_h, frame_w, _ = frame.shape
+                #     frame_h, frame_w, _ = frame.shape
 
-                    scaleWidth = float(screen_w)/float(frame_w)
-                    scaleHeight = float(screen_h)/float(frame_h)
+                #     scaleWidth = float(screen_w)/float(frame_w)
+                #     scaleHeight = float(screen_h)/float(frame_h)
 
-                    if scaleHeight>scaleWidth:
-                        imgScale = scaleWidth
-                    else:
-                        imgScale = scaleHeight
+                #     if scaleHeight>scaleWidth:
+                #         imgScale = scaleWidth
+                #     else:
+                #         imgScale = scaleHeight
 
-                    newX,newY = frame_w*imgScale, frame_h*imgScale
+                #     newX,newY = frame_w*imgScale, frame_h*imgScale
 
-                    cv2.namedWindow('image',cv2.WINDOW_NORMAL)      # Implicitly create the window
-                    cv2.resizeWindow('image', int(newX),int(newY))  # Resize the window
+                #     cv2.namedWindow('image',cv2.WINDOW_NORMAL)      # Implicitly create the window
+                #     cv2.resizeWindow('image', int(newX),int(newY))  # Resize the window
 
 
             try:
-                cv2.namedWindow('image',cv2.WINDOW_NORMAL) # Implicitly create the window
-                cv2.resizeWindow('image', 600, 400)        # Resize the window
+                # cv2.namedWindow('image',cv2.WINDOW_NORMAL) # Implicitly create the window
+                # cv2.resizeWindow('image', 600, 400)        # Resize the window
                 cv2.imshow('image', frame)                 # Show the window 
             except:
                 pass
