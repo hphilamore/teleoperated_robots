@@ -13,9 +13,13 @@ from ax12_preprogrammed_motion import *
 import json
 
 
+# HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
+HOST = "0.0.0.0"  # Listen on all interfaces
+PORT = 65456     # Port to listen on (non-privileged ports are > 1023)
+
+
 # Set as True to discretise vertical servo posotion to up/down/mid instead of following hand
 coarse_servo_v_position = False
-
 
 # Setup GPIO pins 
 GPIO.setwarnings(False)
@@ -45,10 +49,6 @@ motor_left_h = 0x04
 motors_right = [motor_right_h, motor_right_v]
 motors_left = [motor_left_h, motor_left_v]
 
-
-# HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-HOST = "0.0.0.0"  # Listen on all interfaces
-PORT = 65456     # Port to listen on (non-privileged ports are > 1023)
 
 
 # Setup raspberry pi as server
@@ -282,25 +282,7 @@ while True:
     # No message from client 
     except socket.timeout:
         pass
-<<<<<<< HEAD:tentacle_robot/telepresence-server.py
 
-
-    # # Autonomous mode 
-    # while(GPIO.input(preprog_mode_button) == GPIO.HIGH and 
-    #       GPIO.input(teleop_mode_button) == GPIO.LOW):
-
-    #     print("Autonomous mode")
-
-    #     # Turn button pressed LED on and other LED off
-    #     GPIO.output(teleop_mode_LED,GPIO.LOW)
-    #     GPIO.output(preprog_mode_LED,GPIO.HIGH)
-
-    #     preprogrammed_motion(motor_right_v, 
-    #                          motor_left_v, 
-    #                          motor_right_h, 
-    #                          motor_left_h)
-=======
->>>>>>> refs/remotes/origin/main:teleoperated_wings_robot/telepresence-server.py
 
     # Both teleoperated and Autonomous mode button pressed
     while (GPIO.input(preprog_mode_button) == GPIO.HIGH and 

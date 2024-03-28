@@ -3,15 +3,11 @@
 # https://www.explainingcomputers.com/rasp_pi_robotics.html
 
 """
-#----------------------------------------------------------
 
-Tracks hand position in image from web-cam. 
+Tracks motion of human body from video feed OR keyboard strokes 
 
-Chooses a command based on hand position.
+Sends command to raspberry pi robot over wifi (body coordinates or command for each key stroke)
 
-Sends command to raspberry pi robot over wifi. 
-
-#----------------------------------------------------------
 """
 
 
@@ -19,12 +15,10 @@ import cv2
 import mediapipe
 import socket
 import time
-
 from mss import mss
 import sys
 from subprocess import Popen, PIPE
 import numpy as np
-
 import curses
 import json
 
@@ -32,65 +26,66 @@ import json
 """ SETUP """
 
 
-HOST = "192.168.145.223" # 1.14"#56.103"#7"#103"  # The raspberry pi's hostname or IP address
-PORT = 65456               # The port used by the server
+HOST = "192.168.0.52"      # The raspberry pi's hostname or IP address
+PORT = 65447               # The port used by the server
 
-# Take video stream from 'camera' or 'window' or 'keys'
+# Source of video stream: 'camera' or 'window' or 'keys'
 input_mode = 'camera'#'keys' #'window' ###'keys'#'camera' ##'camera'##'camera'  
 
+# Window name if using window
+# window_name = 'zoom.us'                      
+# window_name = 'Microsoft Teams'
+# window_name = 'zoom.us:Zoom Meeting'          # Find zoom meeting window 
+# window_name = 'zoom.us:zoom floating video'    # Find zoom meeting window during share screen ('pin' caller in zoom)
+# window_name = 'GoPro camera:'
+window_name = 'Photo Booth:Photo Booth' 
+  
 
-# Window name is using window
-win_name = 'zoom.us'                      
-#win_name = 'Microsoft Teams'
-win_name = 'zoom.us:Zoom Meeting'          # Find zoom meeting window 
-#win_name = 'zoom.us:zoom floating video'  # Find zoom meeting window during share screen ('pin' caller in zoom)
-#win_name = 'Vysor'                        # Find vysor window for robot POV 
-#win_name = 'Vysor:SM'                     # Find vysor window for robot POV 
-#win_name = 'Vysor:ART'                    # Find vysor window for robot POV 
-win_name = 'Photo Booth:Photo Booth' 
-# win_name = 'GoPro Webcam:'  
-
-# Choose OC as macOS or windowsOS 
+# Computer operating system: 'macOS' or 'windowsOS'  
 OS = 'macOS' #'windowsOS'
 
-# Set as True if the image to run hand tracking on is full screeen 
+# Set to True if source of video stream will be full screeen 
 grab_full_screen_image = False
 
-# Output video appears full screen if True
+# Set to True to make output video appears full screen
 make_output_window_fullscreen = True
 
-# Show wireframe in output video
+# Set to True to show wireframe in output video
 show_wireframe = True
 
-# Send command to raspberry pi
+# Set to True to send command to raspberry pi
 send_command = True
 
-# Max number of hands to track (wings: track 2 hands, turtle robots: track 1 hand)
+# Max number of hands to track
 n_hands = 2
 
-# Detail of hands tracked when True, otherwise whole body frame 
-track_hands_only = False
+# Nodes to track: 'hands', 'body'
+tracked_feature = 'body'
+# track_hands_only = False
 
-# Swap left and right values if image captured is mirror of tracked person
+# Set to True to swap left and right values if image captured is mirror of tracked person
 mirror_nodes = True
 
-# Take camera image from webcam 0 or webcam 1
-which_camera = 0
-
 """
-Set to True if the computer running the lcient program has two camera feeds in
-It is important that this flag is set to False if there is only one camera as trying 
-to grab an image from a camera that isn't there will slow down the program significantly
+Set to True if the computer running the client program has two camera feeds, for example if 
+a 360 camera for use in VR application is running to the same computer. 
+It is important that this flag is set to False if there is only one camera, as trying 
+to grab an image from a camera that isn't there will slow down the program significantly!
 """
 dual_camera_feed = False
 
+# Take camera image from camera 0 or camera 1
+camera = 0
+
+
 #-------------------------------------------------------------------------------
-# A flag to indicate when no hand is deteced so that a timer can be set to 
+# Flag to indicate when no hand is deteced so that a timer can be set to 
 # check of the person is really gone or if detection has failed momentarily 
 flag_no_person_detected = False 
 # Number of seconds to wait until timeout  
 flag_timeout = 2 
 
+# Windows-only module
 if OS == 'windowsOS': 
     from screeninfo import get_monitors # windows only
  
@@ -100,24 +95,30 @@ handsModule = mediapipe.solutions.hands
 mp_drawing = mediapipe.solutions.drawing_utils
 mp_pose = mediapipe.solutions.pose
 
-# Setup web cam 0 and web cam 1, ready for video capture 
+# Setup web cam 0 (and web cam 1 if dual camera feed) ready for video capture 
 capture0 = cv2.VideoCapture(0)
 if dual_camera_feed:
     capture1 = cv2.VideoCapture(1)
 
-
 def window_coordinates():
+    """
+    Returns coordinates of specified window name on desktop
+    """
     process = Popen(['./windowlist', 'windowlist.m'], stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
     window_positions = stdout.decode().split('\n')
 
     for w in window_positions:
+
         # Find window 
-        if win_name in w:                        
+        if window_name in w:  
+
             # Separate window info 
-            w = w.split(':')                     
+            w = w.split(':')    
+
             # Separate window coordinates
-            coordinates = w[-1].split(',')       
+            coordinates = w[-1].split(',')  
+
             # Convert coordinates to integer
             coordinates = [int(float(i)) for i in coordinates] 
             break
@@ -128,14 +129,16 @@ def window_coordinates():
 
     return coordinates
 
-def calculate_average_depth(person):
-    # Calculate the average depth coordinate across all landmarks
-    depth_sum = sum([landmark.z for landmark in person.landmark])
-    average_depth = depth_sum / len(person.landmark)
-    return average_depth
 
-def track_hands(frame, pose, flag_no_person_detected, flag_timeout):
-    results = pose.process(frame)
+def track_hands(frame, results, flag_no_person_detected, flag_timeout):
+
+    """
+    Identify pose of hands from frame and convert to robot command
+    """
+
+
+
+    # results = pose.process(frame)
 
     # If hands detected in the frame
     if results.multi_hand_landmarks != None:
@@ -205,9 +208,9 @@ def track_hands(frame, pose, flag_no_person_detected, flag_timeout):
 
     return command
 
-def track_body(frame, pose, flag_no_person_detected, flag_timeout):
+def track_body(frame, results, flag_no_person_detected, flag_timeout):
     # Process the frame with MediaPipe Pose
-    results = pose.process(frame)
+    # results = pose.process(frame)
 
     # Draw the pose landmarks on the frame
     mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
@@ -328,7 +331,7 @@ def frame_from_camera(capture):
         ret1, frame1 = capture1.read()
 
     # Take image from selected camera
-    if which_camera == 0:
+    if camera == 0:
     	frame = frame0
     else:
     	frame = frame1
@@ -381,45 +384,59 @@ def send_command_to_server(HOST, PORT):
 
 
 
+# if input_mode == 'keys':
+def track_keys():
 
-if input_mode == 'keys':
+    """
+    Tracks keystrokes typed in terminal and converts to commands
+    """
 
+    # Set up terminal to track keys
     screen = curses.initscr()
     curses.noecho() 
     curses.cbreak()
     screen.keypad(True)
 
+
+    # Default command to send 
     command = 'stop'
 
     try:
 
         while(True):
+
+            # Get last typed character
             char = screen.getch()
 
+
             if char == ord('q'):
+                print("quit")
                 break
+
             elif char == curses.KEY_UP:
                 print("up")
                 command = 'forward'
+
             elif char == curses.KEY_DOWN:
                 print("down")
                 command = 'backward'
+
             elif char == curses.KEY_RIGHT:
                 print("right")
                 command = 'right'
+
             elif char == curses.KEY_LEFT:
                 print("left")
                 command = 'left'
+
             elif char == ord('s'): #10:
                 print("stop")
                 command = 'stop' 
 
             # Send command to server socket on raspberry pi
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                # s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow reuse of address
                 s.connect((HOST, PORT))
                 s.sendall(command.encode())
-                # data = s.recv(1024)
 
     except KeyboardInterrupt:
         #Close down curses properly, inc turn echo back on!
@@ -428,98 +445,145 @@ if input_mode == 'keys':
         sys.exit(1)
 
 
-elif input_mode == 'window':
-    # Set up window for image capture
-    window_coordinates = window_coordinates()
+
+# Input mode video not keys 
+# else:
+
+# elif input_mode == 'window':
+#     # Set up window for image capture
+#     window_coordinates = window_coordinates()
      
 
-elif input_mode == 'camera':
-    """ Setup web cam ready for video capture """
-    capture = cv2.VideoCapture(0)
- 
+# elif input_mode == 'camera':
+#     """ Setup web cam ready for video capture """
+#     capture = cv2.VideoCapture(0)
 
-while(True):
+def track_video():
 
-    if track_hands_only:
-        model = handsModule.Hands(static_image_mode=False, 
-                                  min_detection_confidence=0.7, 
-                                  min_tracking_confidence=0.7, 
-                                  max_num_hands=n_hands)
+
+    # Input mode is window
+    if input_mode == 'window':
+        # Set up window for image capture
+        window_coordinates = window_coordinates()
+         
+    # Input mode is camera
     else:
-        model = mp_pose.Pose(min_detection_confidence=0.5, 
-                             min_tracking_confidence=0.5,
-                            )
-
-    with model as pose:
-
-        # Input taken from window
-        if input_mode == 'window':
-            frame = frame_from_window(window_coordinates)  
-            frame_copy  = frame_from_window(window_coordinates)    
-
-        elif input_mode == 'camera':
-            frame = frame_from_camera(capture)
-            frame_copy = frame_from_camera(capture)
-
-
-        # Look for hands 
-        if track_hands_only:
-            command = track_hands(frame, pose, flag_no_person_detected, flag_timeout) 
-        else:
-            command = track_body(frame, pose, flag_no_person_detected, flag_timeout)
-
-        print('command ', command)
-
-
-        if send_command:
-            # Send command to server socket on raspberry pi
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                # s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow reuse of address
-                s.connect((HOST, PORT))
-                s.sendall(command.encode())
-
-
-        if OS == 'windowsOS': 
-            if make_output_window_fullscreen:
-
-                # To make output window full screen:
-                for monitor in get_monitors():
-                    screen_h = monitor.height
-                    screen_w = monitor.width
-                
-                frame_h, frame_w, _ = frame.shape
-
-                scaleWidth = float(screen_w)/float(frame_w)
-                scaleHeight = float(screen_h)/float(frame_h)
-
-                if scaleHeight>scaleWidth:
-                    imgScale = scaleWidth
-                else:
-                    imgScale = scaleHeight
-
-                newX,newY = frame_w*imgScale, frame_h*imgScale
-
-                cv2.namedWindow('image',cv2.WINDOW_NORMAL)      # Implicitly create the window
-                cv2.resizeWindow('image', int(newX),int(newY))  # Resize the window
-
-
-        try:
-            cv2.namedWindow('image',cv2.WINDOW_NORMAL)      # Implicitly create the window
-            cv2.resizeWindow('image', 600, 400)  # Resize the window
-            cv2.imshow('image', frame)                 # Show the window 
-            
-        except:
-            pass
-
-        # Visualise output
-        if show_wireframe:
-            show_tracked_wireframe(frame, OS) 
-        else:
-            show_tracked_wireframe(frame_copy, OS) 
-
+        # Setup camera ready for video capture
+        capture = cv2.VideoCapture(0)
  
-        # if cv2.waitKey(1) == 27:
-        #     break
 
-        # if send_command:
-        #     send_command_to_server(HOST, PORT)
+    while(True):
+
+        # --------------------------------
+        # Set-up image processing model
+        # --------------------------------
+
+        if tracked_feature == 'hands':
+            # Only hands tracked
+            model = handsModule.Hands(static_image_mode=False, 
+                                      min_detection_confidence=0.7, 
+                                      min_tracking_confidence=0.7, 
+                                      max_num_hands=n_hands)
+        
+        else:
+            # Whole body tracked
+            model = mp_pose.Pose(min_detection_confidence=0.5, 
+                                 min_tracking_confidence=0.5,
+                                )
+
+        # ------------------------------------
+        # Get current frame from video feed
+        # ------------------------------------
+        with model as pose:
+
+            # Frame taken from window
+            if input_mode == 'window':
+                frame = frame_from_window(window_coordinates)  
+                frame_copy  = frame_from_window(window_coordinates)    
+
+            # Frame taken from camera
+            else:
+                frame = frame_from_camera(capture)
+                frame_copy = frame_from_camera(capture)
+
+            # -------------------------------------------------------------------------
+            # Identify pose of tracked feature from frame and convert to robot command
+            # -------------------------------------------------------------------------
+            results = pose.process(frame)
+
+            # ---------------------------------
+            # Convert pose to robot command
+            # ---------------------------------
+            # Hands tracked 
+            if tracked_feature == 'hands':
+                command = track_hands(frame, results, flag_no_person_detected, flag_timeout) 
+
+            # Body tracked
+            else:
+                command = track_body(frame, results, flag_no_person_detected, flag_timeout)
+
+            print('command ', command)
+
+
+            if send_command:
+                # Send command to server socket on raspberry pi
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    # s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow reuse of address
+                    s.connect((HOST, PORT))
+                    s.sendall(command.encode())
+
+
+            if OS == 'windowsOS': 
+                if make_output_window_fullscreen:
+
+                    # To make output window full screen:
+                    for monitor in get_monitors():
+                        screen_h = monitor.height
+                        screen_w = monitor.width
+                    
+                    frame_h, frame_w, _ = frame.shape
+
+                    scaleWidth = float(screen_w)/float(frame_w)
+                    scaleHeight = float(screen_h)/float(frame_h)
+
+                    if scaleHeight>scaleWidth:
+                        imgScale = scaleWidth
+                    else:
+                        imgScale = scaleHeight
+
+                    newX,newY = frame_w*imgScale, frame_h*imgScale
+
+                    cv2.namedWindow('image',cv2.WINDOW_NORMAL)      # Implicitly create the window
+                    cv2.resizeWindow('image', int(newX),int(newY))  # Resize the window
+
+
+            try:
+                cv2.namedWindow('image',cv2.WINDOW_NORMAL) # Implicitly create the window
+                cv2.resizeWindow('image', 600, 400)        # Resize the window
+                cv2.imshow('image', frame)                 # Show the window 
+            except:
+                pass
+
+            # Visualise output
+            if show_wireframe:
+                show_tracked_wireframe(frame, OS) 
+            else:
+                show_tracked_wireframe(frame_copy, OS) 
+
+     
+            # Needed to display video feed 
+            if cv2.waitKey(1) == 27:
+                break
+
+            # if send_command:
+            #     send_command_to_server(HOST, PORT)
+
+if __name__ == "__main__":
+
+    if input_mode == 'keys':
+        track_keys()
+
+    else:
+        track_video()
+
+
