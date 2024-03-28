@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
 import socket
-# from gpiozero import Motor, OutputDevice
+# from gpiozero import motor, OutputDevice
 from time import sleep
 from time import time
 import RPi.GPIO as GPIO
 import json
-
 
 # Setup-server socket
 HOST = "0.0.0.0"  # Listen on all interfaces
@@ -15,26 +14,22 @@ server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((HOST, PORT))
 server_socket.listen()
 
-
-time_old = time()
-flag_wings = True
-
-# Set the GPIO mode (pin numbers)
+# Set the GPIO mode (pin numbering system)
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
-# Set variables for the GPIO motor pins
-Motor1A = 6
-Motor1B = 13
-Motor2A = 20
-Motor2B = 21
-EnableA = 12
-EnableB = 26
+# Setup GPIO motor pins
+motor1A = 6
+motor1B = 13
+motor2A = 20
+motor2B = 21
+enableA = 12
+enableB = 26
 #pinTrigger = 17
 #pinEcho = 18
 
 # How many times to turn the pin on and off each second
-Frequency = 20
+frequency = 20
 
 # How long the pin stays on each cycle, as a percent 
 DutyCycle = 45
@@ -51,135 +46,106 @@ y = 1
 z = 2
 
 # Set the GPIO Pin mode to be Output
-GPIO.setup(Motor1A, GPIO.OUT)
-GPIO.setup(Motor1B, GPIO.OUT)
-GPIO.setup(Motor2A, GPIO.OUT)
-GPIO.setup(Motor2B, GPIO.OUT)
-GPIO.setup(EnableA, GPIO.OUT)
-GPIO.setup(EnableB, GPIO.OUT)
+GPIO.setup(motor1A, GPIO.OUT)
+GPIO.setup(motor1B, GPIO.OUT)
+GPIO.setup(motor2A, GPIO.OUT)
+GPIO.setup(motor2B, GPIO.OUT)
+GPIO.setup(enableA, GPIO.OUT)
+GPIO.setup(enableB, GPIO.OUT)
 
-# Set the GPIO to software PWM at 'Frequency' Hertz
-PWM_Motor1A = GPIO.PWM(Motor1A, Frequency)
-PWM_Motor1B = GPIO.PWM(Motor1B, Frequency)
-PWM_Motor2A = GPIO.PWM(Motor2A, Frequency)
-PWM_Motor2B = GPIO.PWM(Motor2B, Frequency)
+# Set the GPIO to software PWM at 'frequency' Hertz
+PWM_motor1A = GPIO.PWM(motor1A, frequency)
+PWM_motor1B = GPIO.PWM(motor1B, frequency)
+PWM_motor2A = GPIO.PWM(motor2A, frequency)
+PWM_motor2B = GPIO.PWM(motor2B, frequency)
 
 # Start the software PWM with a duty cycle of 0 (i.e. not moving)
-PWM_Motor1A.start(Stop)
-PWM_Motor1B.start(Stop)
-PWM_Motor2A.start(Stop)
-PWM_Motor2B.start(Stop)
+PWM_motor1A.start(Stop)
+PWM_motor1B.start(Stop)
+PWM_motor2A.start(Stop)
+PWM_motor2B.start(Stop)
 
-def Enable(state):
+# Variables to make the robot lift and lower wings every N seconds 
+time_old = time()
+flag_wings = True
+
+def enable(state):
     """ 
     When state is 0, enable pin is driven high, PWM output
     """
-    GPIO.output(EnableA, state)
-    GPIO.output(EnableB, state)
+    GPIO.output(enableA, state)
+    GPIO.output(enableB, state)
 
-def StopMotors():
+def Stopmotors():
     """
     Turn all motors off
     """
-    PWM_Motor1A.ChangeDutyCycle(Stop)
-    PWM_Motor1B.ChangeDutyCycle(Stop)
-    PWM_Motor2A.ChangeDutyCycle(Stop)
-    PWM_Motor2B.ChangeDutyCycle(Stop)
+    PWM_motor1A.ChangeDutyCycle(Stop)
+    PWM_motor1B.ChangeDutyCycle(Stop)
+    PWM_motor2A.ChangeDutyCycle(Stop)
+    PWM_motor2B.ChangeDutyCycle(Stop)
 
 def Forwards():
     """
     Turn both motors forwards
     """
-    PWM_Motor1A.ChangeDutyCycle(Stop)
-    PWM_Motor1B.ChangeDutyCycle(DutyCycle)
-    PWM_Motor2A.ChangeDutyCycle(DutyCycle)
-    PWM_Motor2B.ChangeDutyCycle(Stop)
+    PWM_motor1A.ChangeDutyCycle(Stop)
+    PWM_motor1B.ChangeDutyCycle(DutyCycle)
+    PWM_motor2A.ChangeDutyCycle(DutyCycle)
+    PWM_motor2B.ChangeDutyCycle(Stop)
 
 def Backwards():
     """
     Turn both motors backwards
     """
-    PWM_Motor1A.ChangeDutyCycle(DutyCycle)
-    PWM_Motor1B.ChangeDutyCycle(Stop)
-    PWM_Motor2A.ChangeDutyCycle(Stop)
-    PWM_Motor2B.ChangeDutyCycle(DutyCycle)
+    PWM_motor1A.ChangeDutyCycle(DutyCycle)
+    PWM_motor1B.ChangeDutyCycle(Stop)
+    PWM_motor2A.ChangeDutyCycle(Stop)
+    PWM_motor2B.ChangeDutyCycle(DutyCycle)
 
 def Spin_Right():
     """
     Turn left
     """
-    PWM_Motor1A.ChangeDutyCycle(DutyCycle)
-    PWM_Motor1B.ChangeDutyCycle(Stop)
-    PWM_Motor2A.ChangeDutyCycle(DutyCycle)
-    PWM_Motor2B.ChangeDutyCycle(Stop)
+    PWM_motor1A.ChangeDutyCycle(DutyCycle)
+    PWM_motor1B.ChangeDutyCycle(Stop)
+    PWM_motor2A.ChangeDutyCycle(DutyCycle)
+    PWM_motor2B.ChangeDutyCycle(Stop)
 
 def Spin_Left():
     """
     Turn Right
     """
-    PWM_Motor1A.ChangeDutyCycle(Stop)
-    PWM_Motor1B.ChangeDutyCycle(DutyCycle)
-    PWM_Motor2A.ChangeDutyCycle(Stop)
-    PWM_Motor2B.ChangeDutyCycle(DutyCycle)
+    PWM_motor1A.ChangeDutyCycle(Stop)
+    PWM_motor1B.ChangeDutyCycle(DutyCycle)
+    PWM_motor2A.ChangeDutyCycle(Stop)
+    PWM_motor2B.ChangeDutyCycle(DutyCycle)
 
 def Turn_Right():
     """
     Turn left
     """
-    PWM_Motor1A.ChangeDutyCycle(Stop)
-    PWM_Motor1B.ChangeDutyCycle(DutyCycle/3)
-    PWM_Motor2A.ChangeDutyCycle(DutyCycle)
-    PWM_Motor2B.ChangeDutyCycle(Stop)
+    PWM_motor1A.ChangeDutyCycle(Stop)
+    PWM_motor1B.ChangeDutyCycle(DutyCycle/3)
+    PWM_motor2A.ChangeDutyCycle(DutyCycle)
+    PWM_motor2B.ChangeDutyCycle(Stop)
 
 def Turn_Left():
     """
     Turn Right
     """
-    PWM_Motor1A.ChangeDutyCycle(Stop)
-    PWM_Motor1B.ChangeDutyCycle(DutyCycle)
-    PWM_Motor2A.ChangeDutyCycle(DutyCycle/3)
-    PWM_Motor2B.ChangeDutyCycle(Stop)
-
-
-# def pos_to_command(hands):
-    """
-    Translates pose detected to command sent to robot
-    """
-    # print('left', hands[0])
-    # print('right', hands[1])
-
-    # # if both hands on left, turn left
-    # if hands[0][0] < 0.3 and hands[1][0] < 0.3:
-    #     out = 'left'
-
-    # # if both hands on right, turn right
-    # elif hands[0][0] > 0.7 and hands[1][0] > 0.7:
-    #     out = 'right'
-
-    # # if one hand on left and one hand on right, stop
-    # elif (hands[0][0] > 0.7 and hands[1][0] < 0.3 or
-    #       hands[0][0] < 0.3 and hands[1][0] > 0.7):
-    #     out = 'stop'
-
-    # # if both hands in centre... 
-    # else:                
-    #     # ...and high, go forward
-    #     if hands[0][1] < 0.5 and hands[1][1] < 0.5:
-    #         out = 'forward'
-    #     # ...and low, go backwards
-    #     else:
-    #         out = 'backward'
-            
-    # return out
+    PWM_motor1A.ChangeDutyCycle(Stop)
+    PWM_motor1B.ChangeDutyCycle(DutyCycle)
+    PWM_motor2A.ChangeDutyCycle(DutyCycle/3)
+    PWM_motor2B.ChangeDutyCycle(Stop)
 
 
 def pose_to_command(msg):
     """
     Translates pose detected to command sent to robot
     """
-
     try:
-        # Get xyz coordinates of each node sent
+        # Get coordinates of each node sent
         nose = msg["NOSE"]
         hip_l = msg["LEFT_HIP"]
         hip_r = msg["RIGHT_HIP"]
@@ -201,20 +167,20 @@ def pose_to_command(msg):
             command = 'backward'
 
         # If both hands left of left hip, turn left 
-        elif hand_l[x] < hip_l[x] and hand_r[x] < hip_l[x]:
+        elif hand_l[x] > hip_l[x] and hand_r[x] > hip_l[x]:
             # command = 'left'
             command = 'right' # video sphere as mirror world
 
         # If both hands right of right hip, turn right 
-        elif hand_l[x] > hip_r[x] and hand_r[x] > hip_r[x]:
+        elif hand_l[x] < hip_r[x] and hand_r[x] < hip_r[x]:
             # command = 'right'
             command = 'left' # video sphere as mirror world 
 
-        # If hands either side of head, stop 
-        elif hand_l[x] < nose[x] and hand_r[x] > nose[x]:
+        # If hands either side of body and vertical position is between nose and hips 
+        elif hand_l[x] > nose[x] and hand_r[x] < nose[x]:
             command = 'stop'
 
-        # If none of these opses are detected, no change 
+        # If none of these poses are detected, no change 
         else:
             command = 'no command'
 
@@ -226,10 +192,9 @@ def pose_to_command(msg):
     return command
 
 
-
 while(1):
 
-    Enable(1)
+    enable(1)
 
     conn, addr = server_socket.accept()
     with conn:
@@ -256,23 +221,17 @@ while(1):
             else:
                 command = msg
 
-
             if command == 'stop':
-                StopMotors()
-
+                Stopmotors()
 
             elif command == 'left':
                 Spin_Left()
 
-
             elif command == 'right':
                 Spin_Right()
 
-                
-
             elif command == 'forward':
                 Forwards()
-
 
             elif command == 'backward':
                 Backwards()
