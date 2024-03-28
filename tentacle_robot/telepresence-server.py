@@ -146,7 +146,7 @@ while True:
     """
     AUTONOMOUS MODE
     """
-    # Listen for button press to run pre-programmed sequence 
+    # Listen for button press to run autonomous mode
     while(GPIO.input(preprog_mode_button) == GPIO.HIGH and 
           GPIO.input(teleop_mode_button) == GPIO.LOW):
 
@@ -168,7 +168,7 @@ while True:
     """
     TELEOPERATED MODE
     """
-    # Listen for message from client 
+    # Listen for message from client to run tele-operated mode
     try:
         conn, addr = server_socket.accept()
         with conn:
@@ -282,6 +282,7 @@ while True:
     # No message from client 
     except socket.timeout:
         pass
+<<<<<<< HEAD:tentacle_robot/telepresence-server.py
 
 
     # # Autonomous mode 
@@ -298,6 +299,8 @@ while True:
     #                          motor_left_v, 
     #                          motor_right_h, 
     #                          motor_left_h)
+=======
+>>>>>>> refs/remotes/origin/main:teleoperated_wings_robot/telepresence-server.py
 
     # Both teleoperated and Autonomous mode button pressed
     while (GPIO.input(preprog_mode_button) == GPIO.HIGH and 
@@ -305,7 +308,6 @@ while True:
         # Turn both LEDs on
         GPIO.output(teleop_mode_LED,GPIO.HIGH)
         GPIO.output(preprog_mode_LED,GPIO.HIGH)
-
 
     # No button pressed
     # Turn both LEDs off

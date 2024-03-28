@@ -31,19 +31,13 @@ import json
 #-------------------------------------------------------------------------------
 """ SETUP """
 
-<<<<<<< HEAD
-HOST = "192.168.60.223"  # The raspberry pi's hostname or IP address
-PORT = 65443            # The port used by the server
 
-# Take video stream from 'camera' or 'window' or 'keys'
-input_mode = 'camera' #'window'##'keys'#'camera' ##'camera'##'camera'  
-=======
 HOST = "192.168.145.223" # 1.14"#56.103"#7"#103"  # The raspberry pi's hostname or IP address
 PORT = 65456               # The port used by the server
 
 # Take video stream from 'camera' or 'window' or 'keys'
 input_mode = 'camera'#'keys' #'window' ###'keys'#'camera' ##'camera'##'camera'  
->>>>>>> new_branch
+
 
 # Window name is using window
 win_name = 'zoom.us'                      
@@ -71,13 +65,8 @@ show_wireframe = True
 # Send command to raspberry pi
 send_command = True
 
-<<<<<<< HEAD
-# Number of hands to track (wings track 2 hands, turtle robots track one hand)
-n_hands = 1
-=======
 # Max number of hands to track (wings: track 2 hands, turtle robots: track 1 hand)
 n_hands = 2
->>>>>>> new_branch
 
 # Detail of hands tracked when True, otherwise whole body frame 
 track_hands_only = False
@@ -481,7 +470,6 @@ while(True):
 
         print('command ', command)
 
-<<<<<<< HEAD
 
         if send_command:
             # Send command to server socket on raspberry pi
@@ -522,16 +510,16 @@ while(True):
             
         except:
             pass
-=======
+
         # Visualise output
         if show_wireframe:
             show_tracked_wireframe(frame, OS) 
         else:
             show_tracked_wireframe(frame_copy, OS) 
->>>>>>> new_branch
- 
-        if cv2.waitKey(1) == 27:
-            break
 
-        if send_command:
-            send_command_to_server(HOST, PORT)
+ 
+        # if cv2.waitKey(1) == 27:
+        #     break
+
+        # if send_command:
+        #     send_command_to_server(HOST, PORT)
