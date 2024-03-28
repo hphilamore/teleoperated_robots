@@ -49,8 +49,6 @@ motor_left_h = 0x04
 motors_right = [motor_right_h, motor_right_v]
 motors_left = [motor_left_h, motor_left_v]
 
-
-
 # Setup raspberry pi as server
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((HOST, PORT))
@@ -59,7 +57,6 @@ server_socket.listen()
 
 # Create serial object 
 Dynamixel=serial.Serial("/dev/serial0",baudrate=1000000,timeout=0.1, bytesize=8)   # UART in ttyS0 @ 1Mbps
-
 
 # Buffer for each arm to store last N servo position values 
 buffer_length = 5
@@ -109,8 +106,6 @@ min_in_V = 0.25
 max_in_V = 1
 min_out_V = 0
 max_out_V = 600
-
-
 
 def moving_average(new_val, buffer, win_size=buffer_length):
     """ 
@@ -282,7 +277,6 @@ while True:
     # No message from client 
     except socket.timeout:
         pass
-
 
     # Both teleoperated and Autonomous mode button pressed
     while (GPIO.input(preprog_mode_button) == GPIO.HIGH and 
