@@ -129,133 +129,115 @@ def Forwards():
     motor2.forward()
         
 
-# while(1):
+if __name__ == "__main__":
 
-    # # Switch wing direction every 3s
-    # time_new = time()
-    # if time_new-time_old >= 3:
-    #     time_old = time_new
-    #     print('switched wing direction')
+    while True:
 
-    # # Switch wings on/off
-    # if flag_wings:
-    #     print('wings up')
-    #     motor3.forward()
-    #     motor4.forward()
-    # else:
-    #     print('wings down')
-    #     motor3.stop()
-    #     motor4.stop()
+        conn, addr = server_socket.accept()
+        with conn:
+            print(f"Connected by {addr}")
 
-    # print('looper')
+            while True:
 
-while True:
+                # Switch wing direction every N seconds 
+                # time_new = time()
+                # if time_new-time_old >= wing_period:
+                #     flag_wings = not flag_wings
+                #     time_old = time_new
+                            #     #sleep(2)
 
-    conn, addr = server_socket.accept()
-    with conn:
-        print(f"Connected by {addr}")
-
-        while True:
-
-            # Flap wings every N seconds 
-            # time_new = time()
-            # if time_new-time_old >= wing_period:
-            #     flag_wings = not flag_wings
-            #     time_old = time_new
-                        #     #sleep(2)
-
-            # # # Switch wings on/off
-            #     if flag_wings:
-            #         print('wings up')
-            #         motor3.forward()
-            #         motor4.forward()
-            #     else:
-            #         print('wings down')
-            #         motor3.stop()
-            #         motor4.stop()
+                # # # Switch wings on/off
+                #     if flag_wings:
+                #         print('wings up')
+                #         motor3.forward()
+                #         motor4.forward()
+                #     else:
+                #         print('wings down')
+                #         motor3.stop()
+                #         motor4.stop()
 
 
-            data = conn.recv(1024)
+                data = conn.recv(1024)
 
-            # Break out of loop if no data received
-            if not data:
-                break
+                # Break out of loop if no data received
+                if not data:
+                    break
 
-            msg = data.decode()
-            print(msg)
+                msg = data.decode()
+                print(msg)
 
 
-            # If message recieved is not already in form of a command
-            if msg not in ['no command', 'stop', 'forward', 'backward', 'right', 'left']:
+                # If message recieved is not already in form of a command
+                if msg not in ['no command', 'stop', 'forward', 'backward', 'right', 'left']:
 
-                # convert string-dictionary of node coordinates to dictionary
-                msg = json.loads(msg)
+                    # convert string-dictionary of node coordinates to dictionary
+                    msg = json.loads(msg)
 
-                print('msg2', type(msg), msg)
+                    print('msg2', type(msg), msg)
 
-                # Convert pose to robot command
-                command = pose_to_command(msg)
+                    # Convert pose to robot command
+                    command = pose_to_command(msg)
 
-            else:
-                command = msg
+                else:
+                    command = msg
 
-            if command == 'stop':
-                Stopmotors()
+                if command == 'stop':
+                    Stopmotors()
 
-            elif command == 'left':
-                Spin_Left()
+                elif command == 'left':
+                    Spin_Left()
 
-            elif command == 'right':
-                Spin_Right()
+                elif command == 'right':
+                    Spin_Right()
 
-            elif command == 'forward':
-                Forwards()
+                elif command == 'forward':
+                    Forwards()
 
-            elif command == 'backward':
-                Stopmotors()
+                elif command == 'backward':
+                    Stopmotors()
 
 
 
-                # coordinates = msg.split(',')
+                    # coordinates = msg.split(',')
 
-                # # Convert string to floating point data 
-                # coordinates = [float(i) for i in coordinates]
+                    # # Convert string to floating point data 
+                    # coordinates = [float(i) for i in coordinates]
 
-                # # Grouped coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
-                # n_dimensions = 2 # x,y,z coordinates recieved 
-                # hands = [coordinates[i:i+n_dimensions] for i in range(0, len(coordinates), n_dimensions)]
-
-
-                # # print(coordinates)
-
-                # # If 2 hands detected:
-                # if len(hands) > 1:
-
-                #     # If x coordinate of both hands are on the same side of the screen, ignore one hand
-                #     print("2 hands detected. Change n_hands to '1' in client code...")
-                #     print("Exiting program...")
-                #     sys.exit(1)
+                    # # Grouped coordintes 2D (x,y) or 3D (x,y,z) for each hand detected
+                    # n_dimensions = 2 # x,y,z coordinates recieved 
+                    # hands = [coordinates[i:i+n_dimensions] for i in range(0, len(coordinates), n_dimensions)]
 
 
-                # # For each hand 
-                # for i in hands:
+                    # # print(coordinates)
 
-                #     x_position = i[0]
-                #     y_position = i[1]
-                #     print(x_position) 
+                    # # If 2 hands detected:
+                    # if len(hands) > 1:
 
-                #     msg = pos_to_command(x_position, y_position)
-                #     print('msg', msg)
-
-
-
-                
-            #conn.sendall(data)
-
-    # except:
-    #     print('no comms')
+                    #     # If x coordinate of both hands are on the same side of the screen, ignore one hand
+                    #     print("2 hands detected. Change n_hands to '1' in client code...")
+                    #     print("Exiting program...")
+                    #     sys.exit(1)
 
 
-    # except KeyboardInterrupt:
-    #         pass
+                    # # For each hand 
+                    # for i in hands:
+
+                    #     x_position = i[0]
+                    #     y_position = i[1]
+                    #     print(x_position) 
+
+                    #     msg = pos_to_command(x_position, y_position)
+                    #     print('msg', msg)
+
+
+
+                    
+                #conn.sendall(data)
+
+        # except:
+        #     print('no comms')
+
+
+        # except KeyboardInterrupt:
+        #         pass
 
