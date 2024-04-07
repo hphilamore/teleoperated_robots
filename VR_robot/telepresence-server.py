@@ -143,11 +143,11 @@ def pose_to_command(msg):
     """
     try:
 
-
-        for node_name, coordinates in msg.items():
-            if node_name == 'NOSE':
-                node_name += '\t'
-            print(node_name, '\t', coordinates)
+        # Print items in message received 
+        # for node_name, coordinates in msg.items():
+        #     if node_name == 'NOSE':
+        #         node_name += '\t'
+        #     print(node_name, '\t', coordinates)
 
 
         # Get coordinates of each node sent
@@ -156,12 +156,6 @@ def pose_to_command(msg):
         hip_r = msg["RIGHT_HIP"]
         hand_l = msg["LEFT_WRIST"]
         hand_r = msg["RIGHT_WRIST"]
-
-        # print('left_hand \t', hand_l)
-        # print('right_hand \t', hand_r)
-        # print('left_hip \t', hip_l)
-        # print('right_hip \t', hip_r)
-        # print('nose \t', nose)
 
         # If hands above head, go forwards
         if hand_l[y] <= nose[y] and hand_r[y] <= nose[y]:
