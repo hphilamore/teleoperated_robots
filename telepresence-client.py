@@ -21,6 +21,8 @@ from subprocess import Popen, PIPE
 import numpy as np
 import curses
 import json
+import leap
+import time
 
 #-------------------------------------------------------------------------------
 """ SETUP """
@@ -30,7 +32,7 @@ HOST = "192.168.0.52"      # The raspberry pi's hostname or IP address
 PORT = 65448               # The port used by the server
 
 # Source of video stream: 'camera' or 'window' or 'keys'
-input_mode = 'camera'#'keys' #'window' ###'keys'#'camera' ##'camera'##'camera'  
+input_mode = 'leap_motion'#'camera'#'keys' #'window' ###'keys'#'camera' ##'camera'##'camera'  
 
 # Window name if using window
 # window_name = 'zoom.us'                      
@@ -567,6 +569,9 @@ if __name__ == "__main__":
 
     if input_mode == 'keys':
         track_keys()
+
+    elif input_mode == 'leap_motion':
+        print('LEAP')
 
     else:
         track_video()
