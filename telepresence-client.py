@@ -54,7 +54,7 @@ make_output_window_fullscreen = True
 show_wireframe = True
 
 # Set to True to send command to raspberry pi
-send_command = False
+send_command = True
 
 # Max number of hands to track
 n_hands = 2
@@ -301,13 +301,6 @@ def track_body(frame, results, flag_no_person_detected, flag_timeout):
                     # Round coordinate to 2 d.p. and store in array
                     node_coordinates.append(round(coordinate, 2))
 
-                # # floor divide landmark index by 33 to get a unique index for each person 
-                # # (each person has 33 landmarks)
-                # print(f"Person {idx // 33}")
-
-                # print(f"Point {mp_pose.PoseLandmark(idx).name}:")
-                # print(f"X={round(x,2)}, Y={round(y,2)}, Z={round(z,2)}")
-                # print()
 
                 # Get node name as a string
                 node_name = mp_pose.PoseLandmark(idx).name
