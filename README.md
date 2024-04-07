@@ -12,9 +12,9 @@ The server robot is controlled by the client computer over a local wifi network.
 - Install requirements for open cv from either of these links
     - https://raspberrypi-guide.github.io/programming/install-opencv
     - https://stackoverflow.com/questions/53347759/importerror-libcblas-so-3-cannot-open-shared-object-file-no-such-file-or-dire)
-- Install open cv, run:[`pip3 install opencv-python`]
-- Install media-pipe, run:[`pip3 install mediapipe`]
-- Install other requirements, run:[`pip3 install -r requirements.txt`]
+- Install open cv, run:[`pip install opencv-python`]
+- Install media-pipe, run:[`pip install mediapipe==0.10.9`]
+- Install media-pipe, run:[`pip install mss`]
 - Test motion tracking is working by running demos/body_tracking_demo.py and demos/hand_tracking_demo.py
 
 ## Setting up the server Raspberry pi robot
