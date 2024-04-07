@@ -88,7 +88,7 @@ The server robot is controlled by the client computer over a local wifi network.
 - Set variable `HOST` in `telepresence-client.py` to value noted from `telepresence-server.py`
 - Optionally define variables at start of `telepresence-client.py` to customise application. For example there are options to control the robot using the keyboard or using motion tracking from a camera livefeed or desktop window 
 - Activate virtual environment: Run:[`source env/bin/activate`]
-- Run client program:[`python3 telepresence-client.py`]
+- Run client program:[`python telepresence-client.py`]
 - Alternatively, you can create a windows batch file that can be clicked to launch the client program, to avoid the need to use the terminal to launch the client program. Instructions here: https://techrando.com/2019/06/22/how-to-execute-python-scripts-on-your-computer-in-batch-mode/  
 
 ## Troubleshooting
