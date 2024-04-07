@@ -371,7 +371,6 @@ def frame_from_camera(camera):
     
     # Grab current image 
     ret0, frame0 = video_0.read()
-    print('FRAME', frame0)
 
     # Important to only grab second image if there are two cameras connected
     if dual_camera_feed:
@@ -382,8 +381,6 @@ def frame_from_camera(camera):
         frame = frame0
     else:
         frame = frame1
-
-    print('FRAME', frame)
 
     # Modify colours
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
