@@ -54,7 +54,7 @@ make_output_window_fullscreen = True
 show_wireframe = True
 
 # Set to True to send command to raspberry pi
-send_command = True
+send_command = False
 
 # Max number of hands to track
 n_hands = 2
@@ -322,8 +322,10 @@ def track_body(frame, results, flag_no_person_detected, flag_timeout):
             pose_coordinates["LEFT_WRIST"], pose_coordinates["RIGHT_WRIST"] = pose_coordinates["RIGHT_WRIST"], pose_coordinates["LEFT_WRIST"]
             pose_coordinates["LEFT_SHOULDER"], pose_coordinates["RIGHT_SHOULDER"] = pose_coordinates["RIGHT_SHOULDER"], pose_coordinates["LEFT_SHOULDER"]
 
-        for k, v in pose_coordinates.items():
-            print(k, v)
+        for node_name, coordinates in pose_coordinates.items():
+            if node_name == 'NOSE':
+                node_name += '\t'
+            print(node_name, '\t', coordinates)
 
         """
         Detect if:
@@ -333,8 +335,8 @@ def track_body(frame, results, flag_no_person_detected, flag_timeout):
           (i.e. right shoulder has greater x position than left shoulder) 
         And don't send command to robot 
         """
-        too_far = (pose_coordinates["LEFT_SHOULDER"][0] - pose_coordinates["RIGHT_SHOULDER"][0]) > shoulder_distance_th
-        if too_far:
+        shoulder_distance = (pose_coordinates["LEFT_SHOULDER"][0] - pose_coordinates["RIGHT_SHOULDER"][0]) 
+        if shoulder_distance > shoulder_distance_th:
             print("Warning: Person detected but facing wrong way or too far away!")
             command = 'no command'
             

@@ -198,7 +198,7 @@ if __name__ == "__main__":
 
         conn, addr = server_socket.accept()
         with conn:
-            print(f"Connected by {addr}")
+            # print(f"Connected by {addr}")
 
             while True:
 
