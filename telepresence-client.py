@@ -23,6 +23,7 @@ import curses
 import json
 import leap
 import time
+import platform
 
 #-------------------------------------------------------------------------------
 """ SETUP """
@@ -31,8 +32,8 @@ import time
 HOST = "192.168.0.52"      # The raspberry pi's hostname or IP address
 PORT = 65448               # The port used by the server
 
-# Source of video stream: 'camera' or 'window' or 'keys'
-input_mode = 'leap_motion'#'camera' ##'camera'#'keys' #'window' ###'keys'#'camera' ##'camera'##'camera'  
+# Source of video stream: 'leap_motion', 'camera' or 'window' or 'keys'
+input_mode = 'leap_motion'#'window'#'camera' ##'camera'#'keys' # ###'keys'#'camera' ##'camera'##'camera'  
 
 # Window name if using window
 # window_name = 'zoom.us'                      
@@ -41,25 +42,18 @@ input_mode = 'leap_motion'#'camera' ##'camera'#'keys' #'window' ###'keys'#'camer
 # window_name = 'zoom.us:zoom floating video'    # Find zoom meeting window during share screen ('pin' caller in zoom)
 # window_name = 'GoPro camera:'
 window_name = 'Photo Booth:Photo Booth' 
-  
 
-# Computer operating system: 'macOS' or 'windowsOS'  
-OS = 'macOS' #'windowsOS'
-
-# Set to True if source of video stream will be full screeen 
+# Set to True if source of video stream received will be full screeen 
 grab_full_screen_image = False
 
-# Set to True to make output video appears full screen
+# Set to True to make output video appear full screen
 make_output_window_fullscreen = True
 
 # Set to True to show wireframe in output video
 show_wireframe = True
 
 # Set to True to send command to raspberry pi
-send_command = False
-
-# Max number of hands to track
-n_hands = 2
+send_command = True
 
 # Nodes to track: 'hands', 'body'
 tracked_feature = 'body'
@@ -79,8 +73,14 @@ dual_camera_feed = False
 # Take camera image from camera 0 or camera 1
 camera = 0
 
-
 #-------------------------------------------------------------------------------
+# Max number of hands to track
+n_hands = 2
+
+# Detect computer operating system: 'Darwin' (Mac) or 'Windows'  
+OS = platform.system()
+# OS = 'Darwin' #'Windows'
+
 """
 Flag to indicate when no hand is deteced so that a timer can be set to 
 check of the person is really gone or if detection has failed momentarily 
@@ -90,7 +90,7 @@ flag_no_person_detected = False
 flag_timeout = 2 
 
 # Windows-only module
-if OS == 'windowsOS': 
+if OS == 'Windows': 
     from screeninfo import get_monitors # windows only
  
 # Setup media pipe solutions 
@@ -121,14 +121,28 @@ class MyListener(leap.Listener):
         print(f"Found device {info.serial}")
 
     def on_tracking_event(self, event):
-        print(f"Frame {event.tracking_frame_id} with {len(event.hands)} hands.")
-        for hand in event.hands:
-            hand_type = "left" if str(hand.type) == "HandType.Left" else "right"
-            print(
-                f"Hand id {hand.id} is a {hand_type} hand with position ({hand.palm.position.x}, {hand.palm.position.y}, {hand.palm.position.z})."
-            )
+        # print(f"Frame {event.tracking_frame_id} with {len(event.hands)} hands.")
 
-def window_coordinates():
+        pose_coordinates = {}
+
+        for hand in event.hands:
+            # print(str(hand.type))
+            pose_coordinates[str(hand.type).upper() + "_PALM"] = [round(hand.palm.position.x, 2),
+                                                                  round(hand.palm.position.y, 2),
+                                                                  round(hand.palm.position.z, 2)
+                                                                  ]
+
+            for node_name, coordinates in pose_coordinates.items():
+                print(node_name, '\t', coordinates)
+
+            command = 'stop'
+
+            # # if send_command:
+            # send_command_to_server(HOST, PORT, command)
+
+
+
+def get_window_coordinates():
     """
     Returns coordinates of specified window name on desktop
     """
@@ -487,18 +501,7 @@ def track_keys():
         sys.exit(1)
 
 
-def track_video():
-
-    # Input mode is window
-    if input_mode == 'window':
-        # Set up window for image capture
-        window_coordinates = window_coordinates()
-         
-    # # Input mode is camera
-    # else:
-    #     # Setup camera ready for video capture
-    #     capture = cv2.VideoCapture(0)
- 
+def track_video(): 
 
     while(True):
 
@@ -525,6 +528,7 @@ def track_video():
 
             # Frame taken from window
             if input_mode == 'window':
+                window_coordinates = get_window_coordinates()
                 frame = frame_from_window(window_coordinates)  
                 frame_copy  = frame_from_window(window_coordinates)    
 
@@ -578,7 +582,7 @@ def track_video():
             # ----------------------------------------------
             # Make output window full screen on windows OS
             # ----------------------------------------------
-            if OS == 'windowsOS': 
+            if OS == 'Windows': 
                 if make_output_window_fullscreen:
                     windows_output_fullscreen(frame)
 
@@ -605,10 +609,15 @@ def track_leap_motion():
     with connection.open():
         connection.set_tracking_mode(leap.TrackingMode.Desktop)
         while running:
+            print('hi')
+            command = 'stop'
+            send_command_to_server(HOST, PORT, command)
             time.sleep(1)
 
 
 if __name__ == "__main__":
+
+    
 
     if input_mode == 'keys':
         track_keys()

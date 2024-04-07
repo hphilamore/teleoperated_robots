@@ -187,7 +187,6 @@ def pose_to_command(msg):
         print("Warning: Nodes required for pose detection not in data sent to robot!")
         command = 'no command'
 
-    print(command)
     return command
     
 
@@ -240,3 +239,6 @@ if __name__ == "__main__":
 
                 elif command == 'backward':
                     Backwards()
+
+
+                print(command)
