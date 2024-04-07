@@ -54,7 +54,7 @@ make_output_window_fullscreen = True
 show_wireframe = True
 
 # Set to True to send command to raspberry pi
-send_command = True
+send_command = False
 
 # Max number of hands to track
 n_hands = 2
@@ -98,9 +98,9 @@ mp_drawing = mediapipe.solutions.drawing_utils
 mp_pose = mediapipe.solutions.pose
 
 # Setup web cam 0 (and web cam 1 if dual camera feed) ready for video capture 
-capture0 = cv2.VideoCapture(0)
+video_0 = cv2.VideoCapture(0)
 if dual_camera_feed:
-    capture1 = cv2.VideoCapture(1)
+    video_1 = cv2.VideoCapture(1)
 
 # Threshold distance between shoulders, below which person is too far away
 shoulder_distance_th = 0.1
@@ -367,18 +367,23 @@ def frame_from_window(window_coordinates):
 
         return frame
 
-def frame_from_camera(capture, camera):
+def frame_from_camera(camera):
     
     # Grab current image 
-    ret0, frame0 = capture0.read()
+    ret0, frame0 = video_0.read()
+    print('FRAME', frame0)
+
+    # Important to only grab second image if there are two cameras connected
     if dual_camera_feed:
-        ret1, frame1 = capture1.read()
+        ret1, frame1 = video_1.read()
 
     # Take image from selected camera
     if camera == 0:
-    	frame = frame0
+        frame = frame0
     else:
-    	frame = frame1
+        frame = frame1
+
+    print('FRAME', frame)
 
     # Modify colours
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -460,10 +465,10 @@ def track_video():
         # Set up window for image capture
         window_coordinates = window_coordinates()
          
-    # Input mode is camera
-    else:
-        # Setup camera ready for video capture
-        capture = cv2.VideoCapture(0)
+    # # Input mode is camera
+    # else:
+    #     # Setup camera ready for video capture
+    #     capture = cv2.VideoCapture(0)
  
 
     while(True):
@@ -496,8 +501,8 @@ def track_video():
 
             # Frame taken from camera
             else:
-                frame = frame_from_camera(capture, camera)
-                frame_copy = frame_from_camera(capture, camera)
+                frame = frame_from_camera(camera)
+                frame_copy = frame_from_camera(camera)
 
             # -------------------------------------------------------------------------
             # Identify pose of tracked feature from frame and convert to robot command
