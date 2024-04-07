@@ -1,21 +1,46 @@
 A collection of programs consisting of a client program (to be run on computer) and server program (to be run on Raspberry pi robot). 
 
+The client program takes a control input from the user by one of:
+1. keystrokes
+2. image processing of a video / live feed
+3. leap motion stereo camera
+
 The repository has subfolder containing programs for 3 different server Raspberry pi robots: tentacle_robot, turtle_robot, VR_robot
 
 The server robot is controlled by the client computer over a local wifi network. 
 
+## To use the leap motion camera you will need the following:
+1. The latest Gemini Ultraleap Hand Tracking Software. You can get this at https://leap2.ultraleap.com/gemini-downloads/
+2. An Ultraleap Hand Tracking Camera
+
 ## Setting up the client computer
+- On Mac OS, to use the __leap motion camera__ you must first set up the termianl to run arm64:
+	-  run: [`env /usr/bin/arch -arm64 /bin/zsh --login`] (https://vineethbharadwaj.medium.com/m1-mac-switching-terminal-between-x86-64-and-arm64-e45f324184d9)
+ 	-  check terminal is set up to use the correct architecture by running [`arch`] (should return `arm64`) 
 - Clone this git repository
 - Create virtual environment __inside__ cloned repository: Run:[`python3 venv env`]
 - Add virtual environment to .gitignore file. Run:[`nano .gitignore`] and add line [`/env`]
 - Activate virtual environment: Run:[`source env/bin/activate`]
-- Install requirements for open cv from either of these links
-    - https://raspberrypi-guide.github.io/programming/install-opencv
-    - https://stackoverflow.com/questions/53347759/importerror-libcblas-so-3-cannot-open-shared-object-file-no-such-file-or-dire)
+
+### Set up motion tracking using mediapipe (make sure leap motion stereo camera is disconnected)
 - Install open cv, run:[`pip install opencv-python`]
 - Install media-pipe, run:[`pip install mediapipe==0.10.9`]
 - Install media-pipe, run:[`pip install mss`]
-- Test motion tracking is working by running demos/body_tracking_demo.py and demos/hand_tracking_demo.py
+- Test motion tracking is working by running [`python demos/body_tracking_demo.py'] and [`python demos/hand_tracking_demo.py`]
+
+### Set up leap motion camera (from https://github.com/ultraleap/leapc-python-bindings)
+- Install required package, run: [`pip install -r requirements.txt`]
+- Install required package, run: [`pip install -e leapc-python-api`]
+- Connect stereo camera 
+- Test stero camera is working , run: [`python examples/tracking_event_example.py`]
+- If you see the error [`ModuleNotFoundError: No module named 'leapc_cffi._leapc_cffi'`] build your own compiled module:
+	- run: [`pip install -r requirements.txt`]
+	- run: [`python -m build leapc-cffi`]
+	- run: [`pip install leapc-cffi/dist/leapc_cffi-0.0.1.tar.gz`]
+	- run: [`pip install -e leapc-python-api`]
+	- run: [`python examples/tracking_event_example.py`]
+
+
 
 ## Setting up the server Raspberry pi robot
 ### (tentacle_robot/ turtle_robot/ VR_robot)
