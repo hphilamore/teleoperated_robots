@@ -203,6 +203,9 @@ if __name__ == "__main__":
 
             while True:
 
+                # Default command 
+                command = 'no command'
+
                 data = conn.recv(1024)
 
                 # Break out of loop if no data received
