@@ -32,7 +32,7 @@ HOST = "192.168.0.52"      # The raspberry pi's hostname or IP address
 PORT = 65448               # The port used by the server
 
 # Source of video stream: 'camera' or 'window' or 'keys'
-input_mode = 'leap_motion'#'camera'#'keys' #'window' ###'keys'#'camera' ##'camera'##'camera'  
+input_mode = 'leap_motion'#'camera' ##'camera'#'keys' #'window' ###'keys'#'camera' ##'camera'##'camera'  
 
 # Window name if using window
 # window_name = 'zoom.us'                      
@@ -106,6 +106,27 @@ if dual_camera_feed:
 
 # Threshold distance between shoulders, below which person is too far away
 shoulder_distance_th = 0.1
+
+class MyListener(leap.Listener):
+    def on_connection_event(self, event):
+        print("Connected")
+
+    def on_device_event(self, event):
+        try:
+            with event.device.open():
+                info = event.device.get_info()
+        except leap.LeapCannotOpenDeviceError:
+            info = event.device.get_info()
+
+        print(f"Found device {info.serial}")
+
+    def on_tracking_event(self, event):
+        print(f"Frame {event.tracking_frame_id} with {len(event.hands)} hands.")
+        for hand in event.hands:
+            hand_type = "left" if str(hand.type) == "HandType.Left" else "right"
+            print(
+                f"Hand id {hand.id} is a {hand_type} hand with position ({hand.palm.position.x}, {hand.palm.position.y}, {hand.palm.position.z})."
+            )
 
 def window_coordinates():
     """
@@ -191,6 +212,18 @@ def windows_output_fullscreen(frame):
     # Resize the window        
     cv2.resizeWindow('image', int(newX),int(newY))  
 
+def format_for_transmission(pose_coordinates):
+
+            """
+            Formats data frame contianig node coordinates to send to robot
+            """
+
+            # Convert to json format (keys enclosed in double quotes)
+            command = json.dumps(pose_coordinates)
+
+            # Convert to string to send to robot
+            return str(command)  
+
 
 def track_hands(frame, results, flag_no_person_detected, flag_timeout):
 
@@ -216,9 +249,7 @@ def track_hands(frame, results, flag_no_person_detected, flag_timeout):
             print('-----------------------')
 
             # Create arrays to store coordinates all nodes on each hand 
-            x_ = []
-            y_ = []
-            z_ = []
+            x_, y_, z_ = [], [], []
 
             # 20 nodes per hand 
             for i in range(20):
@@ -242,15 +273,12 @@ def track_hands(frame, results, flag_no_person_detected, flag_timeout):
             # Store node for each hand in dictionary 
             pose_coordinates['HAND' + str(hand_no+1)] = node
 
-            # Convert to json format (keys enclosed in double quotes)
-            command = pose_coordinates
-            command = json.dumps(command)
-
-            # Convert to string to send to robot
-            command = str(command)
+            # Format coordinates to send to robot
+            command = format_for_transmission(pose_coordinates)
 
     else:
-        command = no_person_detected_timeout(flag_no_person_detected, flag_timeout)  
+        command = no_person_detected_timeout(flag_no_person_detected, 
+                                             flag_timeout)  
 
     return command
 
@@ -295,8 +323,9 @@ def track_body(frame, results, flag_no_person_detected, flag_timeout):
                 y = landmark.y
                 z = landmark.z
 
-                # Restrict value of each coordinate to within range (0, 1) 
                 for coordinate in [x,y,z]:
+
+                    # Restrict value to within range (0, 1) 
                     if coordinate <= 0: coordinate = 0 
                     if coordinate >= 1: coordinate = 1 
 
@@ -313,9 +342,12 @@ def track_body(frame, results, flag_no_person_detected, flag_timeout):
 
         # Swap left and right values if image captured is mirror of tracked person
         if mirror_image:          
-            pose_coordinates["LEFT_HIP"], pose_coordinates["RIGHT_HIP"] = pose_coordinates["RIGHT_HIP"], pose_coordinates["LEFT_HIP"]
-            pose_coordinates["LEFT_WRIST"], pose_coordinates["RIGHT_WRIST"] = pose_coordinates["RIGHT_WRIST"], pose_coordinates["LEFT_WRIST"]
-            pose_coordinates["LEFT_SHOULDER"], pose_coordinates["RIGHT_SHOULDER"] = pose_coordinates["RIGHT_SHOULDER"], pose_coordinates["LEFT_SHOULDER"]
+            pose_coordinates["LEFT_HIP"], pose_coordinates["RIGHT_HIP"] = \
+            pose_coordinates["RIGHT_HIP"], pose_coordinates["LEFT_HIP"]
+            pose_coordinates["LEFT_WRIST"], pose_coordinates["RIGHT_WRIST"] = \
+            pose_coordinates["RIGHT_WRIST"], pose_coordinates["LEFT_WRIST"]
+            pose_coordinates["LEFT_SHOULDER"], pose_coordinates["RIGHT_SHOULDER"] = \
+            pose_coordinates["RIGHT_SHOULDER"], pose_coordinates["LEFT_SHOULDER"]
 
         for node_name, coordinates in pose_coordinates.items():
             if node_name == 'NOSE':
@@ -330,22 +362,20 @@ def track_body(frame, results, flag_no_person_detected, flag_timeout):
           (i.e. right shoulder has greater x position than left shoulder) 
         And don't send command to robot 
         """
-        shoulder_distance = (pose_coordinates["LEFT_SHOULDER"][0] - pose_coordinates["RIGHT_SHOULDER"][0]) 
+        shoulder_distance = (pose_coordinates["LEFT_SHOULDER"][0] - \
+                             pose_coordinates["RIGHT_SHOULDER"][0]) 
         if shoulder_distance > shoulder_distance_th:
             print("Warning: Person detected but facing wrong way or too far away!")
             command = 'no command'
-            
-        # Otherwise, send dictionary of coorinates of nodes         
+                   
         else:
-            # Convert to json format (keys enclosed in double quotes)
-            command = pose_coordinates
-            command = json.dumps(command)
-            # Convert to string to send to robot
-            command = str(command)  
+            # Format coordinates to send to robot
+            command = format_for_transmission(pose_coordinates)
 
     else:
         # Check if there is no person in the frame or if detection has failed momentarily
-        command = no_person_detected_timeout(flag_no_person_detected, flag_timeout) 
+        command = no_person_detected_timeout(flag_no_person_detected, 
+                                             flag_timeout) 
 
     return command
 
@@ -564,6 +594,19 @@ def track_video():
             if cv2.waitKey(1) == 27:
                 break
 
+def track_leap_motion():
+    my_listener = MyListener()
+
+    connection = leap.Connection()
+    connection.add_listener(my_listener)
+
+    running = True
+
+    with connection.open():
+        connection.set_tracking_mode(leap.TrackingMode.Desktop)
+        while running:
+            time.sleep(1)
+
 
 if __name__ == "__main__":
 
@@ -572,6 +615,7 @@ if __name__ == "__main__":
 
     elif input_mode == 'leap_motion':
         print('LEAP')
+        track_leap_motion()
 
     else:
         track_video()
