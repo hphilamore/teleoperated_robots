@@ -42,6 +42,7 @@ send_command = False
 OS = platform.system()
 
 # Windows-only module
+
 if OS == 'Windows': 
     from screeninfo import get_monitors 
 
