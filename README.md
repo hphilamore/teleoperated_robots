@@ -26,7 +26,7 @@ The server robot is controlled by the client computer over a local wifi network.
 - Install open cv, run:[`pip install opencv-python`]
 - Install media-pipe, run:[`pip install mediapipe==0.10.9`]
 - Install media-pipe, run:[`pip install mss`]
-- Test motion tracking is working by running [`python demos/body_tracking_demo.py'] and [`python demos/hand_tracking_demo.py`]
+- Test motion tracking is working by running [`python examples/body_tracking_demo.py'] and [`python examples/hand_tracking_demo.py`]
 
 ### Set up leap motion camera (from https://github.com/ultraleap/leapc-python-bindings)
 - Install required package, run: [`pip install -r requirements.txt`]
