@@ -9,8 +9,6 @@ Tracks motion of human body from video feed OR keyboard strokes
 Sends command to raspberry pi robot over wifi (body coordinates or command for each key stroke)
 
 """
-
-
 import cv2
 import mediapipe
 import socket
@@ -25,90 +23,31 @@ import leap
 import time
 import platform
 
-#-------------------------------------------------------------------------------
-""" SETUP """
-
+#--------------------------------""" SETUP """-----------------------------------------------
 
 HOST = "192.168.0.53"      # The raspberry pi's hostname or IP address
 PORT = 65448               # The port used by the server
 
 # Source of input: 'leap_motion', 'camera' or 'window' or 'keys'
-input_mode = 'window'#'leap_motion'# 'camera' ##'camera'#'keys' # ###'keys'#'camera' ##'camera'##'camera'  
-
-# # Window name if using window
-# # window_name = 'zoom.us'                      
-# # window_name = 'Microsoft Teams'
-# # window_name = 'zoom.us:Zoom Meeting'          # Find zoom meeting window 
-# # window_name = 'zoom.us:zoom floating video'    # Find zoom meeting window during share screen ('pin' caller in zoom)
-# # window_name = 'GoPro camera:'
-# window_name = 'Photo Booth:Photo Booth' 
+input_mode = 'camera'#'window'#'leap_motion'# 'camera' ##'camera'#'keys' 
 
 # Set to True to send command to raspberry pi
-send_command = True
+send_command = False
 
-# # Set to True if source of video stream received will be full screeen 
-# input_window_fullscreen = False
-
-# # Set to True to make output video appear full screen
-# output_window_fullscreen = True
-
-# # Set to True to show wireframe in output video
-# show_wireframe = True
-
-# # Nodes to track if taking image from camera or window: 'hands', 'body'
-# tracked_feature = 'body'
-# # track_hands_only = False
-
-# # Set to true if image captured is a mirror of tracked person
-# mirror_image = True
-
-# """
-# Set to True if the computer running the client program has two camera feeds, for example if 
-# a 360 camera for use in VR application is running to the same computer. 
-# It is important that this flag is set to False if there is only one camera, as trying 
-# to grab an image from a camera that isn't there will slow down the program significantly!
-# """
-# dual_camera_feed = False
-
-# # Take camera image from camera 0 or camera 1
-# camera = 0
-
-# #-------------------------------------------------------------------------------
-
-# # Max number of hands to track
-# n_hands = 2
+#--------------------------------------------------------------------------------------------
 
 # Detect computer operating system: 'Darwin' (Mac) or 'Windows'  
 OS = platform.system()
-# OS = 'Darwin' #'Windows'
-
-# """
-# Flag to indicate when no hand is deteced so that a timer can be set to 
-# check of the person is really gone or if detection has failed momentarily 
-# """
-# flag_no_person_detected = False 
-# # Number of seconds to wait until timeout  
-# flag_timeout = 2 
 
 # Windows-only module
 if OS == 'Windows': 
-    from screeninfo import get_monitors # windows only
+    from screeninfo import get_monitors 
  
-# Setup media pipe solutions 
-drawingModule = mediapipe.solutions.drawing_utils
-handsModule = mediapipe.solutions.hands
-mp_drawing = mediapipe.solutions.drawing_utils
-mp_pose = mediapipe.solutions.pose
-
-# # Setup web cam 0 (and web cam 1 if dual camera feed) ready for video capture 
-# video_0 = cv2.VideoCapture(0)
-# if dual_camera_feed:
-#     video_1 = cv2.VideoCapture(1)
-
-# # Threshold distance between shoulders, below which person is too far away
-# shoulder_distance_th = 0.1
-
-
+# # Setup media pipe solutions 
+# drawingModule = mediapipe.solutions.drawing_utils
+# handsModule = mediapipe.solutions.hands
+# mp_drawing = mediapipe.solutions.drawing_utils
+# mp_pose = mediapipe.solutions.pose
 
 class LeapMotionTracker(leap.Listener):
 
@@ -277,6 +216,12 @@ class VideoStreamTracker():
         # Threshold distance between shoulders, below which person is too far away
         self.shoulder_distance_th = 0.1
 
+        # Setup media pipe solutions 
+        self.drawingModule = mediapipe.solutions.drawing_utils
+        self.handsModule = mediapipe.solutions.hands
+        self.mp_drawing = mediapipe.solutions.drawing_utils
+        self.mp_pose = mediapipe.solutions.pose
+
 
     def get_window_coordinates(self):
         """
@@ -382,7 +327,6 @@ class VideoStreamTracker():
             s.connect((HOST, PORT))
             s.sendall(command.encode())
 
-
     def track_hands(self, frame, results, flag_no_person_detected, flag_timeout):
 
         """
@@ -437,7 +381,6 @@ class VideoStreamTracker():
         else:
             command = self.no_person_detected_timeout(self.flag_no_person_detected, 
                                                       self.flag_timeout)  
-
         return command
 
     def track_body(self, frame, results, flag_no_person_detected, flag_timeout):
@@ -447,9 +390,9 @@ class VideoStreamTracker():
         """
 
         # Draw the pose landmarks on the frame
-        mp_drawing.draw_landmarks(frame, 
+        self.mp_drawing.draw_landmarks(frame, 
                                   results.pose_landmarks, 
-                                  mp_pose.POSE_CONNECTIONS)
+                                  self.mp_pose.POSE_CONNECTIONS)
 
         # If a person is detected in the frame...
         if results.pose_landmarks:
@@ -462,15 +405,15 @@ class VideoStreamTracker():
                 
                 # Nodes on human body to detect 
                 if idx in [
-                           mp_pose.PoseLandmark.NOSE.value,
-                           mp_pose.PoseLandmark.LEFT_SHOULDER.value,
-                           mp_pose.PoseLandmark.RIGHT_SHOULDER.value,
+                           self.mp_pose.PoseLandmark.NOSE.value,
+                           self.mp_pose.PoseLandmark.LEFT_SHOULDER.value,
+                           self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value,
                            # mp_pose.PoseLandmark.LEFT_ELBOW.value,
                            # mp_pose.PoseLandmark.RIGHT_ELBOW.value,
-                           mp_pose.PoseLandmark.LEFT_WRIST.value,
-                           mp_pose.PoseLandmark.RIGHT_WRIST.value,
-                           mp_pose.PoseLandmark.LEFT_HIP.value,
-                           mp_pose.PoseLandmark.RIGHT_HIP.value,
+                           self.mp_pose.PoseLandmark.LEFT_WRIST.value,
+                           self.mp_pose.PoseLandmark.RIGHT_WRIST.value,
+                           self.mp_pose.PoseLandmark.LEFT_HIP.value,
+                           self.mp_pose.PoseLandmark.RIGHT_HIP.value,
                            ]:
 
                     # Create array to store coodinates of individual node       
@@ -492,7 +435,7 @@ class VideoStreamTracker():
 
 
                     # Get node name as a string
-                    node_name = mp_pose.PoseLandmark(idx).name
+                    node_name = self.mp_pose.PoseLandmark(idx).name
 
                     # Add the coordinates to the dictionary using node name 
                     pose_coordinates[node_name] = node_coordinates
@@ -568,7 +511,7 @@ class VideoStreamTracker():
         """
         
         # Grab current image 
-        ret0, frame0 = video_0.read()
+        ret0, frame0 = self.video_0.read()
 
         # Important to only grab second image if there are two cameras connected
         if self.dual_camera_feed:
@@ -597,14 +540,14 @@ class VideoStreamTracker():
 
             if self.tracked_feature == 'hands':
                 # Only hands tracked
-                model = handsModule.Hands(static_image_mode=False, 
+                model = self.handsModule.Hands(static_image_mode=False, 
                                           min_detection_confidence=0.7, 
                                           min_tracking_confidence=0.7, 
                                           max_num_hands=n_hands)
             
             else:
                 # Whole body tracked
-                model = mp_pose.Pose(min_detection_confidence=0.5, 
+                model = self.mp_pose.Pose(min_detection_confidence=0.5, 
                                      min_tracking_confidence=0.5,
                                     )
             # ------------------------------------
