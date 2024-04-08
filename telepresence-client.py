@@ -29,10 +29,10 @@ import platform
 """ SETUP """
 
 
-HOST = "192.168.0.52"      # The raspberry pi's hostname or IP address
+HOST = "192.168.0.53"      # The raspberry pi's hostname or IP address
 PORT = 65448               # The port used by the server
 
-# Source of video stream: 'leap_motion', 'camera' or 'window' or 'keys'
+# Source of input: 'leap_motion', 'camera' or 'window' or 'keys'
 input_mode = 'leap_motion'#'window'#'camera' ##'camera'#'keys' # ###'keys'#'camera' ##'camera'##'camera'  
 
 # Window name if using window
@@ -43,6 +43,9 @@ input_mode = 'leap_motion'#'window'#'camera' ##'camera'#'keys' # ###'keys'#'came
 # window_name = 'GoPro camera:'
 window_name = 'Photo Booth:Photo Booth' 
 
+# Set to True to send command to raspberry pi
+send_command = True
+
 # Set to True if source of video stream received will be full screeen 
 grab_full_screen_image = False
 
@@ -52,10 +55,7 @@ make_output_window_fullscreen = True
 # Set to True to show wireframe in output video
 show_wireframe = True
 
-# Set to True to send command to raspberry pi
-send_command = True
-
-# Nodes to track: 'hands', 'body'
+# Nodes to track if taking image from camera or window: 'hands', 'body'
 tracked_feature = 'body'
 # track_hands_only = False
 
@@ -74,6 +74,7 @@ dual_camera_feed = False
 camera = 0
 
 #-------------------------------------------------------------------------------
+
 # Max number of hands to track
 n_hands = 2
 
@@ -108,6 +109,10 @@ if dual_camera_feed:
 shoulder_distance_th = 0.1
 
 class MyListener(leap.Listener):
+
+    def __init__(self):
+        self.command = 'stop'
+
     def on_connection_event(self, event):
         print("Connected")
 
@@ -120,22 +125,89 @@ class MyListener(leap.Listener):
 
         print(f"Found device {info.serial}")
 
+    def send_command_to_server(self, HOST, PORT):
+        """
+        Uses sockets to send command to server robot over local network
+        """
+        # Send command to server socket on raspberry pi
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((HOST, PORT))
+            s.sendall(self.command.encode())
+
+    def hand_coordinates_to_command(self, pose_coordinates):
+        # TODO: Cusrrent bug, comparing lists. Need to compare coordiates values! 
+
+        """
+        Converts hand pose coordinates to robot commands 
+        """
+
+        # Set a threshold indicating the midpoint of the horizontal and vertical range 
+        vertical_th = 220
+        horizontal_th = 0
+
+        # Default command to send 
+        self.command = 'no command'
+
+        # Initialize arrays to store coordinates of each hand 
+        left, right = [], []
+
+        # Replace with recievd coordinates 
+        try:
+            left = pose_coordinates["LEFT_HAND"]
+        except:
+            pass
+
+        try:
+            right = pose_coordinates["RIGHT_HAND"]
+        except:
+            pass
+
+        print('left', left)
+        print('right', right)
+
+        # If less than 2 hands can be seen, stop the robot 
+        if left == [] and right == []:
+            self.command = 'stop'
+
+        # If both hands left, turn left     
+        elif left==[] and right!=[]:
+            self.command = 'right'
+
+        elif right==[] and left!=[]:
+            self.command = 'left'
+
+        elif left[1] > vertical_th and right[1] > vertical_th:
+            self.command = 'forward'
+
+        elif left[1] < vertical_th and right[1] < vertical_th:
+            self.command = 'backward'
+
+        print(self.command)
+
+        # self.send_command_to_server(HOST, PORT)
+
     def on_tracking_event(self, event):
         # print(f"Frame {event.tracking_frame_id} with {len(event.hands)} hands.")
 
         pose_coordinates = {}
 
         for hand in event.hands:
-            # print(str(hand.type))
-            pose_coordinates[str(hand.type).upper() + "_PALM"] = [round(hand.palm.position.x, 2),
-                                                                  round(hand.palm.position.y, 2),
-                                                                  round(hand.palm.position.z, 2)
-                                                                  ]
+            pose_coordinates[str(hand.type).upper()[9:] + "_HAND"] = [round(hand.palm.position.x, 2),
+                                                                      round(hand.palm.position.y, 2),
+                                                                      round(hand.palm.position.z, 2)
+                                                                     ]
 
             for node_name, coordinates in pose_coordinates.items():
                 print(node_name, '\t', coordinates)
 
-            command = 'stop'
+            self.hand_coordinates_to_command(pose_coordinates)
+
+            if send_command:
+                self.send_command_to_server(HOST, PORT)
+
+            # self.command = 'forward'
+
+            # self.command = command
 
             # # if send_command:
             # send_command_to_server(HOST, PORT, command)
@@ -394,6 +466,11 @@ def track_body(frame, results, flag_no_person_detected, flag_timeout):
     return command
 
 def frame_from_window(window_coordinates):
+
+    """
+    Retrieves the current frame form the specified window
+    """
+
     with mss() as sct:
 
         window = {"top": window_coordinates[1], 
@@ -414,6 +491,9 @@ def frame_from_window(window_coordinates):
         return frame
 
 def frame_from_camera(camera):
+    """
+    Retrieves the current frame form the specified camera
+    """
     
     # Grab current image 
     ret0, frame0 = video_0.read()
@@ -435,6 +515,9 @@ def frame_from_camera(camera):
     return frame
 
 def send_command_to_server(HOST, PORT, command):
+    """
+    Uses sockets to send command to server robot over local network
+    """
     # Send command to server socket on raspberry pi
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
@@ -608,16 +691,22 @@ def track_leap_motion():
 
     with connection.open():
         connection.set_tracking_mode(leap.TrackingMode.Desktop)
+
         while running:
-            print('hi')
-            command = 'stop'
-            send_command_to_server(HOST, PORT, command)
+
+            # If no hand detected, stop robot
+            my_listener.command = 'stop'
+            print(my_listener.command)
+
+            # Send command to robot 
+            if send_command:
+                send_command_to_server(HOST, PORT, my_listener.command)
+
             time.sleep(1)
 
 
 if __name__ == "__main__":
 
-    
 
     if input_mode == 'keys':
         track_keys()
