@@ -39,7 +39,7 @@ The server robot is controlled by the client computer over a local wifi network.
 
 ## Setting up the server Raspberry pi robot
 ### (tentacle_robot/ turtle_robot/ VR_robot)
-- Install buster legacy lite OS https://www.raspberrypi.com/software/
+- Install Raspberry PI OS lite (desktop free) version https://www.raspberrypi.com/software/
 - Run `ssh <username>@<ip_address>`
 - Enter password when prompted
 - Add any additional wifi networks to etc/wpa_supplicant/wpa_supplicant.conf
