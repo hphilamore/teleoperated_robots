@@ -119,15 +119,17 @@ def track_leap_motion():
 
         while running:
 
-            # If no hand detected, stop robot
-            leap_motion_tracker.command = 'stop'
-            print(leap_motion_tracker.command)
+            leap_motion_tracker.idling()
 
-            # # Send command to robot 
-            # if send_command:
-            #     send_command_to_server(HOST, PORT, leap_motion_tracker.command)
+            # # If no hand detected, stop robot
+            # leap_motion_tracker.command = 'stop'
+            # print(leap_motion_tracker.command)
 
-            time.sleep(1)
+            # # # Send command to robot 
+            # # if send_command:
+            # #     send_command_to_server(HOST, PORT, leap_motion_tracker.command)
+
+            # time.sleep(1)
 
 
 if __name__ == "__main__":

@@ -110,3 +110,15 @@ class LeapMotionTracker(leap.Listener, Transmitter):
                 # self.send_command_to_server(HOST, PORT)
                 self.send_command_to_server()
 
+    def idling(self):
+
+        # If no hand detected, stop robot
+        self.command = 'stop'
+        print(self.command)
+
+        if self.send_command:
+                # self.send_command_to_server(HOST, PORT)
+                self.send_command_to_server()
+
+        time.sleep(1)
+
