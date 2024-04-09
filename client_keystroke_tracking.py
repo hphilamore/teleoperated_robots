@@ -6,7 +6,7 @@ from transmitter import *
 # TODO: Change to command line arguments 
 
 # Set to True to send command to raspberry pi
-send_command = False
+send_command = True
 
 # The raspberry pi's hostname or IP address
 HOST = "192.168.138.7"      

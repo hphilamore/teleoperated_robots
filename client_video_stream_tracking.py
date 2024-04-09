@@ -15,7 +15,7 @@ from transmitter import *
 input_mode = 'camera' 
 
 # Set to True to send command to raspberry pi
-send_command = False
+send_command = True
 
 # The raspberry pi's hostname or IP address
 HOST = "192.168.138.7"      
