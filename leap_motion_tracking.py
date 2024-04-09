@@ -2,10 +2,20 @@
 import leap
 import time
 import cv2
+from transmitter import *
 
-class LeapMotionTracker(leap.Listener):
+class LeapMotionTracker(leap.Listener, Transmitter):
 
-    def __init__(self):
+    def __init__(self,
+                 send_command,
+                 HOST = "192.168.138.7", 
+                 PORT = 65448
+                 ):
+
+        leap.Listener.__init__(self)
+        Transmitter.__init__(self, HOST, PORT)
+        
+        self.send_command = send_command, 
         self.command = 'stop'
 
     def on_connection_event(self, event):
@@ -20,14 +30,14 @@ class LeapMotionTracker(leap.Listener):
 
         print(f"Found device {info.serial}")
 
-    def send_command_to_server(self, HOST, PORT):
-        """
-        Uses sockets to send command to server robot over local network
-        """
-        # Send command to server socket on raspberry pi
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((HOST, PORT))
-            s.sendall(self.command.encode())
+    # def send_command_to_server(self, HOST, PORT):
+    #     """
+    #     Uses sockets to send command to server robot over local network
+    #     """
+    #     # Send command to server socket on raspberry pi
+    #     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    #         s.connect((HOST, PORT))
+    #         s.sendall(self.command.encode())
 
     def hand_coordinates_to_command(self, pose_coordinates):
         # TODO: Cusrrent bug, comparing lists. Need to compare coordiates values! 
@@ -96,5 +106,7 @@ class LeapMotionTracker(leap.Listener):
 
             self.hand_coordinates_to_command(pose_coordinates)
 
-            if send_command:
-                self.send_command_to_server(HOST, PORT)
+            if self.send_command:
+                # self.send_command_to_server(HOST, PORT)
+                self.send_command_to_server()
+

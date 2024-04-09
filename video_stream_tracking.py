@@ -4,13 +4,16 @@ import socket
 import time
 from mss import mss
 import json
+from transmitter import *
 
-class VideoStreamTracker():
+class VideoStreamTracker(Transmitter):
 
     def __init__(self,
                 input_mode,
                 send_command,
-                OS, 
+                OS,   
+                HOST = "192.168.138.7", 
+                PORT = 65448,           
                 mirror_image = True,
                 input_window_fullscreen = False,
                 output_window_fullscreen = True,
@@ -18,10 +21,11 @@ class VideoStreamTracker():
                 window_name = 'Photo Booth:Photo Booth',
                 tracked_feature = 'body', # options: 'hands'/'body'
                 dual_camera_feed = False,
-                camera = 0
-
+                camera = 0,
                 ):
         
+        super().__init__(HOST, PORT)
+
         # Source of input: 'leap_motion', 'camera' or 'window' or 'keys'
         self.input_mode = input_mode
 
@@ -30,6 +34,12 @@ class VideoStreamTracker():
 
         # Computer operating system: 'Darwin' (Mac) or 'Windows'  
         self.OS = OS
+
+        # # The raspberry pi's hostname or IP address
+        # self.HOST = HOST
+
+        # # The port used by the server
+        # self.port = PORT
 
         # Window name if using window
         # window_name = 'zoom.us'                      
@@ -93,6 +103,9 @@ class VideoStreamTracker():
         self.mp_drawing = mediapipe.solutions.drawing_utils
         self.mp_pose = mediapipe.solutions.pose
 
+        # Initialise variable to be sent to robot 
+        self.command = {}
+
 
     def get_window_coordinates(self):
         """
@@ -133,16 +146,16 @@ class VideoStreamTracker():
             flag_no_person_detected = True  # Raise the flag 
             start = time.time()             # Start the timer
             print('no command (person not detected)') # Send the command to stop moving 
-            command = 'no command'
+            self.command = 'no command'
 
         else:
             end = time.time()
             if end-start >= flag_timeout:           # If no person detected for time exceeding timeout 
                 flag_no_person_detected = False     # Lower the flag 
                 print('stop (person not detected)') # Send the command to stop moving 
-                command = 'stop' 
+                self.command = 'stop' 
 
-        return command
+        # return command
 
     def windows_output_fullscreen(self, frame):
 
@@ -184,19 +197,21 @@ class VideoStreamTracker():
         """
 
         # Convert to json format (keys enclosed in double quotes)
-        command = json.dumps(pose_coordinates)
+        self.command = json.dumps(pose_coordinates)
 
-        # Convert to string to send to robot
-        return str(command)  
+        self.command = str(self.command)
 
-    def send_command_to_server(self, HOST, PORT, command):
-        """
-        Uses sockets to send command to server robot over local network
-        """
-        # Send command to server socket on raspberry pi
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((HOST, PORT))
-            s.sendall(command.encode())
+        # # Convert to string to send to robot
+        # return str(command)  
+
+    # def send_command_to_server(self, HOST, PORT):
+    #     """
+    #     Uses sockets to send command to server robot over local network
+    #     """
+    #     # Send command to server socket on raspberry pi
+    #     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    #         s.connect((HOST, PORT))
+    #         s.sendall(self.command.encode())
 
     def track_hands(self, frame, results, flag_no_person_detected, flag_timeout):
 
@@ -247,12 +262,15 @@ class VideoStreamTracker():
                 pose_coordinates['HAND' + str(hand_no+1)] = node
 
                 # Format coordinates to send to robot
-                command = self.format_for_transmission(pose_coordinates)
+                # command = self.format_for_transmission(pose_coordinates)
+                self.format_for_transmission(pose_coordinates)
 
         else:
-            command = self.no_person_detected_timeout(self.flag_no_person_detected, 
+        #     command = self.no_person_detected_timeout(self.flag_no_person_detected, 
+        #                                               self.flag_timeout)  
+            self.no_person_detected_timeout(self.flag_no_person_detected, 
                                                       self.flag_timeout)  
-        return command
+        # return command
 
     def track_body(self, frame, results, flag_no_person_detected, flag_timeout):
 
@@ -338,18 +356,20 @@ class VideoStreamTracker():
                                  pose_coordinates["RIGHT_SHOULDER"][0]) 
             if shoulder_distance > self.shoulder_distance_th:
                 print("Warning: Person detected but facing wrong way or too far away!")
-                command = 'no command'
+                self.command = 'no command'
                        
             else:
                 # Format coordinates to send to robot
-                command = self.format_for_transmission(pose_coordinates)
+                # command = self.format_for_transmission(pose_coordinates)
+                self.format_for_transmission(pose_coordinates)
 
         else:
-            # Check if there is no person in the frame or if detection has failed momentarily
-            command = self.no_person_detected_timeout(self.flag_no_person_detected, 
+        #     command = self.no_person_detected_timeout(self.flag_no_person_detected, 
+        #                                               self.flag_timeout)  
+            self.no_person_detected_timeout(self.flag_no_person_detected, 
                                                       self.flag_timeout) 
 
-        return command
+        # return command
 
     def frame_from_window(self, window_coordinates):
 
@@ -449,17 +469,23 @@ class VideoStreamTracker():
 
                 # Hands tracked 
                 if self.tracked_feature == 'hands':
-                    command = self.track_hands(*parameters) 
+                    # command = self.track_hands(*parameters) 
+                    self.track_hands(*parameters) 
 
                 # Body tracked
                 else:
-                    command = self.track_body(*parameters)
+                    # command = self.track_body(*parameters)
+                    self.track_body(*parameters)
 
                 # ----------------------------------------------
                 # Send command to server socket on raspberry pi
                 # ----------------------------------------------
                 if self.send_command:
-                    self.send_command_to_server(HOST, PORT, command)
+                    # self.send_command_to_server(HOST, PORT)
+                    self.send_command_to_server()
+
+                # else:
+                #     print(self.command)
 
                 # ----------------------------------------------
                 # Optionally show wireframe in output window

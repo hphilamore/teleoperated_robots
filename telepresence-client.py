@@ -27,14 +27,14 @@ from video_stream_tracking import *
 #--------------------------------""" SETUP """-----------------------------------------------
 # TODO: Change to command line arguments 
 
-HOST = "192.168.0.53"      # The raspberry pi's hostname or IP address
-PORT = 65448               # The port used by the server
+# HOST = "192.168.138.7"      # The raspberry pi's hostname or IP address
+# PORT = 65448               # The port used by the server
 
-# Source of input: 'leap_motion', 'camera' or 'window' or 'keys'
-input_mode = 'camera'#'leap_motion'#'camera'#'window'#'leap_motion'# 'camera' ##'camera'#'keys' 
+# Source of input: , 'camera' or 'window' or 'keys'
+input_mode = 'leap_motion' # 'camera'#'leap_motion'#'camera'#'window'#'leap_motion'# 'camera' ##'camera'#'keys' 
 
 # Set to True to send command to raspberry pi
-send_command = False
+send_command = True
 
 #--------------------------------------------------------------------------------------------
 
@@ -107,7 +107,7 @@ def track_keys():
         sys.exit(1)
 
 def track_leap_motion():
-    leap_motion_tracker = LeapMotionTracker()
+    leap_motion_tracker = LeapMotionTracker(send_command)
 
     connection = leap.Connection()
     connection.add_listener(leap_motion_tracker)
@@ -123,9 +123,9 @@ def track_leap_motion():
             leap_motion_tracker.command = 'stop'
             print(leap_motion_tracker.command)
 
-            # Send command to robot 
-            if send_command:
-                send_command_to_server(HOST, PORT, leap_motion_tracker.command)
+            # # Send command to robot 
+            # if send_command:
+            #     send_command_to_server(HOST, PORT, leap_motion_tracker.command)
 
             time.sleep(1)
 
