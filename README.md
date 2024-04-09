@@ -46,7 +46,9 @@ The server robot is controlled by the client computer over a local wifi network.
 - (Optional) Add static IP for wifi network. Add following snippet to /etc/dhcpcd.conf:
 	`
 	interface wlan0
+
 	static ip_address=192.168.11.13 #(desired IP)
+
 	static routers=192.168.11.1 #(router IP)
 	`
 - Open a terminal. Run:[`sudo raspi-config`]. 
