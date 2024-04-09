@@ -42,7 +42,7 @@ The server robot is controlled by the client computer over a local wifi network.
 - Install Raspberry PI OS lite (desktop free) version https://www.raspberrypi.com/software/
 - Run `ssh <username>@<ip_address>`
 - Enter password when prompted
-- Add any additional wifi networks to `etc/wpa_supplicant/wpa_supplicant.conf`
+- Add any additional wifi networks to `/etc/wpa_supplicant/wpa_supplicant.conf`
 - (Optional) Add static IP for wifi network. Add following snippet to `/etc/dhcpcd.conf` 
 	```
 	interface wlan0
