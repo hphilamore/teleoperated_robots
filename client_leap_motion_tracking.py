@@ -80,17 +80,22 @@ class LeapMotionTracker(leap.Listener, Transmitter):
         if left == [] and right == []:
             self.command = 'stop'
 
-        # If both hands left, turn left     
+        # If left hand only, turn left     
         elif left==[] and right!=[]:
             self.command = 'right'
 
+        # If right hand only, turn right
         elif right==[] and left!=[]:
             self.command = 'left'
 
-        elif left[1] > vertical_th and right[1] > vertical_th:
+        # If both hands and arms open, go forwards
+        # elif left[1] > vertical_th and right[1] > vertical_th:
+        elif left[0] < right[0]:
             self.command = 'forward'
 
-        elif left[1] < vertical_th and right[1] < vertical_th:
+        # If both hands and arms crossed, go backwards
+        # elif left[1] < vertical_th and right[1] < vertical_th:
+        elif left[0] > right[0]:
             self.command = 'backward'
 
         print(self.command)
