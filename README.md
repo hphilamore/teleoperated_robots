@@ -43,11 +43,20 @@ The server robot is controlled by the client computer over a local wifi network.
 - Run `ssh <username>@<ip_address>`
 - Enter password when prompted
 - Add any additional wifi networks to `/etc/wpa_supplicant/wpa_supplicant.conf`
-- (Optional) Add static IP for wifi network. Add following snippet to `/etc/dhcpcd.conf` 
+- (Optional) Add static IP for each wifi network listed in wpa_supplicant.conf. Add following snippet to `/etc/dhcpcd.conf` 
 	```
 	interface wlan0
-	static ip_address=192.168.11.13 #(desired IP)
-	static routers=192.168.11.1 #(router IP)
+
+	arping <IP_Router1> 
+	arping <IP_Router2>
+ 
+	profile <IP_Router1>           # (router IP e.g.  192.168.11.1)
+	static ip_address=<Static_IP1> # (desired IP e.g. 192.168.11.13)
+	static routers=<IP_Router1>
+
+	profile <IP_Router2>
+	ip_address=<Static_IP2>
+	static routers=<IP_Router2>
 	```
 - Open a terminal. Run:[`sudo raspi-config`]. 
 - Enable all interfaces (serial, camera, remote GPIO)
