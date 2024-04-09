@@ -4,25 +4,53 @@ import socket
 import time
 from mss import mss
 import json
+import platform
 from transmitter import *
+
+
+#--------------------------------""" SETUP """-----------------------------------------------
+# TODO: Change to command line arguments 
+
+# Source of input: 'camera' or 'window'
+input_mode = 'camera' 
+
+# Set to True to send command to raspberry pi
+send_command = False
+
+# The raspberry pi's hostname or IP address
+HOST = "192.168.138.7"      
+
+# The port used by the server
+PORT = 65448               
+
+#--------------------------------------------------------------------------------------------
+
+# Detect computer operating system: 'Darwin' (Mac) or 'Windows'  
+OS = platform.system()
+
+# Windows-only module
+if OS == 'Windows': 
+    from screeninfo import get_monitors 
+
+
 
 class VideoStreamTracker(Transmitter):
 
     def __init__(self,
-                input_mode,
-                send_command,
-                OS,   
-                HOST = "192.168.138.7", 
-                PORT = 65448,           
-                mirror_image = True,
-                input_window_fullscreen = False,
-                output_window_fullscreen = True,
-                show_wireframe = True,
-                window_name = 'Photo Booth:Photo Booth',
-                tracked_feature = 'body', # options: 'hands'/'body'
-                dual_camera_feed = False,
-                camera = 0,
-                ):
+                 send_command,
+                 OS,  
+                 HOST = "192.168.138.7", 
+                 PORT = 65448,  
+                 input_mode = 'camera',  # options: 'camera' or 'window'          
+                 mirror_image = True,
+                 input_window_fullscreen = False,
+                 output_window_fullscreen = True,
+                 show_wireframe = True,
+                 window_name = 'Photo Booth:Photo Booth',
+                 tracked_feature = 'body', # options: 'hands'/'body'
+                 dual_camera_feed = False,
+                 camera = 0,
+                 ):
         
         super().__init__(HOST, PORT)
 
@@ -523,3 +551,9 @@ class VideoStreamTracker(Transmitter):
                 # This line needed to display video feed 
                 if cv2.waitKey(1) == 27:
                     break
+
+
+if __name__ == "__main__":
+
+    video_tracker = VideoStreamTracker(send_command, OS, HOST, PORT)
+    video_tracker.track_video()

@@ -31,7 +31,7 @@ from video_stream_tracking import *
 # PORT = 65448               # The port used by the server
 
 # Source of input: , 'camera' or 'window' or 'keys'
-input_mode = 'leap_motion' # 'camera'#'leap_motion'#'camera'#'window'#'leap_motion'# 'camera' ##'camera'#'keys' 
+input_mode = 'keys' # 'camera'#'leap_motion'#'camera'#'window'#'leap_motion'# 'camera' ##'camera'#'keys' 
 
 # Set to True to send command to raspberry pi
 send_command = True
@@ -95,7 +95,7 @@ def track_keys():
                 command = 'stop' 
 
             # Send command to server socket on raspberry pi
-            send_command_to_server(HOST, PORT, command)
+            # send_command_to_server(HOST, PORT, command)
             # with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             #     s.connect((HOST, PORT))
             #     s.sendall(command.encode())
@@ -121,15 +121,6 @@ def track_leap_motion():
 
             leap_motion_tracker.idling()
 
-            # # If no hand detected, stop robot
-            # leap_motion_tracker.command = 'stop'
-            # print(leap_motion_tracker.command)
-
-            # # # Send command to robot 
-            # # if send_command:
-            # #     send_command_to_server(HOST, PORT, leap_motion_tracker.command)
-
-            # time.sleep(1)
 
 
 if __name__ == "__main__":

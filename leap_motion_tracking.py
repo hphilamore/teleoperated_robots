@@ -4,6 +4,21 @@ import time
 import cv2
 from transmitter import *
 
+
+#--------------------------------""" SETUP """-----------------------------------------------
+# TODO: Change to command line arguments 
+
+# Set to True to send command to raspberry pi
+send_command = False
+
+# The raspberry pi's hostname or IP address
+HOST = "192.168.138.7"      
+
+# The port used by the server
+PORT = 65448               
+
+#--------------------------------------------------------------------------------------------
+
 class LeapMotionTracker(leap.Listener, Transmitter):
 
     def __init__(self,
@@ -15,7 +30,7 @@ class LeapMotionTracker(leap.Listener, Transmitter):
         leap.Listener.__init__(self)
         Transmitter.__init__(self, HOST, PORT)
         
-        self.send_command = send_command, 
+        self.send_command = send_command
         self.command = 'stop'
 
     def on_connection_event(self, event):
@@ -29,15 +44,6 @@ class LeapMotionTracker(leap.Listener, Transmitter):
             info = event.device.get_info()
 
         print(f"Found device {info.serial}")
-
-    # def send_command_to_server(self, HOST, PORT):
-    #     """
-    #     Uses sockets to send command to server robot over local network
-    #     """
-    #     # Send command to server socket on raspberry pi
-    #     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    #         s.connect((HOST, PORT))
-    #         s.sendall(self.command.encode())
 
     def hand_coordinates_to_command(self, pose_coordinates):
         # TODO: Cusrrent bug, comparing lists. Need to compare coordiates values! 
@@ -117,8 +123,28 @@ class LeapMotionTracker(leap.Listener, Transmitter):
         print(self.command)
 
         if self.send_command:
-                # self.send_command_to_server(HOST, PORT)
-                self.send_command_to_server()
+            # self.send_command_to_server(HOST, PORT)
+            self.send_command_to_server()
 
         time.sleep(1)
 
+
+def track_leap_motion():
+    leap_motion_tracker = LeapMotionTracker(send_command, HOST, PORT)
+
+    connection = leap.Connection()
+    connection.add_listener(leap_motion_tracker)
+
+    running = True
+
+    with connection.open():
+        connection.set_tracking_mode(leap.TrackingMode.Desktop)
+
+        while running:
+
+            leap_motion_tracker.idling()
+
+
+if __name__ == "__main__":
+
+    track_leap_motion()
