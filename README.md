@@ -21,15 +21,12 @@ The server robot is controlled by the client computer over a local wifi network.
 - Create virtual environment __inside__ cloned repository: Run:[`python3 venv env`]
 - Add virtual environment to .gitignore file. Run:[`nano .gitignore`] and add line [`/env`]
 - Activate virtual environment: Run:[`source env/bin/activate`]
+- Install required package, run: [`pip install -r requirements.txt`]
 
 ### Set up motion tracking using mediapipe (make sure leap motion stereo camera is disconnected)
-- Install open cv, run:[`pip install opencv-python`]
-- Install media-pipe, run:[`pip install mediapipe==0.10.9`]
-- Install media-pipe, run:[`pip install mss`]
 - Test motion tracking is working by running [`python examples/body_tracking_demo.py'] and [`python examples/hand_tracking_demo.py`]
 
 ### Set up leap motion camera (from https://github.com/ultraleap/leapc-python-bindings)
-- Install required package, run: [`pip install -r requirements.txt`]
 - Install required package, run: [`pip install -e leapc-python-api`]
 - Connect stereo camera 
 - Test stero camera is working , run: [`python examples/tracking_event_example.py`]
@@ -40,11 +37,11 @@ The server robot is controlled by the client computer over a local wifi network.
 	- run: [`pip install -e leapc-python-api`]
 	- run: [`python examples/tracking_event_example.py`]
 
-
-
 ## Setting up the server Raspberry pi robot
 ### (tentacle_robot/ turtle_robot/ VR_robot)
-- Install buster legacy lite OS 
+- Install buster legacy lite OS https://www.raspberrypi.com/software/
+- Run `ssh <username>@<ip_address>`
+- Enter password when prompted
 - Add any additional wifi networks to etc/wpa_supplicant/wpa_supplicant.conf
 - (Optional) Add static IP for wifi network. Add following snippet to /etc/dhcpcd.conf:
 	`
@@ -77,6 +74,8 @@ The server robot is controlled by the client computer over a local wifi network.
 
 # Remote controlling the server Raspberry pi robot using the client computer
 ## Raspberry pi robot
+- Run `ssh <username>@<ip_address>`
+- Enter password when prompted
 - Make a note of the robot's IP address on the Wifi network you will use for communication
 - Make a note of the port number (variable `PORT`) in `telepresence-server.py` within the subfolder for the relevant robot (tentacle_robot/ turtle_robot/ VR_robot)
 - Activate the virtual environment if you have set one up: Run:[`source env/bin/activate`]
@@ -84,15 +83,22 @@ The server robot is controlled by the client computer over a local wifi network.
 - Alternatively, you can set up the server program to run autonmatically when the Raspberry pi boots, to avoid the need to use the terminal to launch the server program (instructions in Section _Setting up a program to run on boot on the raspberry pi on boot __, below).
 
 ## Client computer
-- Set variable `HOST` in `telepresence-client.py` to noted Raspberry pi IP address
-- Set variable `HOST` in `telepresence-client.py` to value noted from `telepresence-server.py`
-- Optionally define variables at start of `telepresence-client.py` to customise application. For example there are options to control the robot using the keyboard or using motion tracking from a camera livefeed or desktop window 
+- Choose a client program, there is one for each input type:
+	1. keystrokes: `client_keystroke_tracking.py`
+	2. image processing of a video / live feed: `client_video_stream_tracking.py`
+	3. leap motion stereo camera: `client_leap_motion_tracking.py`
+
+- In your chosen program:
+	- Set variable `HOST` in `telepresence-client.py` to noted Raspberry pi IP address
+	- Set variable `PORT` in `telepresence-client.py` to value noted from `telepresence-server.py`
+	- Optionally define class input arguments to change default setup. For example there are options to track the hands / full body from a video stream.
+   
 - Activate virtual environment: Run:[`source env/bin/activate`]
-- Run client program:[`python telepresence-client.py`]
+- Run client program:[`python <CLIENT PROGRAM>.py`]
 - Alternatively, you can create a windows batch file that can be clicked to launch the client program, to avoid the need to use the terminal to launch the client program. Instructions here: https://techrando.com/2019/06/22/how-to-execute-python-scripts-on-your-computer-in-batch-mode/  
 
 ## Troubleshooting
-<br>If you see this warning when using ssh:
+<br>If you see this warning when using ssh to access the raspberry pi:
 
 	`
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
