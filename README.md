@@ -78,7 +78,6 @@ The server robot is controlled by the client computer over a local wifi network.
 		`
 	- Activate virtual environment e.g. run:[`source env/bin/activate`]
 - Install library to operate GPIO pins, run:[`pip3 install gpiozero rpi-gpio`]
-- Install other requirements, run:[`pip3 install -r requirements.txt`]
 - Test everything is working by going into the subfolder for the relevant robot (tentacle_robot/ turtle_robot/ VR_robot) and running the motor test prpgram)
 
 # Remote controlling the server Raspberry pi robot using the client computer
