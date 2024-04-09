@@ -32,8 +32,6 @@ OS = platform.system()
 if OS == 'Windows': 
     from screeninfo import get_monitors 
 
-
-
 class VideoStreamTracker(Transmitter):
 
     def __init__(self,
