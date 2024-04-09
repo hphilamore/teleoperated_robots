@@ -59,7 +59,7 @@ The server robot is controlled by the client computer over a local wifi network.
 	static routers=<IP_Router2>
 	```
 - Open a terminal. Run:[`sudo raspi-config`]. 
-- Enable all interfaces (serial, camera, remote GPIO)
+- Enable all interfaces (camera, remote GPIO)
 - Within 'Serial Port' select 'Would you like a login shell to be accessible over serial?'-> No, 'Would you like the serial port hardware to be enabled?' -> Yes
 - Choose 'Finish' and reboot if prompted
 - Update Raspberry pi:[`sudo apt update`]
