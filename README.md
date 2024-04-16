@@ -86,7 +86,6 @@ The server robot is controlled by the client computer over a local wifi network.
 - Enter password when prompted
 - Make a note of the robot's IP address on the Wifi network you will use for communication
 - Make a note of the port number (variable `PORT`) in `telepresence-server.py` within the subfolder for the relevant robot (tentacle_robot/ turtle_robot/ VR_robot)
-- Activate the virtual environment if you have set one up: Run:[`source env/bin/activate`]
 - Within the subfolder for the relevant robot (tentacle_robot OR turtle_robot OR VR_robot)Run server program:[`python3 telepresence-server.py`]
 - Alternatively, you can set up the server program to run autonmatically when the Raspberry pi boots, to avoid the need to use the terminal to launch the server program (instructions in Section _Setting up a program to run on boot on the raspberry pi on boot __, below).
 
