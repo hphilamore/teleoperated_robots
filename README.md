@@ -95,7 +95,7 @@ The server robot is controlled by the client computer over a local wifi network.
 	2. image processing of a video / live feed: `client_video_stream_tracking.py`
 	3. leap motion stereo camera: `client_leap_motion_tracking.py`
 
-- In your chosen program:
+- In your chosen client program:
 	- Set variable `HOST` in `telepresence-client.py` to noted Raspberry pi IP address
 	- Set variable `PORT` in `telepresence-client.py` to value noted from `telepresence-server.py`
 	- Optionally define class input arguments to change default setup. For example there are options to track the hands / full body from a video stream.
