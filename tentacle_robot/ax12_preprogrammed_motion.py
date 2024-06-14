@@ -269,17 +269,6 @@ if __name__ == "__main__":
                          button=5)
 
 
-  # for i, j in zip(range(1023,0,-1), range(1023)):
-  #   move(motor_right_h, i, Dynamixel)
-  #   move(motor_left_h, j, Dynamixel)
-  #   sleep(0.002)
-  # sleep(0.1)
 
-
-  # move_speed(motor_right_h, 100, 512, Dynamixel)
-  # move_speed(motor_left_h, 100, 512, Dynamixel)
-  # move_speed(motor_right_v, 100, 512, Dynamixel)
-  # move_speed(right_v, 100, 512, Dynamixel)
-  # sleep(3)
 
 

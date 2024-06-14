@@ -31,7 +31,10 @@ cw = 1
 
 def move(servo_id, position, serial_object):
     """
-    Moves a servo with specified ID to specified angle (degrees)
+    Moves a servo with specified ID to specified position (angle in degrees)
+
+    servo_id: servo serial ID number
+    position: allowable range (0, 1023), representing angle in degrees range (0, 300)
 
     """
     
@@ -67,9 +70,14 @@ def move(servo_id, position, serial_object):
 
     return(instruction_packet)
 
+
 def move_speed(servo_id, position, speed, serial_object):
     """
-    Moves a servo with specified ID to specified angle (degrees)
+    Moves a servo with specified ID to specified position (angle in degrees) and specified speed
+
+    servo_id: servo serial ID number
+    position: allowable range (0, 1023), representing angle in degrees range (0, 300)
+    speed: speed of rotation, allowable range (0, 1023)
 
     """
     # P = int(angle/300 * 1024)
@@ -121,10 +129,10 @@ def move_speed(servo_id, position, speed, serial_object):
 def set_endless(servo_id, status, serial_object):
 
     """
-    Set a servo with specified ID to:   
-    - continuous rotation mode if status is true 
-    - servo mode if status is false
+    Set a servo with specified ID to continous rotation/servo mode
 
+    servo_id: servo serial ID number
+    status: True= continuous rotation mode, False = servo mode
     """
     
     if status: # turn endless rotation on               
@@ -175,8 +183,11 @@ def set_endless(servo_id, status, serial_object):
 def turn(servo_id, direction, speed, serial_object):
 
     """
-    Turns a servo in continous rotation mode with specified ID at speed 
-    and in direction given
+    Sets speed and direction of motor with specified ID in continous rotation mode 
+
+    servo_id: servo serial ID number
+    direction: cw = clockwise rotation, ccw = counter-clockwise rotation
+    speed: 
     """
 
     if direction == ccw:
@@ -214,67 +225,30 @@ def turn(servo_id, direction, speed, serial_object):
     return(instruction_packet)
 
 
-def sweep(servo_id, positions, wait, serial_object):
+# def sweep(servo_id, positions, wait, serial_object):
 
-    """
-    Sweep a servo with specified ID over range specified
-    """
-    for p in positions:
-        move(servo_id, p, serial_object)
-        sleep(wait)
-        # move_speed(servo_id, p, speed, serial_object)
-        print(p)
+#     """
+#     Sweep a servo with specified ID over angular range specified
+#     """
+#     for p in positions:
+#         move(servo_id, p, serial_object)
+#         sleep(wait)
+#         # move_speed(servo_id, p, speed, serial_object)
+#         print(p)
         
 
-def binary_position(servo_id, x, serial_object):
-    """
-    Move servo to one angle or another based on x coordinate from motion 
-    tracking relative to threshold value 
 
-    """
-    set_endless(servo_id, False, serial_object)
-    GPIO.output(18,GPIO.HIGH) 
-    if x > 0.5:
-        angle = 0
-        move(servo_id, int(angle/300 * 1024), serial_object)
-        print(angle)
-
-        
-    else:
-        angle = 60
-        move(servo_id, int(angle/300 * 1024), serial_object)   
-        print(angle)
-
-
-def binary_rotation(servo_id, x, serial_object):
-    """
-    Move servo one direction or another based on x coordinate from motion 
-    tracking relative to threshold value 
-    """
-    set_endless(servo_id, True)
-    if x > 0.5:
-        GPIO.output(18,GPIO.HIGH) 
-        turn(servo_id, ccw, 500, serial_object)
-
-
-    else:
-        GPIO.output(18,GPIO.HIGH)
-        turn(servo_id, cw, 500, serial_object)
-        
-         
-        
-        
-def forwards(serial_object, left=0x02, right=0x01):
-    """
-    Turn two servos labelled as left and right in same direction if configured as 
-    differential drive wheels on a robot
-    """
-    GPIO.output(18,GPIO.HIGH) 
-    set_endless(left, True, serial_object)
-    set_endless(right, True, serial_object)
+# def forwards(serial_object, left=0x02, right=0x01):
+#     """
+#     Turn two servos labelled as left and right in same direction if configured as 
+#     differential drive wheels on a robot
+#     """
+#     GPIO.output(18,GPIO.HIGH) 
+#     set_endless(left, True, serial_object)
+#     set_endless(right, True, serial_object)
     
-    turn(left, ccw,1000, serial_object)
-    turn(right, cw, 1000, serial_object)    
+#     turn(left, ccw,1000, serial_object)
+#     turn(right, cw, 1000, serial_object)    
 
 
 def move_check(servo_id, position):
@@ -297,3 +271,55 @@ def move_check(servo_id, position):
     L = hex(L)
 
     print(H,L)
+
+
+
+if __name__ == "__main__":
+
+    # Setup GPIO pins 
+    GPIO.setwarnings(False)
+    GPIO.setmode(GPIO.BCM)
+    enable_pin = 18.                  # Data Direction Pin
+    GPIO.setup(enable_pin,GPIO.OUT)     
+
+    # Create serial object 
+    Dynamixel=serial.Serial("/dev/serial0",baudrate=1000000,timeout=0.1, bytesize=8)   
+
+    # Set motors with ID 1-2 to servo mode
+    set_endless(0x01, False, Dynamixel)
+    set_endless(0x02, False, Dynamixel)
+
+    # Set motors with ID 3-4 to continuous rotation mode
+    set_endless(0x03, True, Dynamixel)
+    set_endless(0x04, True, Dynamixel)
+
+    # Enable send data to motors
+    GPIO.output(18,GPIO.HIGH)
+
+    while True:
+        # Move motors 1-2 to central position
+        move(0x01, 512, Dynamixel)
+        move(0x02, 512, Dynamixel)
+
+        # Sweep motor ID 1 through range of angles
+        for i in range(513, 1024):
+            move(0x01, i, Dynamixel)
+            sleep(0.005)
+
+        # Move motor ID 2 to a position with a specified speed
+        move_speed(0x02, 150, 500, Dynamixel)
+
+        # Rotate motor ID 3 continuousy in clockwise direction at full speed
+        turn(0x03, 'cw', 1023, Dynamixel)
+
+        # Rotate motor ID 4 continuousy in counter-clockwise direction at half speed
+        turn(0x04, 'ccw', 512, Dynamixel)
+
+        # Wait for 5 seconds
+        sleep(5)
+
+        # Stop motors ID 3-4
+        turn(0x03, 'cw', 0, Dynamixel)
+        turn(0x04, 'ccw', 0, Dynamixel)
+
+
