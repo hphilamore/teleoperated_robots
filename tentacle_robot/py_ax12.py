@@ -187,7 +187,7 @@ def turn(servo_id, direction, speed, serial_object):
 
     servo_id: servo serial ID number
     direction: cw = clockwise rotation, ccw = counter-clockwise rotation
-    speed: 
+    speed: speed of rotation, allowable range (0, 1023)
     """
 
     if direction == ccw:
@@ -238,17 +238,17 @@ def turn(servo_id, direction, speed, serial_object):
         
 
 
-# def forwards(serial_object, left=0x02, right=0x01):
-#     """
-#     Turn two servos labelled as left and right in same direction if configured as 
-#     differential drive wheels on a robot
-#     """
-#     GPIO.output(18,GPIO.HIGH) 
-#     set_endless(left, True, serial_object)
-#     set_endless(right, True, serial_object)
+def forwards(serial_object, left=0x03, right=0x04):
+    """
+    Turn two servos labelled as left and right in same direction if configured as 
+    differential drive wheels on a robot
+    """
+    GPIO.output(18,GPIO.HIGH) 
+    set_endless(left, True, serial_object)
+    set_endless(right, True, serial_object)
     
-#     turn(left, ccw,1000, serial_object)
-#     turn(right, cw, 1000, serial_object)    
+    turn(left, ccw,1000, serial_object)
+    turn(right, cw, 1000, serial_object)    
 
 
 def move_check(servo_id, position):
@@ -310,16 +310,16 @@ if __name__ == "__main__":
         move_speed(0x02, 150, 500, Dynamixel)
 
         # Rotate motor ID 3 continuousy in clockwise direction at full speed
-        turn(0x03, 'cw', 1023, Dynamixel)
+        turn(0x03, cw, 1023, Dynamixel)
 
         # Rotate motor ID 4 continuousy in counter-clockwise direction at half speed
-        turn(0x04, 'ccw', 512, Dynamixel)
+        turn(0x04, ccw, 512, Dynamixel)
 
         # Wait for 5 seconds
         sleep(5)
 
         # Stop motors ID 3-4
-        turn(0x03, 'cw', 0, Dynamixel)
-        turn(0x04, 'ccw', 0, Dynamixel)
+        turn(0x03, cw, 0, Dynamixel)
+        turn(0x04, ccw, 0, Dynamixel)
 
 
