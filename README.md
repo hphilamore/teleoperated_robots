@@ -18,7 +18,7 @@ The server robot is controlled by the client computer over a local wifi network.
 	-  run: [`env /usr/bin/arch -arm64 /bin/zsh --login`] (https://vineethbharadwaj.medium.com/m1-mac-switching-terminal-between-x86-64-and-arm64-e45f324184d9)
  	-  check terminal is set up to use the correct architecture by running [`arch`] (should return `arm64`) 
 - Clone this git repository
-- Create virtual environment __inside__ cloned repository: Run:[`python venv env`]
+- Create virtual environment __inside__ cloned repository: Run:[`python -m venv env`]
 - Add virtual environment to .gitignore file. Run:[`nano .gitignore`] and add line [`/env`]
 - Activate virtual environment: Run:[`source env/bin/activate`]
 - Install required package, run: [`pip install -r requirements.txt`]
